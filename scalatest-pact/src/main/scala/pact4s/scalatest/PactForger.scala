@@ -8,7 +8,9 @@ trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
 
   def mockServer: BaseMockServer = server
 
-  abstract override def run(testName: Option[String], args: Args): Status = {
+  @volatile private var testFailed = false
+
+  abstract override def run(testName: Option[String], args: Args): Status =
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
@@ -16,12 +18,23 @@ trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
       server.start()
       server.waitForServer()
       try {
-        super.run(testName, args)
+        val result = super.run(testName, args)
+        if (!result.succeeds())
+          testFailed = true
+        result
       } finally {
-        logger.info(s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}")
-        server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
+        if (testFailed) {
+          logger.info(
+            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+          )
+        } else {
+          logger.info(
+            s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+          )
+          server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
+        }
         server.stop()
       }
     }
-  }
+
 }
