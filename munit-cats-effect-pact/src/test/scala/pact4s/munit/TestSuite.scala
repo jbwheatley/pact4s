@@ -3,7 +3,11 @@ package pact4s.munit
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
-import scalaj.http.Http
+import cats.implicits.catsSyntaxApplicativeId
+import org.http4s.{Header, Headers, Method, Request, Uri}
+import org.http4s.ember.client
+import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.ci.CIString
 
 class TestSuite extends PactForger {
 
@@ -26,13 +30,25 @@ class TestSuite extends PactForger {
     .status(204)
     .toPact()
 
+  val client = ResourceSuiteLocalFixture(
+    "httpClient",
+    EmberClientBuilder.default[IO].build
+  )
+
+  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
+
   pactTest("munit pact test") { server =>
-    IO(Http(server.getUrl + "/hello").postData("{\"name\": \"harry\"}").header("content-type", "application/json").asString.body)
-      .assertEquals("{\"hello\": \"harry\"}")
+    val request = Request[IO](method = Method.POST, uri = Uri.unsafeFromString(server.getUrl + "/hello"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+      .withEntity("{\"name\": \"harry\"}")
+    client().run(request).use {
+      _.as[String].assertEquals("{\"hello\": \"harry\"}")
+    }
   }
 
   pactTest("another munit pact test") { server =>
-    IO(Http(server.getUrl + "/goodbye").header("content-type", "application/json").asString.code)
-      .assertEquals(204)
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/goodbye"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+    client().run(request).use {
+      _.status.code.pure[IO].assertEquals(204)
+    }
   }
 }

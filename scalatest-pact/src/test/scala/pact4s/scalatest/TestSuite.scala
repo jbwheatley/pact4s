@@ -2,9 +2,14 @@ package pact4s.scalatest
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
+import cats.effect.IO
+import org.http4s.ember.client.EmberClientBuilder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scalaj.http.Http
+import cats.effect.unsafe.implicits.global
+import cats.implicits.catsSyntaxApplicativeId
+import org.http4s.{Header, Headers, Method, Request, Uri}
+import org.typelevel.ci.CIString
 
 class TestSuite extends AnyFlatSpec with Matchers with PactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext("./scalatest-pact/target/pacts")
@@ -26,13 +31,21 @@ class TestSuite extends AnyFlatSpec with Matchers with PactForger {
     .status(204)
     .toPact()
 
+  val client = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
+
+
   it should "scalatest pact test" in {
-    val result = Http(server.getUrl + "/hello").postData("{\"name\": \"harry\"}").header("content-type", "application/json").asString.body
-    result shouldBe "{\"hello\": \"harry\"}"
+    val request = Request[IO](method = Method.POST, uri = Uri.unsafeFromString(server.getUrl + "/hello"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+      .withEntity("{\"name\": \"harry\"}")
+    client.run(request).use {
+      _.as[String].map(_ shouldBe "{\"hello\": \"harry\"}")
+    }.unsafeRunSync()
   }
 
   it should "another scalatest pact test" in {
-    val result = Http(server.getUrl + "/goodbye").header("content-type", "application/json").asString.code
-    result shouldBe 204
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/goodbye"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+    client.run(request).use {
+      _.status.code.pure[IO].map(_ shouldBe 204)
+    }.unsafeRunSync()
   }
 }

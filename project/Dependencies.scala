@@ -2,11 +2,13 @@ import sbt._
 
 object Dependencies {
   val pactJvm = "4.2.0"
+  val http4s = "1.0.0-M21"
 
   val shared: Seq[ModuleID] = Seq(
     "au.com.dius.pact" % "consumer" % pactJvm,
-    "org.scalaj" %% "scalaj-http" % "2.4.2" % Test,
-    "org.log4s" %% "log4s" % "1.8.2",
+    "org.http4s" %% "http4s-ember-client" % http4s % Test,
+    "org.http4s" %% "http4s-dsl" % http4s % Test,
+    "org.log4s" %% "log4s" % "1.10.0-M6",
     "ch.qos.logback" % "logback-classic" % "1.2.3" % Runtime
   )
 

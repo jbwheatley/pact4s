@@ -1,9 +1,13 @@
 package pact4s.weaver
 
-import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.{BaseMockServer, ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
-import cats.effect.IO
-import scalaj.http.Http
+import cats.effect.{IO, Resource}
+import cats.implicits.catsSyntaxApplicativeId
+import org.http4s.client.Client
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.{Header, Headers, Method, Request, Uri}
+import org.typelevel.ci.CIString
 import weaver.IOSuite
 
 object TestSuite extends IOSuite with PactForger[IO] {
@@ -26,13 +30,26 @@ object TestSuite extends IOSuite with PactForger[IO] {
     .status(204)
     .toPact()
 
-  test("weaver pact test") { server =>
-    IO(Http(server.getUrl + "/hello").postData("{\"name\": \"harry\"}").header("content-type", "application/json").asString.body)
-      .map(r => expect(r == "{\"hello\": \"harry\"}"))
+  override type Resources = Client[IO]
+
+  override def additionalSharedResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+
+  test("munit pact test") { resources =>
+    val client = resources._1
+    val server = resources._2
+    val request = Request[IO](method = Method.POST, uri = Uri.unsafeFromString(server.getUrl + "/hello"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+      .withEntity("{\"name\": \"harry\"}")
+    client.run(request).use {
+      _.as[String].map(body => expect(body == "{\"hello\": \"harry\"}"))
+    }
   }
 
-  test("another weaver pact test") { server =>
-    IO(Http(server.getUrl + "/goodbye").header("content-type", "application/json").asString.code)
-      .map(r => expect(r == 204))
+  test("another munit pact test") { resources =>
+    val client = resources._1
+    val server = resources._2
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/goodbye"), headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
+    client.run(request).use {
+      _.status.code.pure[IO].map(code => expect(code == 204))
+    }
   }
 }
