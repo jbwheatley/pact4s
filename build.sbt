@@ -1,11 +1,45 @@
-name := "munit-cats-effect-pact"
+import sbt.Keys.resolvers
 
-version := "0.1"
+name := "pact4s"
 
-scalaVersion := "2.13.5"
+ThisBuild / version := "0.0.1"
 
-libraryDependencies ++= Dependencies.all
+ThisBuild / scalaVersion := "2.13.5"
 
-resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+val commonSettings = Seq(
+  resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+)
 
-testFrameworks += new TestFramework("munit.Framework")
+lazy val pactSbt = (project in file("sbt-pact")).settings(
+  name := "sbt-pact",
+  sbtPlugin := true,
+)
+
+lazy val shared = (project in file("shared")).settings(
+  name := "shared",
+  libraryDependencies ++= Dependencies.shared,
+)
+
+lazy val munit =
+  (project in file("munit-cats-effect-pact")).settings(commonSettings).settings(
+    name := "munit-cats-effect-pact",
+    libraryDependencies ++= Dependencies.munit,
+    testFrameworks += new TestFramework("munit.Framework")
+  ).dependsOn(shared)
+
+lazy val scalaTest = (project in file("scalatest-pact")).settings(
+  name := "scalatest-pact",
+  libraryDependencies ++= Dependencies.scalatest,
+).dependsOn(shared)
+
+lazy val weaver = (project in file("weaver-pact")).settings(
+  name := "weaver-pact",
+  libraryDependencies ++= Dependencies.weaver,
+  testFrameworks += new TestFramework("weaver.framework.CatsEffect")
+).dependsOn(shared)
+
+lazy val pact4s = (project in file(".")).aggregate(
+  pactSbt, munit, scalaTest, weaver
+)
+
+

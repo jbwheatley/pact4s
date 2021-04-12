@@ -1,11 +1,14 @@
-package munit.pact
+package pact4s.weaver
 
-import au.com.dius.pact.consumer.ConsumerPactBuilder
+import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import scalaj.http.Http
+import weaver.IOSuite
 
-class TestSuite extends PactForger {
+object TestSuite extends IOSuite with PactForger[IO] {
+  override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext("./weaver-pact/target/pacts")
+
   def pact: RequestResponsePact = ConsumerPactBuilder
     .consumer("Consumer")
     .hasPactWith("Provider")
@@ -23,13 +26,13 @@ class TestSuite extends PactForger {
     .status(204)
     .toPact()
 
-  pactTest("munit.pact test") { server =>
+  test("weaver pact test") { server =>
     IO(Http(server.getUrl + "/hello").postData("{\"name\": \"harry\"}").header("content-type", "application/json").asString.body)
-      .assertEquals("{\"hello\": \"harry\"}")
+      .map(r => expect(r == "{\"hello\": \"harry\"}"))
   }
 
-  pactTest("another munit.pact test") { server =>
+  test("another weaver pact test") { server =>
     IO(Http(server.getUrl + "/goodbye").header("content-type", "application/json").asString.code)
-      .assertEquals(205)
+      .map(r => expect(r == 204))
   }
 }
