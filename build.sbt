@@ -1,7 +1,6 @@
 import sbt.Keys.{crossScalaVersions, resolvers}
 
 name := "pact4s"
-organization := "io.jbwheatley"
 
 inThisBuild(List(
   organization := "io.github.jbwheatley",
