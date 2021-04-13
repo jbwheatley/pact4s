@@ -8,7 +8,15 @@ inThisBuild(List(
   organization := "io.github.jbwheatley",
   homepage := Some(url("https://github.com/jbwheatley/pact4s")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-  crossScalaVersions := List(scala213, scala3)
+  developers := List(
+    Developer(
+      "jbwheatley",
+      "jbwheatley",
+      "jbwheatley@gmail.com",
+      url("https://github.com/jbwheatley")
+    )
+  ),
+  crossScalaVersions := List(scala213, scala3),
 ))
 
 
