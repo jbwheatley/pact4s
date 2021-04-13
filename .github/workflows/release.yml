@@ -1,7 +1,6 @@
 name: Release
 on:
   push:
-    branches: []
     tags: ["*"]
 jobs:
   publish:
@@ -11,6 +10,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
       - uses: olafurpg/setup-gpg@v3
       - run: sbt ci-release
         env:
