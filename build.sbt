@@ -1,11 +1,16 @@
 import sbt.Keys.{crossScalaVersions, resolvers}
 
 name := "pact4s"
+organization := "io.jbwheatley"
+
+inThisBuild(List(
+  organization := "io.github.jbwheatley",
+  homepage := Some(url("https://github.com/jbwheatley/pact4s")),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+))
 
 val scala213 = "2.13.5"
 val scala3 = "3.0.0-RC2"
-
-ThisBuild / version := "0.0.1"
 
 ThisBuild / scalaVersion := scala213
 

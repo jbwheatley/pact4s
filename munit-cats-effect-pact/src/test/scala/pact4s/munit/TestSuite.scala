@@ -5,7 +5,6 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import cats.implicits.catsSyntaxApplicativeId
 import org.http4s.{Header, Headers, Method, Request, Uri}
-import org.http4s.ember.client
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 
