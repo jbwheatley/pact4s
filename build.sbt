@@ -17,6 +17,7 @@ inThisBuild(List(
     )
   ),
   crossScalaVersions := List(scala213, scala3),
+  sonatypeCredentialHost := Sonatype.sonatype01
 ))
 
 
