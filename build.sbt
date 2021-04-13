@@ -3,6 +3,8 @@ import sbt.Keys.{crossScalaVersions, resolvers}
 val scala213 = "2.13.5"
 val scala3 = "3.0.0-RC2"
 
+thisProject / sonatypeCredentialHost := Sonatype.sonatype01
+
 inThisBuild(List(
   name := "pact4s",
   organization := "io.github.jbwheatley",
@@ -16,8 +18,7 @@ inThisBuild(List(
       url("https://github.com/jbwheatley")
     )
   ),
-  crossScalaVersions := List(scala213, scala3),
-  sonatypeCredentialHost := Sonatype.sonatype01
+  crossScalaVersions := List(scala213, scala3)
 ))
 
 
