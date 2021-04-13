@@ -16,7 +16,6 @@ inThisBuild(List(
       url("https://github.com/jbwheatley")
     )
   ),
-  sonatypeProfileName := "jbwheatley",
   crossScalaVersions := List(scala213, scala3),
 ))
 
