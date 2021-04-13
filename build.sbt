@@ -12,10 +12,11 @@ inThisBuild(List(
     Developer(
       "jbwheatley",
       "jbwheatley",
-      "jbwheatley@gmail.com",
+      "jbwheatley@proton.me",
       url("https://github.com/jbwheatley")
     )
   ),
+  sonatypeProfileName := "jbwheatley",
   crossScalaVersions := List(scala213, scala3),
 ))
 
