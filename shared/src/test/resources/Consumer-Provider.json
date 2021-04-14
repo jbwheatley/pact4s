@@ -1,0 +1,44 @@
+{
+  "consumer": {
+    "name": "Consumer"
+  },
+  "interactions": [
+    {
+      "description": "a request to say Goodbye",
+      "request": {
+        "method": "GET",
+        "path": "/goodbye"
+      },
+      "response": {
+        "status": 204
+      }
+    },
+    {
+      "description": "a request to say Hello",
+      "request": {
+        "body": {
+          "name": "harry"
+        },
+        "method": "POST",
+        "path": "/hello"
+      },
+      "response": {
+        "body": {
+          "hello": "harry"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.2.0"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "Provider"
+  }
+}
