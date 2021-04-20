@@ -6,10 +6,8 @@ val scala3 = "3.0.0-RC2"
 sonatypeCredentialHost := Sonatype.sonatype01
 
 inThisBuild(List(
-  name := "pact4s",
   organization := "io.github.jbwheatley",
   homepage := Some(url("https://github.com/jbwheatley/pact4s")),
-  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
     Developer(
       "jbwheatley",
@@ -26,12 +24,15 @@ publish/skip := true // don't publish the root project
 
 val commonSettings = Seq(
   resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  startYear := Some(2021),
+  headerLicense := Some(
+    HeaderLicense.ALv2(
+      s"${startYear.value.get}-${java.time.Year.now}",
+      organization.value
+    )
+  ),
 )
-
-//lazy val pactSbt = (project in file("sbt-pact")).settings(
-//  name := "sbt-pact",
-//  sbtPlugin := true,
-//)
 
 lazy val shared = (project in file("shared"))
   .settings(commonSettings)
@@ -64,8 +65,11 @@ lazy val weaver = (project in file("weaver-pact")).settings(commonSettings)
   testFrameworks += new TestFramework("weaver.framework.CatsEffect")
 ).dependsOn(shared)
 
-lazy val pact4s = (project in file(".")).aggregate(
-  munit, scalaTest, weaver
-)
+lazy val pact4s = (project in file("."))
+  .settings(commonSettings)
+  .enablePlugins(AutomateHeaderPlugin)
+  .aggregate(
+    munit, scalaTest, weaver, shared
+  )
 
 
