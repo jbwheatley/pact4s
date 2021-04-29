@@ -17,7 +17,8 @@ inThisBuild(List(
       url("https://github.com/jbwheatley")
     )
   ),
-  crossScalaVersions := List(scala213, scala3),
+  scalaVersion := scala213,
+  crossScalaVersions := List(scala213), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
 ))
 
 

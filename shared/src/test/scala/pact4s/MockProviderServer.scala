@@ -1,8 +1,6 @@
 package pact4s
 
 import java.io.File
-
-import au.com.dius.pact.core.model.FileSource
 import au.com.dius.pact.provider.ProviderInfo
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
@@ -16,6 +14,8 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import Name._
 import org.http4s.server.Server
+import pact4s.Authentication.BasicAuth
+import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
 
 class MockProviderServer(port: Int) {
   def server: Resource[IO, Server] =
@@ -39,14 +39,34 @@ class MockProviderServer(port: Int) {
       }
       .orNotFound
 
-  def providerInfo: ProviderInfo = {
-    val prov = new ProviderInfo("Provider", "http", "localhost", port.toString(), "/")
-    prov.hasPactWith("Consumer", { consumer =>
-      consumer.setPactSource(new FileSource(new File("./shared/src/test/resources/Consumer-Provider.json")))
-      kotlin.Unit.INSTANCE
-    })
-    prov
-  }
+  def fileSourceProviderInfo: ProviderInfoBuilder =
+    ProviderInfoBuilder(
+      "Pact4sProvider",
+      "http",
+      "localhost",
+      port,
+      "/",
+      false,
+      FileSource("Pact4sConsumer", new File("./scripts/Pact4sConsumer-Pact4sProvider.json"))
+    )
+
+  def brokerProviderInfo: ProviderInfoBuilder =
+    ProviderInfoBuilder(
+      "Pact4sProvider",
+      "http",
+      "localhost",
+      port,
+      "/",
+      publishResults = false,
+      PactBrokerWithSelectors(
+        "https://test.pact.dius.com.au",
+        Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
+        enablePending = true,
+        None,
+        Nil,
+        ConsumerVersionSelector(None, latest = true) :: Nil
+      )
+    )
 }
 
 private[pact4s] final case class Name(name: String)

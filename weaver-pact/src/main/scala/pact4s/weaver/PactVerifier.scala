@@ -9,9 +9,9 @@ import scala.jdk.CollectionConverters._
 
 trait PactVerifier[F[_]] extends MutableFSuite[F] with PactVerifyResources {
   override private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit =
-    pureTest(s"Verification of pact between ${provider.getName} and ${consumer.getName}") {
+    pureTest(s"Verification of pact between ${providerInfo.getName} and ${consumer.getName}") {
       val result =
-        verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), provider, consumer) match {
+        verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
           case failed: VerificationResult.Failed =>
             verifier.displayFailures(List(failed).asJava)
             false
