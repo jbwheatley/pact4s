@@ -1,0 +1,4 @@
+services:
+  pactcli:
+    image: pactfoundation/pact-cli
+    container_name: pact-cli
