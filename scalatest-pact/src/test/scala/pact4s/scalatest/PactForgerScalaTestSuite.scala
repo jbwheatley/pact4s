@@ -1,17 +1,19 @@
-package pact4s.munit
+package pact4s.scalatest
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
+import org.http4s.ember.client.EmberClientBuilder
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import cats.effect.unsafe.implicits.global
 import cats.implicits.catsSyntaxApplicativeId
 import org.http4s.{Header, Headers, Method, Request, Uri}
-import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 
-class TestSuite extends PactForger {
-
+class PactForgerScalaTestSuite extends AnyFlatSpec with Matchers with PactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./munit-cats-effect-pact/target/pacts"
+    "./scalatest-pact/target/pacts"
   )
 
   def pact: RequestResponsePact =
@@ -32,28 +34,29 @@ class TestSuite extends PactForger {
       .status(204)
       .toPact()
 
-  val client = ResourceSuiteLocalFixture(
-    "httpClient",
-    EmberClientBuilder.default[IO].build
-  )
+  val client = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
 
-  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
-
-  pactTest("munit pact test") { server =>
+  it should "scalatest pact test" in {
     val request = Request[IO](method = Method.POST,
                               uri = Uri.unsafeFromString(server.getUrl + "/hello"),
                               headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
       .withEntity("{\"name\": \"harry\"}")
-    client().run(request).use {
-      _.as[String].assertEquals("{\"hello\": \"harry\"}")
-    }
+    client
+      .run(request)
+      .use {
+        _.as[String].map(_ shouldBe "{\"hello\": \"harry\"}")
+      }
+      .unsafeRunSync()
   }
 
-  pactTest("another munit pact test") { server =>
+  it should "another scalatest pact test" in {
     val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/goodbye"),
                               headers = Headers(Header.Raw(CIString("content-type"), "application/json")))
-    client().run(request).use {
-      _.status.code.pure[IO].assertEquals(204)
-    }
+    client
+      .run(request)
+      .use {
+        _.status.code.pure[IO].map(_ shouldBe 204)
+      }
+      .unsafeRunSync()
   }
 }
