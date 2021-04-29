@@ -16,7 +16,8 @@ inThisBuild(List(
       url("https://github.com/jbwheatley")
     )
   ),
-  crossScalaVersions := List(scala213, scala3),
+  scalaVersion := scala213,
+  crossScalaVersions := List(scala213), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
 ))
 
 
@@ -49,13 +50,13 @@ lazy val munit =
     name := "pact4s-munit-cats-effect",
     libraryDependencies ++= Dependencies.munit,
     testFrameworks += new TestFramework("munit.Framework")
-  ).dependsOn(shared)
+  ).dependsOn(shared % "compile->compile;test->test")
 
 lazy val scalaTest = (project in file("scalatest-pact")).settings(commonSettings)
   .settings(
   name := "pact4s-scalatest",
   libraryDependencies ++= Dependencies.scalatest,
-).dependsOn(shared)
+).dependsOn(shared % "compile->compile;test->test")
 
 lazy val weaver = (project in file("weaver-pact")).settings(commonSettings)
   .settings(commonSettings)
@@ -63,7 +64,7 @@ lazy val weaver = (project in file("weaver-pact")).settings(commonSettings)
   name := "pact4s-weaver",
   libraryDependencies ++= Dependencies.weaver,
   testFrameworks += new TestFramework("weaver.framework.CatsEffect")
-).dependsOn(shared)
+).dependsOn(shared % "compile->compile;test->test")
 
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)
@@ -71,5 +72,3 @@ lazy val pact4s = (project in file("."))
   .aggregate(
     munit, scalaTest, weaver, shared
   )
-
-
