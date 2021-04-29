@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "Consumer"
+    "name": "Pact4sConsumer"
   },
   "interactions": [
     {
@@ -39,6 +39,6 @@
     }
   },
   "provider": {
-    "name": "Provider"
+    "name": "Pact4sProvider"
   }
 }
