@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters.SeqHasAsJava
 
-case class ProviderInfoBuilder(
+final case class ProviderInfoBuilder(
     name: String,
     protocol: String,
     host: String,
@@ -20,53 +20,77 @@ case class ProviderInfoBuilder(
     path: String,
     publishResults: Boolean,
     pactSource: PactSource
-                                   ) {
+) {
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
     pactSource match {
-      case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
-      case FileSource(consumer, file) => {
-        p.hasPactWith(consumer, { consumer =>
-          consumer.setPactSource(new PactJVMFileSource(file))
-          kotlin.Unit.INSTANCE
-        })
+      case broker: PactBroker => applyBrokerSourceToProvider(p, broker, publishResults)
+      case FileSource(consumer, file) =>
+        p.hasPactWith(
+          consumer,
+          { consumer =>
+            consumer.setPactSource(new PactJVMFileSource(file))
+            kotlin.Unit.INSTANCE
+          }
+        )
         p
-      }
     }
   }
 
   @tailrec
-  private def applyBrokerSourceToProvider(providerInfo: ProviderInfo, pactSource: PactBroker): ProviderInfo = pactSource match {
-    case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
-      val options: java.util.HashMap[String, Any] = new java.util.HashMap()
-      options.put("enablePending", enablePending)
-      options.put("providerTags", providerTags.asJava)
-      auth.foreach {
-        case TokenAuth(token) => options.put("authentication", List("bearer", token).asJava)
-        case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
-      }
-      includeWipPactsSince.foreach { since => options.put("includeWipPactsSince", new Date(since.toMillis))}
-      providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
-      providerInfo
-    case PactBrokerWithTags(brokerUrl, auth, tags) =>
-      applyBrokerSourceToProvider(
-        providerInfo,
-        PactBrokerWithSelectors(brokerUrl, auth, enablePending = false, None, Nil, tags.map(tag => ConsumerVersionSelector(Some(tag), latest = true)))
-      )
-  }
+  private def applyBrokerSourceToProvider(
+      providerInfo: ProviderInfo,
+      pactSource: PactBroker,
+      publishResults: Boolean
+  ): ProviderInfo =
+    pactSource match {
+      case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
+        val options: java.util.HashMap[String, Any] = new java.util.HashMap()
+        options.put("enablePending", enablePending)
+        options.put("providerTags", providerTags.asJava)
+        auth.foreach {
+          case TokenAuth(token)      => options.put("authentication", List("bearer", token).asJava)
+          case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
+        }
+        includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", new Date(since.toMillis)))
+        options.put("pact.verifier.publishResults", publishResults)
+        providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
+        providerInfo
+      case PactBrokerWithTags(brokerUrl, auth, tags) =>
+        applyBrokerSourceToProvider(
+          providerInfo,
+          PactBrokerWithSelectors(
+            brokerUrl,
+            auth,
+            enablePending = false,
+            None,
+            Nil,
+            tags.map(tag => ConsumerVersionSelector(Some(tag)))
+          ),
+          publishResults
+        )
+    }
 }
 
 sealed trait PactSource
 
 object PactSource {
-  case class FileSource(consumer: String, file: File) extends PactSource
+  final case class FileSource(consumer: String, file: File) extends PactSource
 
-  trait PactBroker extends PactSource {
+  sealed trait PactBroker extends PactSource {
     def brokerUrl: String
     def auth: Option[Authentication]
   }
-  case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication], tags: List[String]) extends PactBroker
-  case class PactBrokerWithSelectors(brokerUrl: String, auth: Option[Authentication], enablePending: Boolean, includeWipPactsSince: Option[FiniteDuration], providerTags: List[String], selectors: List[ConsumerVersionSelector]) extends PactBroker
+  final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
+      extends PactBroker
+  final case class PactBrokerWithSelectors(
+      brokerUrl: String,
+      auth: Option[Authentication] = None,
+      enablePending: Boolean = false,
+      includeWipPactsSince: Option[FiniteDuration] = None,
+      providerTags: List[String] = Nil,
+      selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
+  ) extends PactBroker
 }
 
 /*
@@ -83,20 +107,22 @@ This is used for example when there is an API that has multiple consumers, one o
 The deployed service only needs the latest production pact verified, where as the mobile consumer may want all the production pacts verified.
  */
 final case class ConsumerVersionSelector(
-                                                                                  tag: Option[String],
-                                                                                  latest: Boolean,
-                                                                                  fallbackTag: Option[String] = None,
-                                                                                  consumer: Option[String] = None,
-                                                                                ) {
-  def withFallbackTag(tag: String): ConsumerVersionSelector = this.copy(fallbackTag = Some(tag))
+    tag: Option[String] = None,
+    latest: Boolean = true,
+    fallbackTag: Option[String] = None,
+    consumer: Option[String] = None
+) {
+  def withTag(tag: String): ConsumerVersionSelector           = this.copy(tag = Some(tag))
+  def withFallbackTag(tag: String): ConsumerVersionSelector   = this.copy(fallbackTag = Some(tag))
   def withConsumer(consumer: String): ConsumerVersionSelector = this.copy(consumer = Some(consumer))
 
-  private[pact4s] def toPactJVMSelector: PactJVMSelector = new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
+  private[pact4s] def toPactJVMSelector: PactJVMSelector =
+    new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
 }
 
 sealed trait Authentication
 
 object Authentication {
   final case class BasicAuth(user: String, pass: String) extends Authentication
-  final case class TokenAuth(token: String) extends Authentication
+  final case class TokenAuth(token: String)              extends Authentication
 }

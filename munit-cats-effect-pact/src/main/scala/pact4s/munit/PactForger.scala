@@ -65,15 +65,14 @@ trait PactForger extends CatsEffectSuite with PactForgerResources {
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(
       new Test(
-        options.name, { () =>
-          try {
-            PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
-          } catch {
+        options.name,
+        () =>
+          try PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
+          catch {
             case NonFatal(e) =>
               testFailed = true
               Future.failed(e)
-          }
-        },
+          },
         options.tags,
         loc
       )
