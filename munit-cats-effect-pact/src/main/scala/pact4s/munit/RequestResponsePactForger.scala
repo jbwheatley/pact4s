@@ -17,26 +17,19 @@
 package pact4s.munit
 
 import au.com.dius.pact.consumer.BaseMockServer
-import cats.effect.{IO, Resource}
+import cats.effect.{IO, Resource, SyncIO}
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
-import pact4s.PactForgerResources
+import pact4s.RequestResponsePactForgerResources
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-trait PactForger extends CatsEffectSuite with PactForgerResources {
+trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePactForgerResources {
 
   @volatile private var testFailed: Boolean = false
 
-  override def munitFixtures: Seq[Fixture[_]] = serverFixture +: additionalMunitFixtures
-
-  def additionalMunitFixtures: Seq[Fixture[_]] = Seq.empty
-
-  private val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
-    "mockHttpServer",
-    serverResource
-  )
+  val mockServer: SyncIO[FunFixture[BaseMockServer]] = ResourceFixture(serverResource)
 
   private def serverResource: Resource[IO, BaseMockServer] =
     Resource.make[IO, BaseMockServer] {
@@ -59,8 +52,6 @@ trait PactForger extends CatsEffectSuite with PactForgerResources {
       } >>
         IO.delay(s.stop())
     }
-
-  def pactTest(name: String)(test: BaseMockServer => Any): Unit = this.test(name)(test(serverFixture.apply()))
 
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(

@@ -19,14 +19,15 @@ package pact4s.weaver
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.{Ref, Resource}
 import cats.implicits._
-import pact4s.PactForgerResources
+import pact4s.RequestResponsePactForgerResources
 import weaver.{MutableFSuite, TestOutcome}
 
-trait SimplePactForger[F[_]] extends WeaverPactForgerBase[F] {
+trait SimpleRequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBase[F] {
   override type Res = BaseMockServer
+  override def sharedResource: Resource[F, BaseMockServer] = serverResource
 }
 
-trait PactForger[F[_]] extends WeaverPactForgerBase[F] {
+trait RequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBase[F] {
   type Resources
   override type Res = (Resources, BaseMockServer)
 
@@ -36,7 +37,7 @@ trait PactForger[F[_]] extends WeaverPactForgerBase[F] {
     (additionalSharedResource, serverResource).tupled
 }
 
-trait WeaverPactForgerBase[F[_]] extends MutableFSuite[F] with PactForgerResources {
+trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with RequestResponsePactForgerResources {
   private val F = effect
 
   private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)

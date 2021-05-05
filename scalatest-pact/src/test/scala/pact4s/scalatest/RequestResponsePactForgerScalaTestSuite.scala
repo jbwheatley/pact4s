@@ -10,14 +10,13 @@ import cats.effect.unsafe.implicits.global
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.apache.http.entity.ContentType
 import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
 import org.typelevel.ci.CIString
 import pact4s.circe.implicits._
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 
-class PactForgerScalaTestSuite extends AnyFlatSpec with Matchers with PactForger {
+class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with RequestResponsePactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./scalatest-pact/target/pacts"
   )

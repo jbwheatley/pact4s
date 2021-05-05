@@ -18,11 +18,11 @@ package pact4s.scalatest
 
 import au.com.dius.pact.consumer.BaseMockServer
 import org.scalatest.{Args, CompositeStatus, Status, Suite, SuiteMixin}
-import pact4s.PactForgerResources
+import pact4s.RequestResponsePactForgerResources
 
-trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
+trait RequestResponsePactForger extends RequestResponsePactForgerResources with SuiteMixin { self: Suite =>
 
-  def mockServer: BaseMockServer = server
+  val mockServer: BaseMockServer = server
 
   @volatile private var testFailed = false
 
@@ -30,7 +30,7 @@ trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
-      validatePactVersion.map(throw _)
+      validatePactVersion.foreach(throw _)
       server.start()
       server.waitForServer()
       try {

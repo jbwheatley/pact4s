@@ -23,13 +23,10 @@ import au.com.dius.pact.core.support.V4PactFeaturesException
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
-trait PactForgerResources extends RequestResponsePactOps {
-  private[pact4s] val logger = org.log4s.getLogger
-
-  def pact: RequestResponsePact
-
-  val mockProviderConfig: MockProviderConfig             = MockProviderConfig.createDefault()
-  val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
+trait RequestResponsePactForgerResources
+    extends BasePactForgerResources[RequestResponsePact]
+    with RequestResponsePactOps {
+  val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
   private[pact4s] val server: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
 
