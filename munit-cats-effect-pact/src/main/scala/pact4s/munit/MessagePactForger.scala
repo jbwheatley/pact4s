@@ -52,7 +52,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    validatePactVersion(pactSpecVersion).foreach[Unit](throw _)
+    validatePactVersion(pactSpecVersion).left.foreach[Unit](throw _)
   }
 
   override def afterAll(): Unit = {

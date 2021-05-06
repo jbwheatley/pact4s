@@ -18,6 +18,7 @@ package pact4s.munit
 
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.{IO, Resource, SyncIO}
+import cats.syntax.all._
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
 import pact4s.RequestResponsePactForgerResources
@@ -41,7 +42,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
   private def serverResource: Resource[IO, BaseMockServer] =
     Resource.make[IO, BaseMockServer] {
       for {
-        _ <- validatePactVersion(mockProviderConfig.getPactVersion).fold(IO.unit)(IO.raiseError)
+        _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[IO]
         _ <- IO.delay(server.start())
         _ <- IO.delay(server.waitForServer())
       } yield server
