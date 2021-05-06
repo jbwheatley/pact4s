@@ -1,24 +1,22 @@
-package pact4s.weaver
+package pact4s.munit
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
-import cats.effect.{IO, Resource}
+import cats.effect.IO
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.apache.http.entity.ContentType
 import org.http4s.circe.jsonEncoder
-import org.http4s.client.Client
+import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
-import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
 import org.typelevel.ci.CIString
-import weaver.IOSuite
 import pact4s.circe.implicits._
 
-object PactForgerWeaverSuite extends IOSuite with PactForger[IO] {
+class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
+
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./weaver-pact/target/pacts"
+    "./munit-cats-effect-pact/target/pacts"
   )
 
   def pact: RequestResponsePact =
@@ -40,34 +38,32 @@ object PactForgerWeaverSuite extends IOSuite with PactForger[IO] {
       .status(204)
       .toPact()
 
-  override type Resources = Client[IO]
+  val client = ResourceSuiteLocalFixture(
+    "httpClient",
+    EmberClientBuilder.default[IO].build
+  )
 
-  override def additionalSharedResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
 
-  test("weaver pact test") { resources =>
-    val client = resources._1
-    val server = resources._2
+  pactTest("munit pact test") { server =>
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(server.getUrl + "/hello"),
       headers = Headers(Header.Raw(CIString("other-header"), "howdy"))
     )
       .withEntity(Json.obj("name" -> "harry".asJson))
-    client.run(request).use {
-      _.as[String].map(body => expect(body == "{\"hello\":\"harry\"}"))
+    client().run(request).use {
+      _.as[String].assertEquals("{\"hello\":\"harry\"}")
     }
-
   }
 
-  test("another weaveer pact test") { resources =>
-    val client = resources._1
-    val server = resources._2
+  pactTest("another munit pact test") { server =>
     val request = Request[IO](
       uri = Uri.unsafeFromString(server.getUrl + "/goodbye"),
       headers = Headers(`Content-Type`(MediaType.application.json))
     )
-    client.run(request).use {
-      _.status.code.pure[IO].map(code => expect(code == 204))
+    client().run(request).use {
+      _.status.code.pure[IO].assertEquals(204)
     }
   }
 }

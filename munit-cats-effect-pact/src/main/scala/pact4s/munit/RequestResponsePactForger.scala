@@ -17,16 +17,16 @@
 package pact4s.munit
 
 import au.com.dius.pact.consumer.BaseMockServer
-import cats.effect.{IO, Resource}
+import cats.effect.{IO, Resource, SyncIO}
 import cats.syntax.all._
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
-import pact4s.PactForgerResources
+import pact4s.RequestResponsePactForgerResources
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-trait PactForger extends CatsEffectSuite with PactForgerResources {
+trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePactForgerResources {
 
   @volatile private var testFailed: Boolean = false
 
@@ -42,7 +42,7 @@ trait PactForger extends CatsEffectSuite with PactForgerResources {
   private def serverResource: Resource[IO, BaseMockServer] =
     Resource.make[IO, BaseMockServer] {
       for {
-        _ <- validatePactVersion.liftTo[IO]
+        _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[IO]
         _ <- IO.delay(server.start())
         _ <- IO.delay(server.waitForServer())
       } yield server
