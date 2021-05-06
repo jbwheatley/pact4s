@@ -30,7 +30,7 @@ trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
-      validatePactVersion.map(throw _)
+      validatePactVersion.left.map(throw _)
       server.start()
       server.waitForServer()
       try {

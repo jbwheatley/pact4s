@@ -33,11 +33,11 @@ trait PactForgerResources extends RequestResponsePactOps {
 
   private[pact4s] val server: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
 
-  private[pact4s] def validatePactVersion: Option[Throwable] = {
+  private[pact4s] def validatePactVersion: Either[Throwable, Unit] = {
     val errors: List[String] = pact.validateForVersion(mockProviderConfig.getPactVersion).asScala.toList
-    if (errors.isEmpty) None
+    if (errors.isEmpty) Right(())
     else {
-      Some(
+      Left(
         new V4PactFeaturesException(
           "Pact specification V4 features can not be used with version " + mockProviderConfig.getPactVersion.toString + " - " + errors
             .mkString(", ")
