@@ -29,11 +29,11 @@ trait BasePactForgerResources[Pact <: BasePact] {
 
   val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Option[Throwable] = {
+  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = {
     val errors: List[String] = pact.validateForVersion(version).asScala.toList
-    if (errors.isEmpty) None
+    if (errors.isEmpty) Right(())
     else {
-      Some(
+      Left(
         new V4PactFeaturesException(
           "Pact specification V4 features can not be used with version " + version.toString + " - " + errors
             .mkString(", ")
