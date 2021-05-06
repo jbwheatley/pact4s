@@ -34,7 +34,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
   private def serverResource: Resource[IO, BaseMockServer] =
     Resource.make[IO, BaseMockServer] {
       for {
-        _ <- validatePactVersion.fold(IO.unit)(IO.raiseError)
+        _ <- validatePactVersion(mockProviderConfig.getPactVersion).fold(IO.unit)(IO.raiseError)
         _ <- IO.delay(server.start())
         _ <- IO.delay(server.waitForServer())
       } yield server

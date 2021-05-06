@@ -6,7 +6,6 @@ import cats.effect.IO
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.apache.http.entity.ContentType
 import org.http4s.circe.jsonEncoder
 import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
 import org.http4s.ember.client.EmberClientBuilder

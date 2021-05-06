@@ -8,12 +8,12 @@ import weaver.MutableFSuite
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
-trait SimpleRequestResponsePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
+trait SimpleMessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
   override type Res = List[Message]
   override def sharedResource: Resource[F, List[Message]] = messagesResource
 }
 
-trait RequestResponsePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
+trait MessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
   type Resources
   override type Res = (Resources, List[Message])
 
@@ -28,7 +28,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
   private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)
 
   private[weaver] val messagesResource: Resource[F, List[Message]] = Resource.make[F, List[Message]] {
-    validatePactVersion.fold(F.unit)(F.raiseError).as {
+    validatePactVersion(pactSpecVersion).fold(F.unit)(F.raiseError).as {
       pact.getMessages.asScala.toList
     }
   } { _ =>

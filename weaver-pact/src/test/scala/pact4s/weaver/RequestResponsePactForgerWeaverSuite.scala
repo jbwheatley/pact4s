@@ -6,7 +6,6 @@ import cats.effect.{IO, Resource}
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.apache.http.entity.ContentType
 import org.http4s.circe.jsonEncoder
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
@@ -59,7 +58,7 @@ object RequestResponsePactForgerWeaverSuite extends IOSuite with RequestResponse
 
   }
 
-  test("another weaveer pact test") { resources =>
+  test("another weaver pact test") { resources =>
     val client = resources._1
     val server = resources._2
     val request = Request[IO](
