@@ -16,30 +16,26 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt, PactTestExecutionContext}
-import au.com.dius.pact.consumer.model.MockProviderConfig
-import au.com.dius.pact.core.model.RequestResponsePact
+import au.com.dius.pact.consumer.PactTestExecutionContext
+import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 import au.com.dius.pact.core.support.V4PactFeaturesException
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
-trait PactForgerResources extends RequestResponsePactOps {
+trait BasePactForgerResources[Pact <: BasePact] {
   private[pact4s] val logger = org.log4s.getLogger
 
-  def pact: RequestResponsePact
+  def pact: Pact
 
-  val mockProviderConfig: MockProviderConfig             = MockProviderConfig.createDefault()
   val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
-  private[pact4s] val server: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
-
-  private[pact4s] def validatePactVersion: Either[Throwable, Unit] = {
-    val errors: List[String] = pact.validateForVersion(mockProviderConfig.getPactVersion).asScala.toList
+  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = {
+    val errors: List[String] = pact.validateForVersion(version).asScala.toList
     if (errors.isEmpty) Right(())
     else {
       Left(
         new V4PactFeaturesException(
-          "Pact specification V4 features can not be used with version " + mockProviderConfig.getPactVersion.toString + " - " + errors
+          "Pact specification V4 features can not be used with version " + version.toString + " - " + errors
             .mkString(", ")
         )
       )

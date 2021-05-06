@@ -16,13 +16,15 @@
 
 package pact4s.scalatest
 
-import au.com.dius.pact.consumer.BaseMockServer
-import org.scalatest.{Args, CompositeStatus, Status, Suite, SuiteMixin}
-import pact4s.PactForgerResources
+import au.com.dius.pact.core.model.messaging.Message
+import org.scalatest._
+import pact4s.MessagePactForgerResources
 
-trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
+import scala.jdk.CollectionConverters.ListHasAsScala
 
-  def mockServer: BaseMockServer = server
+trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { self: Suite =>
+
+  val messages: List[Message] = pact.getMessages.asScala.toList
 
   @volatile private var testFailed = false
 
@@ -30,26 +32,22 @@ trait PactForger extends PactForgerResources with SuiteMixin { self: Suite =>
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
-      validatePactVersion.left.map(throw _)
-      server.start()
-      server.waitForServer()
+      validatePactVersion(pactSpecVersion).left.foreach(throw _)
       try {
         val result = super.run(testName, args)
         if (!result.succeeds())
           testFailed = true
         result
-      } finally {
-        if (testFailed) {
-          logger.info(
-            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-          )
-        } else {
-          logger.info(
-            s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-          )
-          server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
-        }
-        server.stop()
+      } finally if (testFailed) {
+        logger.info(
+          s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+        )
+      } else {
+        logger.info(
+          s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+        )
+        val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)
+        Option(write.component2()).foreach(throw _)
       }
     }
 
