@@ -34,13 +34,12 @@ final case class ProviderInfoBuilder(
     host: String,
     port: Int,
     path: String,
-    publishResults: Boolean,
     pactSource: PactSource
 ) {
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
     pactSource match {
-      case broker: PactBroker => applyBrokerSourceToProvider(p, broker, publishResults)
+      case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
         p.hasPactWith(
           consumer,
@@ -56,8 +55,7 @@ final case class ProviderInfoBuilder(
   @tailrec
   private def applyBrokerSourceToProvider(
       providerInfo: ProviderInfo,
-      pactSource: PactBroker,
-      publishResults: Boolean
+      pactSource: PactBroker
   ): ProviderInfo =
     pactSource match {
       case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
@@ -69,7 +67,6 @@ final case class ProviderInfoBuilder(
           case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
         }
         includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", new Date(since.toMillis)))
-        options.put("pact.verifier.publishResults", publishResults)
         providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
         providerInfo
       case PactBrokerWithTags(brokerUrl, auth, tags) =>
@@ -82,8 +79,7 @@ final case class ProviderInfoBuilder(
             None,
             Nil,
             tags.map(tag => ConsumerVersionSelector(Some(tag)))
-          ),
-          publishResults
+          )
         )
     }
 }
