@@ -46,7 +46,6 @@ class MockProviderServer(port: Int) {
       "localhost",
       port,
       "/",
-      publishResults = false,
       FileSource("Pact4sConsumer", new File("./scripts/Pact4sConsumer-Pact4sProvider.json"))
     )
 
@@ -57,14 +56,13 @@ class MockProviderServer(port: Int) {
       "localhost",
       port,
       "/",
-      publishResults = true,
       PactBrokerWithSelectors(
         "https://test.pact.dius.com.au",
         Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
         enablePending = true,
         None,
         Nil,
-        ConsumerVersionSelector(None, latest = true) :: Nil
+        ConsumerVersionSelector(None) :: Nil
       )
     )
 }
