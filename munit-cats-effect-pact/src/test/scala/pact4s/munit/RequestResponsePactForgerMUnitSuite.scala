@@ -43,9 +43,9 @@ class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
     EmberClientBuilder.default[IO].build
   )
 
-  override def munitFixtures: Seq[Fixture[_]] = Seq(client)
+  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
 
-  mockServer.test("munit pact test") { server =>
+  pactTest("munit pact test") { server =>
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(server.getUrl + "/hello"),
@@ -57,7 +57,7 @@ class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
     }
   }
 
-  mockServer.test("another munit pact test") { server =>
+  pactTest("another munit pact test") { server =>
     val request = Request[IO](
       uri = Uri.unsafeFromString(server.getUrl + "/goodbye"),
       headers = Headers(`Content-Type`(MediaType.application.json))

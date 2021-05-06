@@ -29,7 +29,14 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
 
   @volatile private var testFailed: Boolean = false
 
-  val mockServer: SyncIO[FunFixture[BaseMockServer]] = ResourceFixture(serverResource)
+  override def munitFixtures: Seq[Fixture[_]] = serverFixture +: additionalMunitFixtures
+
+  def additionalMunitFixtures: Seq[Fixture[_]] = Seq.empty
+
+  private val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
+    "mockHttpServer",
+    serverResource
+  )
 
   private def serverResource: Resource[IO, BaseMockServer] =
     Resource.make[IO, BaseMockServer] {
@@ -52,6 +59,8 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
       } >>
         IO.delay(s.stop())
     }
+
+  def pactTest(name: String)(test: BaseMockServer => Any): Unit = this.test(name)(test(serverFixture.apply()))
 
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(
