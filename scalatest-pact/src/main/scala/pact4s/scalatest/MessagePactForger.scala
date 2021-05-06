@@ -32,7 +32,7 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
-      validatePactVersion(pactSpecVersion).foreach(throw _)
+      validatePactVersion(pactSpecVersion).left.foreach(throw _)
       try {
         val result = super.run(testName, args)
         if (!result.succeeds())

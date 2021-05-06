@@ -44,7 +44,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
   private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)
 
   private[weaver] val messagesResource: Resource[F, List[Message]] = Resource.make[F, List[Message]] {
-    validatePactVersion(pactSpecVersion).fold(F.unit)(F.raiseError).as {
+    validatePactVersion(pactSpecVersion).liftTo[F].as {
       pact.getMessages.asScala.toList
     }
   } { _ =>
