@@ -43,7 +43,7 @@ trait WeaverPactForgerBase[F[_]] extends MutableFSuite[F] with PactForgerResourc
 
   private[weaver] val serverResource = Resource.make[F, BaseMockServer] {
     for {
-      _ <- validatePactVersion.fold(F.unit)(F.raiseError)
+      _ <- validatePactVersion.liftTo[F]
       _ <- F.delay(server.start())
       _ <- F.delay(server.waitForServer())
     } yield server
