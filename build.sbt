@@ -44,8 +44,7 @@ lazy val shared = (project in file("shared"))
   .settings(commonSettings)
   .settings(
     name := "shared",
-    libraryDependencies ++= Dependencies.shared,
-    publish / skip := true
+    libraryDependencies ++= Dependencies.shared
   )
 
 lazy val circe = (project in file("circe"))
