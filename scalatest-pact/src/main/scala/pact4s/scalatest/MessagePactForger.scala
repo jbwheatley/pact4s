@@ -39,11 +39,11 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
           testFailed = true
         result
       } finally if (testFailed) {
-        logger.info(
+        pact4sLogger.info(
           s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
         )
       } else {
-        logger.info(
+        pact4sLogger.info(
           s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
         )
         val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)

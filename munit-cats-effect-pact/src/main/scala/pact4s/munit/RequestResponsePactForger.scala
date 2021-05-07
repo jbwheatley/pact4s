@@ -34,12 +34,13 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
 
   def additionalMunitFixtures: Seq[Fixture[_]] = Seq.empty
 
-  private val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
+  private lazy val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
     "mockHttpServer",
     serverResource
   )
 
-  private def serverResource: Resource[IO, BaseMockServer] =
+  private def serverResource: Resource[IO, BaseMockServer] = {
+    val server = createServer
     Resource.make[IO, BaseMockServer] {
       for {
         _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[IO]
@@ -48,18 +49,19 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
       } yield server
     } { s =>
       if (testFailed) {
-        logger.info(
+        pact4sLogger.info(
           s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
         )
         IO.unit
       } else {
-        logger.info(
+        pact4sLogger.info(
           s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
         )
         IO.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
       } >>
         IO.delay(s.stop())
     }
+  }
 
   def pactTest(name: String)(test: BaseMockServer => Any): Unit = this.test(name)(test(serverFixture.apply()))
 

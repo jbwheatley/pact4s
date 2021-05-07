@@ -50,12 +50,12 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
   } { _ =>
     testFailed.get.flatMap {
       case true =>
-        logger.info(
+        pact4sLogger.info(
           s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
         )
         F.unit
       case false =>
-        logger.info(
+        pact4sLogger.info(
           s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
         )
         F.delay(pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)).flatMap { a =>

@@ -28,5 +28,5 @@ trait RequestResponsePactForgerResources
     with RequestResponsePactOps {
   val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
-  private[pact4s] val server: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
+  private[pact4s] def createServer: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
 }

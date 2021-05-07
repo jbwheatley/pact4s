@@ -22,11 +22,14 @@ import pact4s.RequestResponsePactForgerResources
 
 trait RequestResponsePactForger extends RequestResponsePactForgerResources with SuiteMixin { self: Suite =>
 
-  val mockServer: BaseMockServer = server
+  def mockServer: BaseMockServer = allocatedServer.get
 
-  @volatile private var testFailed = false
+  @volatile private var testFailed                              = false
+  @volatile private var allocatedServer: Option[BaseMockServer] = None
 
-  abstract override def run(testName: Option[String], args: Args): Status =
+  abstract override def run(testName: Option[String], args: Args): Status = {
+    val server = createServer
+    allocatedServer = Some(server)
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
@@ -40,11 +43,11 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
         result
       } finally {
         if (testFailed) {
-          logger.info(
+          pact4sLogger.info(
             s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
           )
         } else {
-          logger.info(
+          pact4sLogger.info(
             s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
           )
           server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
@@ -52,5 +55,6 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
         server.stop()
       }
     }
+  }
 
 }

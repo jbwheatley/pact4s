@@ -21,7 +21,7 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
     "./scalatest-pact/target/pacts"
   )
 
-  def pact: RequestResponsePact =
+  val pact: RequestResponsePact =
     ConsumerPactBuilder
       .consumer("Consumer")
       .hasPactWith("Provider")
@@ -45,7 +45,7 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
   it should "scalatest pact test" in {
     val request = Request[IO](
       method = Method.POST,
-      uri = Uri.unsafeFromString(server.getUrl + "/hello"),
+      uri = Uri.unsafeFromString(mockServer.getUrl + "/hello"),
       headers = Headers(Header.Raw(CIString("other-header"), "howdy"))
     )
       .withEntity(Json.obj("name" -> "harry".asJson))
@@ -59,7 +59,7 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
 
   it should "another scalatest pact test" in {
     val request = Request[IO](
-      uri = Uri.unsafeFromString(server.getUrl + "/goodbye"),
+      uri = Uri.unsafeFromString(mockServer.getUrl + "/goodbye"),
       headers = Headers(`Content-Type`(MediaType.application.json))
     )
     client
