@@ -42,7 +42,8 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
 
   private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)
 
-  private[weaver] val serverResource = Resource.make[F, BaseMockServer] {
+  private[weaver] def serverResource: Resource[F, BaseMockServer] = Resource.make[F, BaseMockServer] {
+    val server = createServer
     for {
       _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[F]
       _ <- F.delay(server.start())
@@ -51,12 +52,12 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
   } { s =>
     testFailed.get.flatMap {
       case true =>
-        logger.info(
+        pact4sLogger.info(
           s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
         )
         F.unit
       case false =>
-        logger.info(
+        pact4sLogger.info(
           s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
         )
         F.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))

@@ -22,8 +22,7 @@ import au.com.dius.pact.core.support.V4PactFeaturesException
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
-trait BasePactForgerResources[Pact <: BasePact] {
-  private[pact4s] val logger = org.log4s.getLogger
+trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
 
   def pact: Pact
 

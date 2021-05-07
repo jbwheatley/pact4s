@@ -19,7 +19,7 @@ class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
     "./munit-cats-effect-pact/target/pacts"
   )
 
-  def pact: RequestResponsePact =
+  val pact: RequestResponsePact =
     ConsumerPactBuilder
       .consumer("Consumer")
       .hasPactWith("Provider")
