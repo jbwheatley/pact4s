@@ -20,7 +20,7 @@ object RequestResponsePactForgerWeaverSuite extends IOSuite with RequestResponse
     "./weaver-pact/target/pacts"
   )
 
-  def pact: RequestResponsePact =
+  val pact: RequestResponsePact =
     ConsumerPactBuilder
       .consumer("Consumer")
       .hasPactWith("Provider")
