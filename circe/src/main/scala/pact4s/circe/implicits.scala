@@ -16,10 +16,21 @@
 
 package pact4s.circe
 
-import io.circe.Encoder
-import pact4s.PactBodyEncoder
+import au.com.dius.pact.consumer.dsl.PactDslJsonBody
+import au.com.dius.pact.core.model.messaging.Message
+import cats.implicits.toBifunctorOps
+import io.circe.parser._
+import io.circe.{Decoder, Encoder}
+import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
+import pact4s.{MessagePactDecoder, PactBodyEncoder, PactDslJsonBodyEncoder}
 
 object implicits {
   implicit def pactBodyEncoder[A](implicit encoder: Encoder[A]): PactBodyEncoder[A] =
     (a: A) => encoder(a).noSpaces
+
+  implicit def pactDslJsonBodyConverter[A](implicit encoder: Encoder[A]): PactDslJsonBodyEncoder[A] = (a: A) =>
+    jsonToPactDslJsonBody(encoder(a))
+
+  implicit def messagePactDecoder[A](implicit decoder: Decoder[A]): MessagePactDecoder[A] = (message: Message) =>
+    parse(message.contentsAsString()).leftWiden[Throwable].flatMap(j => decoder.decodeJson(j))
 }
