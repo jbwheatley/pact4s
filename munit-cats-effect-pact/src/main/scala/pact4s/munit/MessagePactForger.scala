@@ -30,9 +30,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
 
   @volatile private var testFailed = false
 
-  val messages: SyncIO[FunFixture[List[Message]]] = ResourceFixture(
-    Resource.pure[IO, List[Message]](pact.getMessages.asScala.toList)
-  )
+  def messages: List[Message] = pact.getMessages.asScala.toList
 
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(
