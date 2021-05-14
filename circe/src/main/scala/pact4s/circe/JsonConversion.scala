@@ -1,9 +1,25 @@
+/*
+ * Copyright 2021-2021 io.github.jbwheatley
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package pact4s.circe
 
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import io.circe.{Json, JsonObject}
 
-object JsonConversion {
+private[circe] object JsonConversion {
   private val arrayError = "Auto-conversion of circe.Json to PactDslJsonBody is unsupported for json containing arrays."
 
   private def addFieldToBuilder(builder: PactDslJsonBody, fieldName: String, json: Json): PactDslJsonBody =
@@ -33,6 +49,6 @@ object JsonConversion {
         }
     )
 
-  private[pact4s] def jsonToPactDslJsonBody(json: Json): PactDslJsonBody =
+  def jsonToPactDslJsonBody(json: Json): PactDslJsonBody =
     _jsonToPactDslJsonBody(new PactDslJsonBody(), json)
 }
