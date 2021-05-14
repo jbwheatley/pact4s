@@ -22,7 +22,7 @@ object Dependencies {
   ) ++ shared
 
   val scalatest: Seq[ModuleID] = Seq(
-    "org.scalatest" %% "scalatest" % "3.2.7"
+    "org.scalatest" %% "scalatest" % "3.2.8"
   ) ++ shared
 
   val weaver: Seq[ModuleID] = Seq(
@@ -31,8 +31,8 @@ object Dependencies {
   ) ++ shared
 
   val circe: Seq[ModuleID] = Seq(
-    "io.circe"      %% "circe-core"   % _circe,
-    "io.circe"      %% "circe-parser" % _circe,
-    "org.scalatest" %% "scalatest"    % "3.2.7" % Test
+    "io.circe"      %% "circe-core"          % _circe,
+    "io.circe"      %% "circe-parser"        % _circe,
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.1" % Test
   )
 }

@@ -1,2 +1,3 @@
 <configuration>
+    <logger name="io.github.jbwheatley.pact4s.Pact4sLogger" level="INFO" />
 </configuration>
