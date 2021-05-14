@@ -1,4 +1,4 @@
-import sbt.Keys.{crossScalaVersions, resolvers}
+import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
 
 val scala213 = "2.13.5"
 val scala3   = "3.0.0-RC2"
@@ -51,7 +51,8 @@ lazy val circe = (project in file("circe"))
   .settings(commonSettings)
   .settings(
     name := "pact4s-circe",
-    libraryDependencies ++= Dependencies.circe
+    libraryDependencies ++= Dependencies.circe,
+    testFrameworks += new TestFramework("munit.Framework")
   )
   .dependsOn(shared)
 
