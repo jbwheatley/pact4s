@@ -16,9 +16,8 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.messaging.MessagePact
-import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 
-trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] with MessagePactOps {
-  val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
+trait PactDslJsonBodyEncoder[A] {
+  def toPactDslJsonBody(a: A): PactDslJsonBody
 }

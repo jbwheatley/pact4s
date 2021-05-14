@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { self: Suite =>
 
-  val messages: List[Message] = pact.getMessages.asScala.toList
+  def messages: List[Message] = pact.getMessages.asScala.toList
 
   @volatile private var testFailed = false
 

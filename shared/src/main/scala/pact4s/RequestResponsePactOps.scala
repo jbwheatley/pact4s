@@ -23,7 +23,7 @@ import RequestResponsePactOps._
 import org.apache.http.entity.ContentType
 
 object RequestResponsePactOps {
-  final class PactDslRequestWithPathOps(builder: PactDslRequestWithPath) {
+  class PactDslRequestWithPathOps(val builder: PactDslRequestWithPath) extends AnyVal {
     def headers(headers: Map[String, String]): PactDslRequestWithPath = builder.headers(headers.asJava)
 
     def headers(header: (String, String), rest: (String, String)*): PactDslRequestWithPath =
@@ -38,7 +38,7 @@ object RequestResponsePactOps {
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
   }
 
-  final class PactDslRequestWithoutPathOps(builder: PactDslRequestWithoutPath) {
+  class PactDslRequestWithoutPathOps(val builder: PactDslRequestWithoutPath) extends AnyVal {
     def headers(headers: Map[String, String]): PactDslRequestWithoutPath = builder.headers(headers.asJava)
 
     def headers(header: (String, String), rest: (String, String)*): PactDslRequestWithoutPath =
@@ -55,7 +55,7 @@ object RequestResponsePactOps {
 
   }
 
-  final class PactDslResponseOps(builder: PactDslResponse) {
+  class PactDslResponseOps(val builder: PactDslResponse) extends AnyVal {
     def headers(headers: Map[String, String]): PactDslResponse = builder.headers(headers.asJava)
 
     def headers(header: (String, String), rest: (String, String)*): PactDslResponse =
