@@ -16,9 +16,8 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.messaging.MessagePact
-import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.Message
 
-trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] with MessagePactOps {
-  val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
+trait MessagePactDecoder[A] {
+  def decode(message: Message): Either[Throwable, A]
 }
