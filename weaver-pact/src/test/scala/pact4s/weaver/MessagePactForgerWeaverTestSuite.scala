@@ -1,15 +1,16 @@
-package pact4s.munit
+package pact4s.weaver
+
 import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import au.com.dius.pact.core.model.messaging.MessagePact
 import cats.effect.IO
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import pact4s.circe.implicits._
+import weaver.IOSuite
 
-class MessagePactForgerMUnitSuite extends MessagePactForger {
+object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactForger[IO] {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./munit-cats-effect-pact/target/pacts"
+    "./weaver-pact/target/pacts"
   )
 
   val pact: MessagePact = MessagePactBuilder
@@ -22,12 +23,13 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     .withContent(Json.obj("goodbye" -> "harry".asJson))
     .toPact
 
-  test("munit message pact test") {
-    IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello"))).assertEquals("harry") *>
-      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).assertEquals("there")
+  test("weaver message pact test") { messages =>
+    IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))
+      .map(s => expect(s == "harry")) *>
+      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).map(s => expect(s == "there"))
   }
 
-  test("another munit message pact test") {
-    IO.fromEither(messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye"))).assertEquals("harry")
+  test("another weaver message pact test") { messages =>
+    IO.fromEither(messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye"))).map(s => expect(s == "harry"))
   }
 }
