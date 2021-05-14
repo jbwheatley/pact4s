@@ -1,6 +1,5 @@
 package pact4s.munit
 import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import au.com.dius.pact.core.model.messaging.MessagePact
 import cats.effect.IO
 import io.circe.Json

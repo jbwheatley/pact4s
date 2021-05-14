@@ -16,7 +16,6 @@
 
 package pact4s.circe
 
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import au.com.dius.pact.core.model.messaging.Message
 import cats.implicits.toBifunctorOps
 import io.circe.parser._
