@@ -16,8 +16,8 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt}
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.core.model.RequestResponsePact
 
 trait RequestResponsePactForgerResources

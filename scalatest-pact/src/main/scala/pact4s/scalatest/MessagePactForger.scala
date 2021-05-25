@@ -20,7 +20,7 @@ import au.com.dius.pact.core.model.messaging.Message
 import org.scalatest._
 import pact4s.MessagePactForgerResources
 
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters._
 
 trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { self: Suite =>
 
