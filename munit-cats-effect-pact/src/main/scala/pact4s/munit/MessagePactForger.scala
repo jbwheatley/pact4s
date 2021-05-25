@@ -22,7 +22,7 @@ import munit.{CatsEffectSuite, Location, TestOptions}
 import pact4s.MessagePactForgerResources
 
 import scala.concurrent.Future
-import scala.jdk.CollectionConverters.CollectionHasAsScala
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
 trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources {

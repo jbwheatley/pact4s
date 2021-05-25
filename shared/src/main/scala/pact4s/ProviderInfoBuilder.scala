@@ -26,7 +26,7 @@ import java.io.File
 import java.util.Date
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters.SeqHasAsJava
+import scala.jdk.CollectionConverters._
 
 final case class ProviderInfoBuilder(
     name: String,
