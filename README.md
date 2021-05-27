@@ -1,5 +1,83 @@
 # pact4s
 
-Wrapper of pact-jvm for commonly used scala testing frameworks. 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.jbwheatley/pact4s-weaver_2.13.svg)](http://search.maven.org/#search%7Cga%7C1%7Cpact4s)
 
-Currently supports writing consumer pact tests and verifying pacts from either a file or a pact-broker in `munit-cats-effect`, `weaver`, and `scala-test`.
+Wrapper of pact-jvm for commonly used scala testing frameworks.
+
+Currently supports writing consumer pact tests and verifying pacts from either a file or a pact-broker in `munit-cats-effect`, `weaver`, and `scala-test`. Add one of the following dependencies to your project to use: 
+```
+"io.github.jbwheatley" %% "pact4s-munit-cats-effect" % xxx
+"io.github.jbwheatley" %% "pact4s-weaver"            % xxx
+"io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
+```
+
+## Writing Consumer Request/Response Pacts
+
+The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins share the following interfaces for defining pacts:
+
+```scala
+
+//Can override the server address for the mock provider, as well as the pact spec version. 
+//Defaults to http://localhost:0 and spec version 3. 
+override val mockProviderConfig: MockProviderConfig = new MockProviderConfig("localhost", 1234, PactSpecVersion.V3, "http")
+
+//Can override where the pacts files get written to before before being published. Defaults to "./target/pacts"
+override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
+  "path/to/pact/directory"
+)
+
+val pact: RequestResponsePact =
+  ConsumerPactBuilder
+    .consumer("Consumer")
+    .hasPactWith("Provider")
+    .uponReceiving("a request to say Hello")
+    .path("/hello")
+    .method("POST")
+    .body("{"json": "body"}", "application/json")
+    .headers("other-header" -> "howdy")
+    .willRespondWith()
+    .status(200)
+    .body("{"response": "body"}")
+    .uponReceiving("a request to say Goodbye")
+    .path("/goodbye")
+    .method("GET")
+    .willRespondWith()
+    .status(204)
+    .toPact()
+      
+```
+
+Pacts are constructed using the pact-jvm dsl, but with additional helpers for easier interop with scala. For example, anywhere a java `Map` is expected, a scala `Map`, or scala tuples can be provided instead. 
+
+If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided. By adding the additional dependency `io.github.jbwheatley %% pact4s-circe % xxx`, instances of `pact4s.PactBodyEncoder` are provided for any type that has a `circe.Encoder` instance. This allows the following: 
+
+```scala
+import pact4s.circe.implicits._
+
+final case class Foo(a: String)
+
+implicit val encoder: Encoder[Foo] = ???
+
+val pact: RequestResponsePact =
+  ConsumerPactBuilder
+    .consumer("Consumer")
+    .hasPactWith("Provider")
+    .uponReceiving("a request to say Hello")
+    .path("/hello")
+    .method("POST")
+    .body(Foo("abcde"), "application/json")
+    ...
+```
+
+Each of the APIs for writing consumer pact tests provided by each of `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` are slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the following test suites for examples of how each of these APIs looks: 
+
+- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/munit-cats-effect-pact/src/test/scala/pact4s/munit/RequestResponsePactForgerMUnitSuite.scala) 
+- [weaver](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/weaver-pact/src/test/scala/pact4s/weaver/RequestResponsePactForgerWeaverSuite.scala)
+- [scalatest](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/scalatest-pact/src/test/scala/pact4s/scalatest/RequestResponsePactForgerScalaTestSuite.scala)
+
+## Publishing Consumer Request/Response Pacts
+
+This library does not (and won't ever) provide native support for publishing consumer pacts to the pact broker. For this, we recommend using the `Pact Broker CLI` provided by the pact foundation as part of your CI pipeline: https://github.com/pact-foundation/pact_broker-client
+
+If you have previously been relying on the [`scala-pact`](https://github.com/ITV/scala-pact) sbt plugin to publish pacts to a pact broker, compatability with pacts produced by pact-jvm was added in version 3.3.1. By adding the sbt setting `areScalaPactContracts := false`, the scala-pact plugin will be able to publish pacts produced by this library, and any other pact-jvm based consumer pact testing library.
+
