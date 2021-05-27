@@ -81,3 +81,30 @@ This library does not (and won't ever) provide native support for publishing con
 
 If you have previously been relying on the [`scala-pact`](https://github.com/ITV/scala-pact) sbt plugin to publish pacts to a pact broker, compatability with pacts produced by pact-jvm was added in version 3.3.1. By adding the sbt setting `areScalaPactContracts := false`, the scala-pact plugin will be able to publish pacts produced by this library, and any other pact-jvm based consumer pact testing library.
 
+## Verifying Request/Response Pacts
+
+Verification can either be done as part of your CI pipeline, again by using the `Pact Broker CLI`, or by writing a verification test within your project. The test modules in `pact4s` share the following interface for how pacts are retrieved from either a pact broker, or a file: 
+
+```scala
+override val provider: ProviderInfoBuilder = 
+  ProviderInfoBuilder(
+    name = "Provider",
+    protocol = "http",
+    host = "localhost",
+    port = 1234,
+    path = "/",
+    pactSource = ???
+  )
+```
+
+`PactSource` is an ADT that providers various different configurations for fetching pacts. More can be learned here about the how the pact-broker works here: https://docs.pact.io/pact_broker
+
+After defining the `provider`, the verification step can be run against your mock provider simply by running: 
+```scala
+verifyPacts()
+```
+in your test class.
+
+Please note, due to the version of pact-jvm that is underpinning `pact4s`, the verification step uses the `Pacts For Verification` API in the pact broker. See this issue here for more information: https://github.com/pact-foundation/pact_broker/issues/307. This may not be available in earlier versions of the pact-broker, so make sure you are using the latest release of the broker. 
+
+Pacts produced by pact-jvm *CANNOT* be verified by `scala-pact`. 
