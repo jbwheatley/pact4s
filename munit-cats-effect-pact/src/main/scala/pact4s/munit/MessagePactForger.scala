@@ -17,7 +17,6 @@
 package pact4s.munit
 
 import au.com.dius.pact.core.model.messaging.Message
-import cats.effect.{IO, Resource, SyncIO}
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
 import pact4s.MessagePactForgerResources
