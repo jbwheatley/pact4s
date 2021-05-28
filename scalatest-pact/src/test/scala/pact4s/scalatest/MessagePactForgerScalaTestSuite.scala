@@ -21,7 +21,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact
+    .toPact[MessagePact]
 
   it should "scalatest message pact test" in {
     messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"

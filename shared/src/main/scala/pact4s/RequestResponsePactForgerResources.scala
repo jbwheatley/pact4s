@@ -16,12 +16,9 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt, PactTestExecutionContext}
 import au.com.dius.pact.consumer.model.MockProviderConfig
-import au.com.dius.pact.core.model.{PactSpecVersion, RequestResponsePact}
-import au.com.dius.pact.core.support.V4PactFeaturesException
-
-import scala.jdk.CollectionConverters.ListHasAsScala
+import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt}
+import au.com.dius.pact.core.model.RequestResponsePact
 
 trait RequestResponsePactForgerResources
     extends BasePactForgerResources[RequestResponsePact]

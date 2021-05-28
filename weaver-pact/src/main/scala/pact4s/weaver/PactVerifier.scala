@@ -32,6 +32,7 @@ trait PactVerifier[F[_]] extends MutableFSuite[F] with PactVerifyResources {
             verifier.displayFailures(List(failed).asJava)
             false
           case _: VerificationResult.Ok => true
+          case _                        => throw new Exception("Impossible match failure")
         }
       expect(result)
     }

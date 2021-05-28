@@ -21,7 +21,7 @@ object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactFo
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact
+    .toPact[MessagePact]
 
   test("weaver message pact test") { messages =>
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))
