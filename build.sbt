@@ -1,6 +1,6 @@
 import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
 
-val scala213 = "2.13.5"
+val scala213 = "2.13.6"
 val scala3   = "3.0.0-RC2"
 
 sonatypeCredentialHost := Sonatype.sonatype01

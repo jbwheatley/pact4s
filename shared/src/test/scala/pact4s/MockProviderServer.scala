@@ -1,7 +1,6 @@
 package pact4s
 
 import java.io.File
-import au.com.dius.pact.provider.ProviderInfo
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
