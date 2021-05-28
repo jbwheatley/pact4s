@@ -17,7 +17,7 @@
 package pact4s.munit
 
 import au.com.dius.pact.consumer.BaseMockServer
-import cats.effect.{IO, Resource, SyncIO}
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}

@@ -19,7 +19,7 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact
+    .toPact[MessagePact]
 
   test("munit message pact test") {
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello"))).assertEquals("harry") *>

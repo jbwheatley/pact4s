@@ -30,6 +30,7 @@ trait PactVerifier extends CatsEffectSuite with PactVerifyResources {
           verifier.displayFailures(List(failed).asJava)
           fail(s"Verification failed due to: ${failed.getDescription}")
         case _: VerificationResult.Ok => ()
+        case _                        => throw new Exception("Impossible match failure")
       }
     }
 }
