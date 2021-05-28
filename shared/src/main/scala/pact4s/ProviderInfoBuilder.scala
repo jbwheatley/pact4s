@@ -17,7 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
-import au.com.dius.pact.provider.ProviderInfo
+import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 import pact4s.Authentication.{BasicAuth, TokenAuth}
 import pact4s.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
@@ -34,10 +34,12 @@ final case class ProviderInfoBuilder(
     host: String,
     port: Int,
     path: String,
+    verificationType: VerificationTypes.VerificationType,
     pactSource: PactSource
 ) {
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
+    p.setVerificationType(PactVerification.valueOf(verificationType.toString))
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
@@ -82,6 +84,12 @@ final case class ProviderInfoBuilder(
           )
         )
     }
+}
+
+object VerificationTypes extends Enumeration {
+  type VerificationType = Value
+  val AnnotatedMethod: VerificationType = Value(PactVerification.ANNOTATED_METHOD.name)
+  val RequestResponse: VerificationType = Value(PactVerification.REQUEST_RESPONSE.name)
 }
 
 sealed trait PactSource
