@@ -2,7 +2,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.jbwheatley/pact4s-weaver_2.13.svg)](http://search.maven.org/#search%7Cga%7C1%7Cpact4s)
 
-Wrapper of pact-jvm for commonly used scala testing frameworks.
+Lightweight wrapper of pact-jvm for commonly used scala testing frameworks.
 
 Currently supports writing consumer pact tests and verifying pacts from either a file or a pact-broker in `munit-cats-effect`, `weaver`, and `scala-test`. Add one of the following dependencies to your project to use: 
 ```
@@ -110,3 +110,12 @@ In order to publish the verification results to the broker, pact-jvm requires th
 Please note, due to the version of pact-jvm that is underpinning `pact4s`, the verification step uses the `Pacts For Verification` API in the pact broker. See this issue here for more information: https://github.com/pact-foundation/pact_broker/issues/307. This may not be available in earlier versions of the pact-broker, so make sure you are using the latest release of the broker. 
 
 Pacts produced by pact-jvm *CANNOT* be verified by `scala-pact`. 
+
+## Prerequisites
+
+Due to the java version used by the underlying pact-jvm library, you won't be able to use this wrapper unless your project is being built on java 11+. If you build on java 8 for example, you might see something like this: 
+
+```
+java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
+55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
+```
