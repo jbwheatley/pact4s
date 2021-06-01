@@ -6,15 +6,16 @@ object Dependencies {
   val _circe  = "0.14.1"
 
   val shared: Seq[ModuleID] = Seq(
-    "au.com.dius.pact" % "consumer"            % pactJvm,
-    "au.com.dius.pact" % "provider"            % pactJvm,
-    "org.http4s"      %% "http4s-ember-client" % http4s  % Test,
-    "org.http4s"      %% "http4s-dsl"          % http4s  % Test,
-    "org.http4s"      %% "http4s-ember-server" % http4s  % Test,
-    "org.http4s"      %% "http4s-circe"        % http4s  % Test,
-    "io.circe"        %% "circe-core"          % _circe  % Test,
-    "org.log4s"       %% "log4s"               % "1.10.0",
-    "ch.qos.logback"   % "logback-classic"     % "1.2.3" % Runtime
+    "au.com.dius.pact"        % "consumer"                % pactJvm,
+    "au.com.dius.pact"        % "provider"                % pactJvm,
+    "org.http4s"             %% "http4s-ember-client"     % http4s  % Test,
+    "org.http4s"             %% "http4s-dsl"              % http4s  % Test,
+    "org.http4s"             %% "http4s-ember-server"     % http4s  % Test,
+    "org.http4s"             %% "http4s-circe"            % http4s  % Test,
+    "io.circe"               %% "circe-core"              % _circe  % Test,
+    "org.log4s"              %% "log4s"                   % "1.10.0",
+    "ch.qos.logback"          % "logback-classic"         % "1.2.3" % Runtime,
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4"
   )
 
   val munit: Seq[ModuleID] = Seq(
