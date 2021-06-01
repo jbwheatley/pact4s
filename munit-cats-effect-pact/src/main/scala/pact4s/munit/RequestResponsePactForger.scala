@@ -54,12 +54,14 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
         )
         IO.unit
       } else {
-        pact4sLogger.info(
-          s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-        )
-        IO.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
-      } >>
-        IO.delay(s.stop())
+        beforeWritePacts().as(
+          pact4sLogger.info(
+            s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+          )
+        ) >>
+          IO.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
+            .void
+      }.guarantee(IO.delay(s.stop()))
     }
   }
 
@@ -80,4 +82,8 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
         loc
       )
     )
+
+  type Effect[_] = IO[_]
+
+  def beforeWritePacts(): IO[Unit] = IO.unit
 }

@@ -11,7 +11,7 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     "./munit-cats-effect-pact/target/pacts"
   )
 
-  val pact: MessagePact = MessagePactBuilder
+  val pact: MessagePact = new MessagePactBuilder()
     .consumer("MessageConsumer")
     .hasPactWith("MessageProvider")
     .expectsToReceive("A message to say hello")
