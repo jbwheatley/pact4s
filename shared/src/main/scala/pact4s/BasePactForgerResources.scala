@@ -40,4 +40,8 @@ trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
       )
     }
   }
+
+  private[pact4s] type Effect[_]
+
+  def beforeWritePacts(): Effect[Unit]
 }

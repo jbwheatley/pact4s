@@ -13,7 +13,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     "./scalatest-pact/target/pacts"
   )
 
-  val pact: MessagePact = MessagePactBuilder
+  val pact: MessagePact = new MessagePactBuilder()
     .consumer("MessageConsumer")
     .hasPactWith("MessageProvider")
     .expectsToReceive("A message to say hello")

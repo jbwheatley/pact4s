@@ -55,12 +55,18 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
         )
         F.unit
       case false =>
-        pact4sLogger.info(
-          s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-        )
-        F.delay(pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)).flatMap { a =>
-          Option(a.component2()).traverse_(F.raiseError)
-        }
+        beforeWritePacts().as(
+          pact4sLogger.info(
+            s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+          )
+        ) >>
+          F.delay(pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)).flatMap { a =>
+            Option(a.component2()).traverse_(F.raiseError)
+          }
     }
   }
+
+  type Effect[_] = F[_]
+
+  def beforeWritePacts(): F[Unit] = F.unit
 }
