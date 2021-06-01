@@ -22,7 +22,7 @@ import cats.implicits._
 import pact4s.MessagePactForgerResources
 import weaver.MutableFSuite
 
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters._
 
 trait SimpleMessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
   override type Res = List[Message]

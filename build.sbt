@@ -1,5 +1,6 @@
 import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
 
+val scala212 = "2.12.13"
 val scala213 = "2.13.6"
 val scala3   = "3.0.0-RC2"
 
@@ -19,6 +20,7 @@ inThisBuild(
     ),
     scalaVersion := scala213,
     crossScalaVersions := List(
+      scala212,
       scala213
     ) //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
   )
