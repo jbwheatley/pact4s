@@ -19,6 +19,7 @@ package pact4s.weaver
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.{Ref, Resource}
 import cats.implicits._
+import cats.effect.implicits._
 import pact4s.RequestResponsePactForgerResources
 import weaver.{MutableFSuite, TestOutcome}
 
@@ -50,25 +51,31 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
       _ <- F.delay(server.waitForServer())
     } yield server
   } { s =>
-    testFailed.get.flatMap {
-      case true =>
-        pact4sLogger.info(
-          s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-        )
-        F.unit
-      case false =>
-        pact4sLogger.info(
-          s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-        )
-        F.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
-          .void
-    } >>
-      F.delay(s.stop())
-
+    testFailed.get
+      .flatMap {
+        case true =>
+          pact4sLogger.info(
+            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+          )
+          F.unit
+        case false =>
+          beforeWritePacts().as(
+            pact4sLogger.info(
+              s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+            )
+          ) >> F
+            .delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
+            .void
+      }
+      .guarantee(F.delay(s.stop()))
   }
 
   override def spec(args: List[String]): fs2.Stream[F, TestOutcome] = super.spec(args).evalTap {
     case outcome if outcome.status.isFailed => testFailed.update(_ => true)
     case _                                  => F.unit
   }
+
+  type Effect[_] = F[_]
+
+  def beforeWritePacts(): F[Unit] = F.unit
 }
