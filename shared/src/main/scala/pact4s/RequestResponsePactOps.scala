@@ -18,7 +18,7 @@ package pact4s
 
 import au.com.dius.pact.consumer.dsl.{PactDslRequestWithPath, PactDslRequestWithoutPath, PactDslResponse}
 
-import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.jdk.CollectionConverters._
 import RequestResponsePactOps._
 import org.apache.http.entity.ContentType
 

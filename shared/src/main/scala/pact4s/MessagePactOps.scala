@@ -20,7 +20,7 @@ import au.com.dius.pact.consumer.MessagePactBuilder
 import au.com.dius.pact.core.model.messaging.Message
 import pact4s.MessagePactOps.{MessageOps, MessagePactBuilderOps}
 
-import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
+import scala.jdk.CollectionConverters._
 
 object MessagePactOps {
   class MessagePactBuilderOps(val builder: MessagePactBuilder) extends AnyVal {
