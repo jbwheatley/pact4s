@@ -32,7 +32,7 @@ object MessagePactOps {
 
   class MessageOps(val message: Message) extends AnyVal {
     def as[A](implicit decoder: MessagePactDecoder[A]): Either[Throwable, A] = decoder.decode(message)
-    def metadata: Map[String, Any]                                           = message.getMetaData.asScala.toMap
+    def metadata: Map[String, Any]                                           = message.getMetadata.asScala.toMap
   }
 }
 
