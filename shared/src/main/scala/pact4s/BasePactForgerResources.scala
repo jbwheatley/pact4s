@@ -20,7 +20,7 @@ import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 import au.com.dius.pact.core.support.V4PactFeaturesException
 
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters._
 
 trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
 
