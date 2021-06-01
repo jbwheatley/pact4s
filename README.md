@@ -110,7 +110,7 @@ In order to publish the verification results to the broker, pact-jvm requires th
 
 Please note, due to the version of pact-jvm that is underpinning `pact4s`, the verification step uses the `Pacts For Verification` API in the pact broker. See this issue here for more information: https://github.com/pact-foundation/pact_broker/issues/307. This may not be available in earlier versions of the pact-broker, so make sure you are using the latest release of the broker. 
 
-Pacts produced by pact-jvm *CANNOT* be verified by `scala-pact`. 
+Pacts produced by pact-jvm (and by extension pact4s) by default conform to V3 of the pact specification, which *CANNOT* be verified by `scala-pact`.
 
 ## Prerequisites
 
