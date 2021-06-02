@@ -38,14 +38,20 @@ class MockProviderServer(port: Int) {
       }
       .orNotFound
 
-  def fileSourceProviderInfo: ProviderInfoBuilder =
+  def fileSourceProviderInfo(
+      consumerName: String,
+      providerName: String,
+      fileName: String,
+      verificationType: VerificationType
+  ): ProviderInfoBuilder =
     ProviderInfoBuilder(
-      "Pact4sProvider",
+      providerName,
       "http",
       "localhost",
       port,
       "/",
-      FileSource("Pact4sConsumer", new File("./scripts/Pact4sConsumer-Pact4sProvider.json"))
+      verificationType,
+      FileSource(consumerName, new File(fileName))
     )
 
   def brokerProviderInfo: ProviderInfoBuilder =
@@ -55,6 +61,7 @@ class MockProviderServer(port: Int) {
       "localhost",
       port,
       "/",
+      VerificationType.RequestResponse,
       PactBrokerWithSelectors(
         "https://test.pact.dius.com.au",
         Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
