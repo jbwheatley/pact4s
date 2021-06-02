@@ -34,12 +34,12 @@ final case class ProviderInfoBuilder(
     host: String,
     port: Int,
     path: String,
-    verificationType: VerificationTypes.VerificationType,
+    verificationType: VerificationType,
     pactSource: PactSource
 ) {
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
-    p.setVerificationType(PactVerification.valueOf(verificationType.toString))
+    p.setVerificationType(verificationType.`type`)
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
@@ -86,10 +86,11 @@ final case class ProviderInfoBuilder(
     }
 }
 
-object VerificationTypes extends Enumeration {
-  type VerificationType = Value
-  val AnnotatedMethod: VerificationType = Value(PactVerification.ANNOTATED_METHOD.name)
-  val RequestResponse: VerificationType = Value(PactVerification.REQUEST_RESPONSE.name)
+sealed abstract class VerificationType private[pact4s] (val `type`: PactVerification)
+
+object VerificationType {
+  case object AnnotatedMethod extends VerificationType(PactVerification.ANNOTATED_METHOD)
+  case object RequestResponse extends VerificationType(PactVerification.REQUEST_RESPONSE)
 }
 
 sealed trait PactSource
