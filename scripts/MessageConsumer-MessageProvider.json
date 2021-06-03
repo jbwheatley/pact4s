@@ -1,0 +1,36 @@
+{
+  "consumer": {
+    "name": "MessageConsumer"
+  },
+  "messages": [
+    {
+      "contents": {
+        "goodbye": "harry"
+      },
+      "description": "A message to say goodbye",
+      "metaData": {
+        "contentType": "application/json"
+      }
+    },
+    {
+      "contents": {
+        "hello": "harry"
+      },
+      "description": "A message to say hello",
+      "metaData": {
+        "hi": "there"
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.2.0"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "MessageProvider"
+  }
+}
