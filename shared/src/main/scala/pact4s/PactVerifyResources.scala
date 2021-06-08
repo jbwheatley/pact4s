@@ -18,8 +18,11 @@ package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, ProviderVerifier}
 
+import scala.jdk.CollectionConverters._
+
 trait PactVerifyResources {
   def provider: ProviderInfoBuilder
+  val methodInstance: PactVerifyResources = this
 
   private[pact4s] def providerInfo = provider.toProviderInfo
 
@@ -27,8 +30,30 @@ trait PactVerifyResources {
 
   private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit
 
-  def verifyPacts(): Unit = {
+  def verifyPacts(publishVerificationResults: Option[PublishVerificationResults] = None): Unit = {
+    val properties: Map[String, String] = Map(
+      ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
+    )
+
+    val propertyResolver = new PactVerifierPropertyResolver(verifier, properties)
+
     verifier.initialiseReporters(providerInfo)
+    verifier.setProviderMethodInstance(_ => methodInstance)
+    verifier.setProjectGetProperty(propertyResolver.getProperty)
+    verifier.setProjectHasProperty(name => Option(propertyResolver.getProperty(name)).isDefined)
+    verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
+    verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags.asJava).getOrElse(Nil))
+
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
   }
+}
+
+final case class PublishVerificationResults(
+    providerVersion: String,
+    providerTags: List[String]
+)
+
+private[pact4s] final class PactVerifierPropertyResolver(verifier: ProviderVerifier, properties: Map[String, String]) {
+  def getProperty(name: String): String =
+    Option(verifier.getProjectGetProperty.apply(name)).getOrElse(properties.get(name).orNull)
 }
