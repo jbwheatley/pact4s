@@ -23,10 +23,8 @@ import pact4s.PactVerifyResources
 import scala.jdk.CollectionConverters._
 
 trait PactVerifier extends AnyFlatSpecLike with PactVerifyResources {
-  val methodInstance: PactVerifier = this
   override private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit =
     it should s"verify consumer '${consumer.getName}'" in {
-      verifier.setProviderMethodInstance(_ => methodInstance)
       verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
         case failed: VerificationResult.Failed =>
           verifier.displayFailures(List(failed).asJava)
