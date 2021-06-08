@@ -42,7 +42,7 @@ trait PactVerifyResources {
     verifier.setProjectGetProperty(propertyResolver.getProperty)
     verifier.setProjectHasProperty(name => Option(propertyResolver.getProperty(name)).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
-    verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags.asJava).getOrElse(Nil))
+    verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags).getOrElse(Nil).asJava)
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
   }
