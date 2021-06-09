@@ -3,10 +3,11 @@ package pact4s.scalatest
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
+import org.scalatest.flatspec.AnyFlatSpec
+import pact4s.{MockProviderServer, ProviderInfoBuilder}
 
-class MessagePactVerifierScalaTestSuite extends PactVerifier with BeforeAndAfterAll {
+class MessagePactVerifierScalaTestSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   lazy val mock = new MockProviderServer(3458)
 
   def provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
@@ -25,5 +26,7 @@ class MessagePactVerifierScalaTestSuite extends PactVerifier with BeforeAndAfter
 
   override def afterAll(): Unit = cleanUp.unsafeRunSync()
 
-  verifyPacts()
+  it should "Verify pacts for provider `MessageProvider`" in {
+    verifyPacts()
+  }
 }
