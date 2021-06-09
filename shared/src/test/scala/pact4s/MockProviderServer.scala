@@ -42,7 +42,7 @@ class MockProviderServer(port: Int) {
       consumerName: String,
       providerName: String,
       fileName: String,
-      verificationType: VerificationType
+      verificationSettings: Option[VerificationSettings] = None
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
@@ -50,13 +50,13 @@ class MockProviderServer(port: Int) {
       host = "localhost",
       port = port,
       path = "/",
-      verificationType = verificationType,
+      verificationSettings = verificationSettings,
       pactSource = FileSource(consumerName, new File(fileName))
     )
 
   def brokerProviderInfo(
       providerName: String,
-      verificationType: VerificationType
+      verificationSettings: Option[VerificationSettings] = None
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
@@ -64,7 +64,7 @@ class MockProviderServer(port: Int) {
       host = "localhost",
       port = port,
       path = "/",
-      verificationType = verificationType,
+      verificationSettings = verificationSettings,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pact.dius.com.au",
         auth = Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),

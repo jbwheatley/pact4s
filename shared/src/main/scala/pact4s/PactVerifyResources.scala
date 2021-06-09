@@ -39,8 +39,6 @@ trait PactVerifyResources {
       )
     )
 
-    val _ = propertyResolver
-
     verifier.initialiseReporters(providerInfo)
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
     verifier.setProjectGetProperty(propertyResolver.getProperty)

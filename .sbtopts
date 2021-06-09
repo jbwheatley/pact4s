@@ -1,2 +1,1 @@
--J-Xmx4096M
--J-XX:+UseG1GC
+-J-Xmx256M
