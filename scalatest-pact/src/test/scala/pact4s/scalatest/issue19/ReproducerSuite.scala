@@ -21,15 +21,20 @@ class ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
   def provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
     consumerName = "Pact4sMessageConsumer",
     providerName = "Pact4sMessageProvider",
-    // Because annotated methods are available across the classpath (by description), we must use a unique description
-    // for the method we test here.
-    fileName = "./scalatest-pact/src/test/resources/issue19_reproducer.json",
+    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.scalatest.issue19")))
   )
 
-  @PactVerifyProvider("Issue 19 reproducer")
-  def issue19ReproducerMessage(): MessageAndMetadata = {
-    val body = Json.obj("issue" -> "19".asJson)
+  @PactVerifyProvider("A message to say goodbye")
+  def goodbyeMessage(): MessageAndMetadata = {
+    val metadata = Map.empty[String, String]
+    val body     = Json.obj("goodbye" -> "harry".asJson)
+    new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
+  }
+
+  @PactVerifyProvider("A message to say hello")
+  def helloMessage(): MessageAndMetadata = {
+    val body = Json.obj("hello" -> "harry".asJson)
     new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
   }
 
@@ -37,7 +42,7 @@ class ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
 
   override def beforeAll(): Unit = {
     val (_, shutdown) = mock.server.allocated.unsafeRunSync()
-    metadata = Map("reproduced" -> "true")
+    metadata = Map("hi" -> "there")
     cleanUp = shutdown
   }
 
