@@ -1,4 +1,4 @@
-package pact4s.scalatest
+package pact4s.scalatest.issue19
 
 import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
 import cats.effect.IO
@@ -6,23 +6,25 @@ import cats.effect.unsafe.implicits.global
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.BeforeAndAfterAll
-import pact4s.{MockProviderServer, ProviderInfoBuilder, VerificationType}
+import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
+import pact4s.scalatest.PactVerifier
 
 import scala.jdk.CollectionConverters._
 
-class Issue19ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
+class ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
   lazy val mock = new MockProviderServer(3459)
 
   // Because this is mutable, it will trigger the issue.
   var metadata: Map[String, String] = _
 
   def provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    "Pact4sMessageConsumer",
-    "Pact4sMessageProvider",
+    consumerName = "Pact4sMessageConsumer",
+    providerName = "Pact4sMessageProvider",
     // Because annotated methods are available across the classpath (by description), we must use a unique description
     // for the method we test here.
-    "./scalatest-pact/src/test/resources/issue19_reproducer.json",
-    VerificationType.AnnotatedMethod
+    fileName = "./scalatest-pact/src/test/resources/issue19_reproducer.json",
+    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.scalatest.issue19")))
   )
 
   @PactVerifyProvider("Issue 19 reproducer")
