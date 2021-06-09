@@ -16,24 +16,12 @@
 
 package pact4s.weaver
 
-import au.com.dius.pact.provider.{IConsumerInfo, VerificationResult}
+import cats.data.NonEmptyList
 import pact4s.PactVerifyResources
-import weaver.Expectations.Helpers.expect
-import weaver.MutableFSuite
+import sourcecode.{File, FileName, Line}
+import weaver.{AssertionException, SourceLocation}
 
-import scala.jdk.CollectionConverters._
-
-trait PactVerifier[F[_]] extends MutableFSuite[F] with PactVerifyResources {
-  override private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit =
-    pureTest(s"Verification of ${consumer.getName}") {
-      val result =
-        verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
-          case failed: VerificationResult.Failed =>
-            verifier.displayFailures(List(failed).asJava)
-            false
-          case _: VerificationResult.Ok => true
-          case _                        => throw new Exception("Impossible match failure")
-        }
-      expect(result)
-    }
+trait PactVerifier extends PactVerifyResources {
+  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
+    throw AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
 }
