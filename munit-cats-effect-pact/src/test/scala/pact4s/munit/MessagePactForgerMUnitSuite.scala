@@ -12,8 +12,8 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
   )
 
   val pact: MessagePact = new MessagePactBuilder()
-    .consumer("MessageConsumer")
-    .hasPactWith("MessageProvider")
+    .consumer("Pact4sMessageConsumer")
+    .hasPactWith("Pact4sMessageProvider")
     .expectsToReceive("A message to say hello")
     .withContent(Json.obj("hello" -> "harry".asJson))
     .withMetadata(Map("hi" -> "there"))

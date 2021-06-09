@@ -2,13 +2,11 @@ package pact4s.munit
 
 import pact4s.{MockProviderServer, ProviderInfoBuilder, VerificationType}
 
-class MessagePactVerifierMUnitSuite extends PactVerifier {
+class MessagePactVerifierBrokerMUnitSuite extends PactVerifier {
   val mock = new MockProviderServer(2347)
 
-  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sMessageConsumer",
+  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(
     providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
     verificationType = VerificationType.AnnotatedMethod
   )
 

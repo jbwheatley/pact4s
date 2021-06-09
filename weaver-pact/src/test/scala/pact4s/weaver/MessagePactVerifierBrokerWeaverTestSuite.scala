@@ -5,17 +5,15 @@ import org.http4s.server.Server
 import pact4s.{MockProviderServer, ProviderInfoBuilder, VerificationType}
 import weaver.IOSuite
 
-object MessagePactVerifierWeaverTestSuite extends IOSuite with PactVerifier[IO] {
+object MessagePactVerifierBrokerWeaverTestSuite extends IOSuite with PactVerifier[IO] {
   type Res = Server
 
   val mock = new MockProviderServer(1236)
 
   override def sharedResource: Resource[IO, Server] = mock.server
 
-  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sMessageConsumer",
+  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(
     providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
     verificationType = VerificationType.AnnotatedMethod
   )
 
