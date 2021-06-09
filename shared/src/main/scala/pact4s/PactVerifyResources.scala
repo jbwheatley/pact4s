@@ -22,7 +22,6 @@ import scala.jdk.CollectionConverters._
 
 trait PactVerifyResources {
   def provider: ProviderInfoBuilder
-  val methodInstance: PactVerifyResources = this
 
   private[pact4s] def providerInfo = provider.toProviderInfo
 
@@ -30,15 +29,20 @@ trait PactVerifyResources {
 
   private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit
 
-  def verifyPacts(publishVerificationResults: Option[PublishVerificationResults] = None): Unit = {
-    val properties: Map[String, String] = Map(
-      ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
+  def verifyPacts(
+      publishVerificationResults: Option[PublishVerificationResults] = None,
+      providerMethodInstance: Option[AnyRef] = None
+  ): Unit = {
+    val propertyResolver = new PactVerifierPropertyResolver(
+      Map(
+        ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
+      )
     )
 
-    val propertyResolver = new PactVerifierPropertyResolver(verifier, properties)
+    val _ = propertyResolver
 
     verifier.initialiseReporters(providerInfo)
-    verifier.setProviderMethodInstance(_ => methodInstance)
+    providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
     verifier.setProjectGetProperty(propertyResolver.getProperty)
     verifier.setProjectHasProperty(name => Option(propertyResolver.getProperty(name)).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
@@ -53,7 +57,6 @@ final case class PublishVerificationResults(
     providerTags: List[String]
 )
 
-private[pact4s] final class PactVerifierPropertyResolver(verifier: ProviderVerifier, properties: Map[String, String]) {
-  def getProperty(name: String): String =
-    Option(verifier.getProjectGetProperty.apply(name)).getOrElse(properties.get(name).orNull)
+private[pact4s] final class PactVerifierPropertyResolver(properties: Map[String, String]) {
+  def getProperty(name: String): String = Option(System.getProperty(name)).getOrElse(properties.get(name).orNull)
 }
