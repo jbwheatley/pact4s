@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "MessageConsumer"
+    "name": "Pact4sMessageConsumer"
   },
   "messages": [
     {
@@ -31,6 +31,6 @@
     }
   },
   "provider": {
-    "name": "MessageProvider"
+    "name": "Pact4sMessageProvider"
   }
 }

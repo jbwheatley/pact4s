@@ -1,0 +1,27 @@
+{
+  "consumer": {
+    "name": "Pact4sMessageConsumer"
+  },
+  "messages": [
+    {
+      "contents": {
+        "issue": "19"
+      },
+      "description": "Issue 19 reproducer",
+      "metaData": {
+        "reproduced": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.2.0"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "Pact4sMessageProvider"
+  }
+}
