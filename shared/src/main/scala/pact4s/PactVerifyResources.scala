@@ -31,10 +31,12 @@ trait PactVerifyResources {
 
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
-      providerMethodInstance: Option[AnyRef] = None
+      providerMethodInstance: Option[AnyRef] = None,
+      showStacktrace: Boolean = true
   ): Unit = {
     val propertyResolver = new PactVerifierPropertyResolver(
       Map(
+        ProviderVerifier.PACT_SHOW_STACKTRACE          -> showStacktrace.toString,
         ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
       )
     )
