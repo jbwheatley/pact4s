@@ -1,9 +1,10 @@
 package pact4s.munit
 
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import munit.CatsEffectSuite
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
+import pact4s.{MockProviderServer, ProviderInfoBuilder}
 
-class MessagePactVerifierMUnitSuite extends PactVerifier {
+class MessagePactVerifierMUnitSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(2347)
 
   override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
@@ -20,5 +21,7 @@ class MessagePactVerifierMUnitSuite extends PactVerifier {
     )
   )
 
-  verifyPacts()
+  test("Verify pacts for provider `Pact4sProvider`") {
+    verifyPacts()
+  }
 }
