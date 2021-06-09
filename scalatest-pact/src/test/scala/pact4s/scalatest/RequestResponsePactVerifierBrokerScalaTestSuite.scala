@@ -3,15 +3,12 @@ package pact4s.scalatest
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
-import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults, VerificationType}
+import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
 
 class RequestResponsePactVerifierBrokerScalaTestSuite extends PactVerifier with BeforeAndAfterAll {
   val mock = new MockProviderServer(3457)
 
-  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(
-    providerName = "Pact4sProvider",
-    verificationType = VerificationType.RequestResponse
-  )
+  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
 
   var cleanUp: IO[Unit] = IO.unit
 

@@ -1,4 +1,4 @@
-package pact4s
+package pact4s.messages
 
 import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
 import io.circe.Json

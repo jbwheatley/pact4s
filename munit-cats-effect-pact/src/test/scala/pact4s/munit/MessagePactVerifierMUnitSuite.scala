@@ -1,6 +1,7 @@
 package pact4s.munit
 
-import pact4s.{MockProviderServer, ProviderInfoBuilder, VerificationType}
+import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
 class MessagePactVerifierMUnitSuite extends PactVerifier {
   val mock = new MockProviderServer(2347)
@@ -9,7 +10,7 @@ class MessagePactVerifierMUnitSuite extends PactVerifier {
     consumerName = "Pact4sMessageConsumer",
     providerName = "Pact4sMessageProvider",
     fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
-    verificationType = VerificationType.AnnotatedMethod
+    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
