@@ -38,9 +38,9 @@ trait PactVerifyResources {
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
       case failed: VerificationResult.Failed =>
         verifier.displayFailures(List(failed).asJava)
-        failure(s"Verification failed due to: ${failed.getDescription}")
+        failure(s"Verification failed:\n ${failed.toString}")
       case _: VerificationResult.Ok => ()
-      case _                        => throw new Exception("Impossible match failure")
+      case _                        => ???
     }
 
   def verifyPacts(
