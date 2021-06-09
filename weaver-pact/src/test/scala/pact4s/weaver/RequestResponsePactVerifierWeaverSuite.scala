@@ -5,7 +5,7 @@ import org.http4s.server.Server
 import pact4s.{MockProviderServer, ProviderInfoBuilder}
 import weaver.IOSuite
 
-object RequestResponsePactVerifierWeaverSuite extends IOSuite with PactVerifier[IO] {
+object PactVerifierWeaverSuite extends IOSuite with PactVerifier {
   type Res = Server
 
   val mock = new MockProviderServer(1234)
@@ -18,5 +18,7 @@ object RequestResponsePactVerifierWeaverSuite extends IOSuite with PactVerifier[
     fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
   )
 
-  verifyPacts()
+  pureTest("Verify pacts for provider `Pact4sProvider`") {
+    succeed(verifyPacts())
+  }
 }
