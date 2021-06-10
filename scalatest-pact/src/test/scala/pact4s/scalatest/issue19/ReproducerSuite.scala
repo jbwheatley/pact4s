@@ -6,13 +6,14 @@ import cats.effect.unsafe.implicits.global
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
 import pact4s.{MockProviderServer, ProviderInfoBuilder}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import pact4s.scalatest.PactVerifier
 
 import scala.jdk.CollectionConverters._
 
-class ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
+class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   lazy val mock = new MockProviderServer(3459)
 
   // Because this is mutable, it will trigger the issue.
@@ -48,10 +49,12 @@ class ReproducerSuite extends PactVerifier with BeforeAndAfterAll {
 
   override def afterAll(): Unit = cleanUp.unsafeRunSync()
 
-  verifyPacts(
-    // Issue #19
-    // If the declaring class of the annotated method has mutable properties, we must ensure the verifier uses the same
-    // instance is used when invoking the method, otherwise the state of the property will be wrong.
-    providerMethodInstance = Some(this)
-  )
+  it should "verify pacts" in {
+    verifyPacts(
+      // Issue #19
+      // If the declaring class of the annotated method has mutable properties, we must ensure the verifier uses the same
+      // instance is used when invoking the method, otherwise the state of the property will be wrong.
+      providerMethodInstance = Some(this)
+    )
+  }
 }

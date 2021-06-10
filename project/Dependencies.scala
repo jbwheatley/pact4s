@@ -15,7 +15,8 @@ object Dependencies {
     "io.circe"               %% "circe-core"              % _circe  % Test,
     "org.log4s"              %% "log4s"                   % "1.10.0",
     "ch.qos.logback"          % "logback-classic"         % "1.2.3" % Runtime,
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4"
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4",
+    "com.lihaoyi"            %% "sourcecode"              % "0.2.7"
   )
 
   val munit: Seq[ModuleID] = Seq(

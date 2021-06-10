@@ -3,10 +3,11 @@ package pact4s.scalatest
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
 import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
-class MessagePactVerifierBrokerScalaTestSuite extends PactVerifier with BeforeAndAfterAll {
+class MessagePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   lazy val mock = new MockProviderServer(3460)
 
   def provider: ProviderInfoBuilder = mock.brokerProviderInfo(
