@@ -82,7 +82,6 @@ lazy val scalaTest = (project in file("scalatest-pact"))
 
 lazy val weaver = (project in file("weaver-pact"))
   .settings(commonSettings)
-  .settings(commonSettings)
   .settings(
     name := "pact4s-weaver",
     libraryDependencies ++= Dependencies.weaver,
