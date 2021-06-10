@@ -21,8 +21,6 @@ import sourcecode.{File, FileName, Line}
 
 import scala.jdk.CollectionConverters._
 
-import scala.jdk.CollectionConverters._
-
 trait PactVerifyResources {
   def provider: ProviderInfoBuilder
 
