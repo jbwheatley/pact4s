@@ -100,13 +100,12 @@ override val provider: ProviderInfoBuilder =
 
 `PactSource` is an ADT that providers various different configurations for fetching pacts. More can be learned here about the how the pact-broker works here: https://docs.pact.io/pact_broker
 
-After defining the `provider`, the verification step can be run against your mock provider simply by running: 
+After defining the `provider`, the verification step can be run against your mock provider simply by adding a test that has the following body: 
 ```scala
-verifyPacts()
+test("verify pacts") {
+  verifyPacts()
+}
 ```
-in your test class.
-
-In order to publish the verification results to the broker, pact-jvm requires the environment variable `PACT_VERIFIER_PUBLISH_RESULTS` to be set to `true` (defaults to `false`).
 
 Please note, due to the version of pact-jvm that is underpinning `pact4s`, the verification step uses the `Pacts For Verification` API in the pact broker. See this issue here for more information: https://github.com/pact-foundation/pact_broker/issues/307. This may not be available in earlier versions of the pact-broker, so make sure you are using the latest release of the broker. 
 
