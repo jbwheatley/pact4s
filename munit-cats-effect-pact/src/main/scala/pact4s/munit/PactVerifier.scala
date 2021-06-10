@@ -16,21 +16,11 @@
 
 package pact4s.munit
 
-import au.com.dius.pact.provider.{IConsumerInfo, VerificationResult}
-import munit.CatsEffectSuite
+import munit.{Assertions, Location}
 import pact4s.PactVerifyResources
+import sourcecode.{File, FileName, Line}
 
-import scala.jdk.CollectionConverters._
-
-trait PactVerifier extends CatsEffectSuite with PactVerifyResources {
-  override private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit =
-    test(s"Verification of ${consumer.getName}") {
-      verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
-        case failed: VerificationResult.Failed =>
-          verifier.displayFailures(List(failed).asJava)
-          fail(s"Verification failed due to: ${failed.getDescription}")
-        case _: VerificationResult.Ok => ()
-        case _                        => throw new Exception("Impossible match failure")
-      }
-    }
+trait PactVerifier extends Assertions with PactVerifyResources {
+  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
+    fail(message)(new Location(file.value, line.value))
 }
