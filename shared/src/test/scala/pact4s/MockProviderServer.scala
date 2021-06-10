@@ -46,13 +46,8 @@ class MockProviderServer(port: Int) {
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
-      protocol = "http",
-      host = "localhost",
-      port = port,
-      path = "/",
-      verificationSettings = verificationSettings,
       pactSource = FileSource(consumerName, new File(fileName))
-    )
+    ).withPort(port).withOptionalVerificationSettings(verificationSettings)
 
   def brokerProviderInfo(
       providerName: String,
@@ -60,11 +55,6 @@ class MockProviderServer(port: Int) {
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
-      protocol = "http",
-      host = "localhost",
-      port = port,
-      path = "/",
-      verificationSettings = verificationSettings,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pact.dius.com.au",
         auth = Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
@@ -73,7 +63,7 @@ class MockProviderServer(port: Int) {
         providerTags = Nil,
         selectors = ConsumerVersionSelector(None) :: Nil
       )
-    )
+    ).withPort(port).withOptionalVerificationSettings(verificationSettings)
 }
 
 private[pact4s] final case class Name(name: String)

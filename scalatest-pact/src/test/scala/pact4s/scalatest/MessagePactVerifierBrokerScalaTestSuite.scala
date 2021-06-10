@@ -24,12 +24,14 @@ class MessagePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with PactVerif
 
   override def afterAll(): Unit = cleanUp.unsafeRunSync()
 
-  verifyPacts(
-    publishVerificationResults = Some(
-      PublishVerificationResults(
-        providerVersion = "SNAPSHOT",
-        providerTags = Nil
+  it should "Verify pacts for provider `MessageProvider`" in {
+    verifyPacts(
+      publishVerificationResults = Some(
+        PublishVerificationResults(
+          providerVersion = "SNAPSHOT",
+          providerTags = Nil
+        )
       )
     )
-  )
+  }
 }

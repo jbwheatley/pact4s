@@ -21,10 +21,10 @@ import cats.implicits.toBifunctorOps
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
-import pact4s.{MessagePactDecoder, PactBodyEncoder, PactDslJsonBodyEncoder}
+import pact4s.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder}
 
 object implicits {
-  implicit def pactBodyEncoder[A](implicit encoder: Encoder[A]): PactBodyEncoder[A] =
+  implicit def pactBodyEncoder[A](implicit encoder: Encoder[A]): PactBodyJsonEncoder[A] =
     (a: A) => encoder(a).noSpaces
 
   implicit def pactDslJsonBodyConverter[A](implicit encoder: Encoder[A]): PactDslJsonBodyEncoder[A] = (a: A) =>
