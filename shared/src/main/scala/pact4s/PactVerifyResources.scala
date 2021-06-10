@@ -44,7 +44,7 @@ trait PactVerifyResources {
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
-      showStacktrace: Boolean = true
+      showStacktrace: Boolean = false
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     val propertyResolver = new PactVerifierPropertyResolver(
       Map(
