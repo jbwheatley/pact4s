@@ -38,11 +38,20 @@ final case class ProviderInfoBuilder(
     pactSource: PactSource,
     verificationSettings: Option[VerificationSettings] = None
 ) {
+  def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
+  def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
+  def withPort(port: Int): ProviderInfoBuilder            = this.copy(port = port)
+  def withPath(path: String): ProviderInfoBuilder         = this.copy(path = path)
+  def withVerificationSettings(settings: VerificationSettings): ProviderInfoBuilder =
+    this.copy(verificationSettings = Some(settings))
+  def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
+    this.copy(verificationSettings = settings)
+
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
-    verificationSettings.foreach { case annotatedMethod: AnnotatedMethodVerificationSettings =>
+    verificationSettings.foreach { case AnnotatedMethodVerificationSettings(packagesToScan) =>
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
-      p.setPackagesToScan(annotatedMethod.packagesToScan.asJava)
+      p.setPackagesToScan(packagesToScan.asJava)
     }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
@@ -90,6 +99,11 @@ final case class ProviderInfoBuilder(
     }
 }
 
+object ProviderInfoBuilder {
+  def apply(name: String, pactSource: PactSource): ProviderInfoBuilder =
+    ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
+}
+
 sealed trait VerificationSettings
 
 object VerificationSettings {
@@ -106,7 +120,12 @@ object PactSource {
     def auth: Option[Authentication]
   }
   final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
-      extends PactBroker
+      extends PactBroker {
+    def withAuth(auth: Authentication) = this.copy(auth = Some(auth))
+    def withoutAuth                    = this.copy(auth = None)
+    def withTags(tags: List[String])   = this.copy(tags = tags)
+    def withTags(tags: String*)        = this.copy(tags = tags.toList)
+  }
   final case class PactBrokerWithSelectors(
       brokerUrl: String,
       auth: Option[Authentication] = None,
@@ -114,7 +133,17 @@ object PactSource {
       includeWipPactsSince: Option[FiniteDuration] = None,
       providerTags: List[String] = Nil,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
-  ) extends PactBroker
+  ) extends PactBroker {
+    def withAuth(auth: Authentication)                          = this.copy(auth = Some(auth))
+    def withoutAuth                                             = this.copy(auth = None)
+    def withPendingPacts(enabled: Boolean)                      = this.copy(enablePending = enabled)
+    def withWipPactsSince(since: FiniteDuration)                = this.copy(includeWipPactsSince = Some(since))
+    def withoutWipPacts                                         = this.copy(includeWipPactsSince = None)
+    def withProviderTags(tags: List[String])                    = this.copy(providerTags = tags)
+    def withProviderTags(tags: String*)                         = this.copy(providerTags = tags.toList)
+    def withSelectors(selectors: List[ConsumerVersionSelector]) = this.copy(selectors = selectors)
+    def withSelectors(selectors: ConsumerVersionSelector*)      = this.copy(selectors = selectors.toList)
+  }
 }
 
 /*

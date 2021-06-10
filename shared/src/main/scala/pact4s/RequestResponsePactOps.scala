@@ -29,11 +29,12 @@ object RequestResponsePactOps {
     def headers(header: (String, String), rest: (String, String)*): PactDslRequestWithPath =
       this.headers(rest.toMap + header)
 
-    def body[A](body: A)(implicit ev: PactBodyEncoder[A]): PactDslRequestWithPath = builder.body(ev.toJsonString(body))
-    def body[A](body: A, mimeType: String)(implicit ev: PactBodyEncoder[A]): PactDslRequestWithPath =
+    def body[A](body: A)(implicit ev: PactBodyJsonEncoder[A]): PactDslRequestWithPath =
+      builder.body(ev.toJsonString(body))
+    def body[A](body: A, mimeType: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslRequestWithPath =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType))
     def body[A](body: A, mimeType: String, charset: String)(implicit
-        ev: PactBodyEncoder[A]
+        ev: PactBodyJsonEncoder[A]
     ): PactDslRequestWithPath =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
   }
@@ -44,12 +45,12 @@ object RequestResponsePactOps {
     def headers(header: (String, String), rest: (String, String)*): PactDslRequestWithoutPath =
       this.headers(rest.toMap + header)
 
-    def body[A](body: A)(implicit ev: PactBodyEncoder[A]): PactDslRequestWithoutPath =
+    def body[A](body: A)(implicit ev: PactBodyJsonEncoder[A]): PactDslRequestWithoutPath =
       builder.body(ev.toJsonString(body))
-    def body[A](body: A, mimeType: String)(implicit ev: PactBodyEncoder[A]): PactDslRequestWithoutPath =
+    def body[A](body: A, mimeType: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslRequestWithoutPath =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType))
     def body[A](body: A, mimeType: String, charset: String)(implicit
-        ev: PactBodyEncoder[A]
+        ev: PactBodyJsonEncoder[A]
     ): PactDslRequestWithoutPath =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
 
@@ -61,10 +62,10 @@ object RequestResponsePactOps {
     def headers(header: (String, String), rest: (String, String)*): PactDslResponse =
       this.headers(rest.toMap + header)
 
-    def body[A](body: A)(implicit ev: PactBodyEncoder[A]): PactDslResponse = builder.body(ev.toJsonString(body))
-    def body[A](body: A, mimeType: String)(implicit ev: PactBodyEncoder[A]): PactDslResponse =
+    def body[A](body: A)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse = builder.body(ev.toJsonString(body))
+    def body[A](body: A, mimeType: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType))
-    def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyEncoder[A]): PactDslResponse =
+    def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
 
   }

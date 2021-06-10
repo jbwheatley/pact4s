@@ -14,12 +14,14 @@ class RequestResponsePactVerifierBrokerMUnitSuite extends CatsEffectSuite with P
     )
   )
 
-  verifyPacts(
-    publishVerificationResults = Some(
-      PublishVerificationResults(
-        providerVersion = "SNAPSHOT",
-        providerTags = Nil
+  test("Verify pacts for provider `Pact4sProvider`") {
+    verifyPacts(
+      publishVerificationResults = Some(
+        PublishVerificationResults(
+          providerVersion = "SNAPSHOT",
+          providerTags = Nil
+        )
       )
     )
-  )
+  }
 }
