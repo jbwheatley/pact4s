@@ -5,7 +5,7 @@ import org.http4s.server.Server
 import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
 import weaver.IOSuite
 
-object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifier[IO] {
+object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifier {
   type Res = Server
 
   val mock = new MockProviderServer(1235)
@@ -14,12 +14,16 @@ object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVer
 
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
 
-  verifyPacts(
-    publishVerificationResults = Some(
-      PublishVerificationResults(
-        providerVersion = "SNAPSHOT",
-        providerTags = Nil
+  pureTest("Verify pacts for provider `Pact4sProvider`") {
+    succeed(
+      verifyPacts(
+        publishVerificationResults = Some(
+          PublishVerificationResults(
+            providerVersion = "SNAPSHOT",
+            providerTags = Nil
+          )
+        )
       )
     )
-  )
+  }
 }
