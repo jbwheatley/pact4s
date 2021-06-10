@@ -17,12 +17,12 @@
 package pact4s.scalatest
 
 import au.com.dius.pact.provider.{IConsumerInfo, VerificationResult}
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.flatspec.AnyFlatSpecLike
 import pact4s.PactVerifyResources
 
 import scala.jdk.CollectionConverters._
 
-trait PactVerifier extends AnyFlatSpec with PactVerifyResources {
+trait PactVerifier extends AnyFlatSpecLike with PactVerifyResources {
   override private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit =
     it should s"verify consumer '${consumer.getName}'" in {
       verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {

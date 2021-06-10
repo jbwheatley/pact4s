@@ -42,33 +42,36 @@ class MockProviderServer(port: Int) {
       consumerName: String,
       providerName: String,
       fileName: String,
-      verificationType: VerificationType
+      verificationSettings: Option[VerificationSettings] = None
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
-      providerName,
-      "http",
-      "localhost",
-      port,
-      "/",
-      verificationType,
-      FileSource(consumerName, new File(fileName))
+      name = providerName,
+      protocol = "http",
+      host = "localhost",
+      port = port,
+      path = "/",
+      verificationSettings = verificationSettings,
+      pactSource = FileSource(consumerName, new File(fileName))
     )
 
-  def brokerProviderInfo: ProviderInfoBuilder =
+  def brokerProviderInfo(
+      providerName: String,
+      verificationSettings: Option[VerificationSettings] = None
+  ): ProviderInfoBuilder =
     ProviderInfoBuilder(
-      "Pact4sProvider",
-      "http",
-      "localhost",
-      port,
-      "/",
-      VerificationType.RequestResponse,
-      PactBrokerWithSelectors(
-        "https://test.pact.dius.com.au",
-        Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
+      name = providerName,
+      protocol = "http",
+      host = "localhost",
+      port = port,
+      path = "/",
+      verificationSettings = verificationSettings,
+      pactSource = PactBrokerWithSelectors(
+        brokerUrl = "https://test.pact.dius.com.au",
+        auth = Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
         enablePending = true,
-        None,
-        Nil,
-        ConsumerVersionSelector(None) :: Nil
+        includeWipPactsSince = None,
+        providerTags = Nil,
+        selectors = ConsumerVersionSelector(None) :: Nil
       )
     )
 }

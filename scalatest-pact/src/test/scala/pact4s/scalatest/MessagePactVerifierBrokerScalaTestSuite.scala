@@ -3,16 +3,14 @@ package pact4s.scalatest
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
-class MessagePactVerifierScalaTestSuite extends PactVerifier with BeforeAndAfterAll {
-  lazy val mock = new MockProviderServer(3458)
+class MessagePactVerifierBrokerScalaTestSuite extends PactVerifier with BeforeAndAfterAll {
+  lazy val mock = new MockProviderServer(3460)
 
-  def provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sMessageConsumer",
+  def provider: ProviderInfoBuilder = mock.brokerProviderInfo(
     providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
@@ -25,5 +23,12 @@ class MessagePactVerifierScalaTestSuite extends PactVerifier with BeforeAndAfter
 
   override def afterAll(): Unit = cleanUp.unsafeRunSync()
 
-  verifyPacts()
+  verifyPacts(
+    publishVerificationResults = Some(
+      PublishVerificationResults(
+        providerVersion = "SNAPSHOT",
+        providerTags = Nil
+      )
+    )
+  )
 }
