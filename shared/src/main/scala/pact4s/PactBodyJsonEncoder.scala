@@ -16,6 +16,10 @@
 
 package pact4s
 
-trait PactBodyEncoder[A] {
+trait PactBodyJsonEncoder[A] {
   def toJsonString(a: A): String
+}
+
+object PactBodyJsonEncoder {
+  def apply[A](implicit ev: PactBodyJsonEncoder[A]): PactBodyJsonEncoder[A] = ev
 }

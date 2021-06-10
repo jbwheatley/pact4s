@@ -44,18 +44,20 @@ trait PactVerifyResources {
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
-      showStacktrace: Boolean = false
+      providerVerificationOptions: List[ProviderVerificationOption] = Nil
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     val propertyResolver = new PactVerifierPropertyResolver(
-      Map(
-        ProviderVerifier.PACT_SHOW_STACKTRACE          -> showStacktrace.toString,
-        ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
-      )
+      publishVerificationResults
+        .fold(providerVerificationOptions)(_ =>
+          ProviderVerificationOption.VERIFIER_PUBLISH_RESULTS :: providerVerificationOptions
+        )
+        .map(opt => (opt.key, opt.value))
+        .toMap
     )
     verifier.initialiseReporters(providerInfo)
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
-    verifier.setProjectGetProperty(propertyResolver.getProperty)
-    verifier.setProjectHasProperty(name => Option(propertyResolver.getProperty(name)).isDefined)
+    verifier.setProjectGetProperty(p => propertyResolver.getProperty(p).orNull)
+    verifier.setProjectHasProperty(name => propertyResolver.getProperty(name).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
     verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags).getOrElse(Nil).asJava)
 
@@ -69,5 +71,5 @@ final case class PublishVerificationResults(
 )
 
 private[pact4s] final class PactVerifierPropertyResolver(properties: Map[String, String]) {
-  def getProperty(name: String): String = Option(System.getProperty(name)).getOrElse(properties.get(name).orNull)
+  def getProperty(name: String): Option[String] = properties.get(name).orElse(Option(System.getProperty(name)))
 }

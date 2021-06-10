@@ -18,12 +18,17 @@ object MessagePactVerifierBrokerWeaverTestSuite extends IOSuite with PactVerifie
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
-  verifyPacts(
-    publishVerificationResults = Some(
-      PublishVerificationResults(
-        providerVersion = "SNAPSHOT",
-        providerTags = Nil
+  pureTest("Verify pacts for provider `MessageProvider`") {
+    succeed(
+      verifyPacts(
+        publishVerificationResults = Some(
+          PublishVerificationResults(
+            providerVersion = "SNAPSHOT",
+            providerTags = Nil
+          )
+        )
       )
     )
-  )
+  }
+
 }
