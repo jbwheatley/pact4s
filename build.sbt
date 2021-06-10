@@ -1,4 +1,5 @@
 import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
+import sbt.Test
 
 val scala212 = "2.12.14"
 val scala213 = "2.13.6"
@@ -22,7 +23,8 @@ inThisBuild(
     crossScalaVersions := List(
       scala212,
       scala213
-    ) //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
+    ), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
+    Test / parallelExecution := false
   )
 )
 
@@ -79,7 +81,6 @@ lazy val scalaTest = (project in file("scalatest-pact"))
   .dependsOn(circe % "test->test")
 
 lazy val weaver = (project in file("weaver-pact"))
-  .settings(commonSettings)
   .settings(commonSettings)
   .settings(
     name := "pact4s-weaver",

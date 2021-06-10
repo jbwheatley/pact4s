@@ -6,7 +6,7 @@ import pact4s.{MockProviderServer, ProviderInfoBuilder}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import weaver.IOSuite
 
-object MessagePactVerifierWeaverTestSuite extends IOSuite with PactVerifier[IO] {
+object MessagePactVerifierWeaverTestSuite extends IOSuite with PactVerifier {
   type Res = Server
 
   val mock = new MockProviderServer(1236)
@@ -20,5 +20,7 @@ object MessagePactVerifierWeaverTestSuite extends IOSuite with PactVerifier[IO] 
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
-  verifyPacts()
+  pureTest("Verify pacts for provider `MessageProvider`") {
+    succeed(verifyPacts())
+  }
 }

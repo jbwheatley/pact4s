@@ -16,7 +16,8 @@
 
 package pact4s
 
-import au.com.dius.pact.provider.{IConsumerInfo, ProviderVerifier}
+import au.com.dius.pact.provider.{IConsumerInfo, ProviderVerifier, VerificationResult}
+import sourcecode.{File, FileName, Line}
 
 import scala.jdk.CollectionConverters._
 
@@ -27,20 +28,30 @@ trait PactVerifyResources {
 
   private[pact4s] val verifier = new ProviderVerifier()
 
-  private[pact4s] def verifySingleConsumer(consumer: IConsumerInfo): Unit
+  private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
+
+  private[pact4s] def verifySingleConsumer(
+      consumer: IConsumerInfo
+  )(implicit fileName: FileName, file: File, line: Line): Unit =
+    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
+      case failed: VerificationResult.Failed =>
+        verifier.displayFailures(List(failed).asJava)
+        failure(s"Verification failed:\n ${failed.toString}")
+      case _: VerificationResult.Ok => ()
+      case _                        => ???
+    }
 
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
-      showStacktrace: Boolean = true
-  ): Unit = {
+      showStacktrace: Boolean = false
+  )(implicit fileName: FileName, file: File, line: Line): Unit = {
     val propertyResolver = new PactVerifierPropertyResolver(
       Map(
         ProviderVerifier.PACT_SHOW_STACKTRACE          -> showStacktrace.toString,
         ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS -> publishVerificationResults.isDefined.toString
       )
     )
-
     verifier.initialiseReporters(providerInfo)
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
     verifier.setProjectGetProperty(propertyResolver.getProperty)
