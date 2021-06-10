@@ -1,20 +1,16 @@
 package pact4s.munit
 
-import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
-import io.circe.Json
-import io.circe.syntax.EncoderOps
-import pact4s.{MockProviderServer, ProviderInfoBuilder, VerificationType}
-
-import scala.jdk.CollectionConverters._
+import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
 class MessagePactVerifierMUnitSuite extends PactVerifier {
   val mock = new MockProviderServer(2347)
 
   override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "MessageConsumer",
-    providerName = "MessageProvider",
-    fileName = "./scripts/MessageConsumer-MessageProvider.json",
-    verificationType = VerificationType.AnnotatedMethod
+    consumerName = "Pact4sMessageConsumer",
+    providerName = "Pact4sMessageProvider",
+    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
+    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
@@ -23,20 +19,6 @@ class MessagePactVerifierMUnitSuite extends PactVerifier {
       mock.server
     )
   )
-
-  @PactVerifyProvider("A message to say goodbye")
-  def goodbyeMessage(): MessageAndMetadata = {
-    val metadata = Map.empty[String, String]
-    val body     = Json.obj("goodbye" -> "harry".asJson)
-    new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
-  }
-
-  @PactVerifyProvider("A message to say hello")
-  def helloMessage(): MessageAndMetadata = {
-    val metadata = Map("hi" -> "there")
-    val body     = Json.obj("hello" -> "harry".asJson)
-    new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
-  }
 
   verifyPacts()
 }
