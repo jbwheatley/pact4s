@@ -20,7 +20,7 @@ object Dependencies {
   )
 
   val munit: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.3" % Provided
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.5" % Provided
   ) ++ shared
 
   val scalatest: Seq[ModuleID] = Seq(
@@ -35,6 +35,6 @@ object Dependencies {
   val circe: Seq[ModuleID] = Seq(
     "io.circe"      %% "circe-core"          % _circe,
     "io.circe"      %% "circe-parser"        % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.3" % Test
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.5" % Test
   )
 }
