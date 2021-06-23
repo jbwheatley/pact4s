@@ -37,6 +37,13 @@ object RequestResponsePactForgerWeaverSuite extends IOSuite with RequestResponse
       .method("GET")
       .willRespondWith()
       .status(204)
+      .given("bob exists")
+      .uponReceiving("a request to find a friend")
+      .path("/anyone-there")
+      .method("GET")
+      .willRespondWith()
+      .status(200)
+      .body(Json.obj("found" -> "bob".asJson))
       .toPact()
 
   override type Resources = Client[IO]
@@ -67,6 +74,15 @@ object RequestResponsePactForgerWeaverSuite extends IOSuite with RequestResponse
     )
     client.run(request).use {
       _.status.code.pure[IO].map(code => expect(code == 204))
+    }
+  }
+
+  test("test with provider state") { resources =>
+    val client  = resources._1
+    val server  = resources._2
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/anyone-there"))
+    client.run(request).use {
+      _.as[String].map(body => expect(body == "{\"found\":\"bob\"}"))
     }
   }
 }
