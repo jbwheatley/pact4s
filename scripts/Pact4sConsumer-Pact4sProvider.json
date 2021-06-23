@@ -19,6 +19,10 @@
         "body": {
           "name": "harry"
         },
+        "headers": {
+          "Content-Type": "application/json",
+          "other-header": "howdy"
+        },
         "method": "POST",
         "path": "/hello"
       },
@@ -28,11 +32,29 @@
         },
         "status": 200
       }
+    },
+    {
+      "description": "a request to find a friend",
+      "providerStates": [
+        {
+          "name": "bob exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/anyone-there"
+      },
+      "response": {
+        "body": {
+          "found": "bob"
+        },
+        "status": 200
+      }
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.2.0"
+      "version": "4.2.6"
     },
     "pactSpecification": {
       "version": "3.0.0"

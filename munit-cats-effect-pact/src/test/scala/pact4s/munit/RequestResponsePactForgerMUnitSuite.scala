@@ -36,6 +36,13 @@ class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
       .method("GET")
       .willRespondWith()
       .status(204)
+      .given("bob exists")
+      .uponReceiving("a request to find a friend")
+      .path("/anyone-there")
+      .method("GET")
+      .willRespondWith()
+      .status(200)
+      .body(Json.obj("found" -> "bob".asJson))
       .toPact()
 
   val client = ResourceSuiteLocalFixture(
@@ -64,6 +71,13 @@ class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
     )
     client().run(request).use {
       _.status.code.pure[IO].assertEquals(204)
+    }
+  }
+
+  pactTest("test with provider state") { server =>
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/anyone-there"))
+    client().run(request).use {
+      _.as[String].assertEquals("{\"found\":\"bob\"}")
     }
   }
 }

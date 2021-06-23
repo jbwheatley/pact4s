@@ -11,7 +11,7 @@ import org.http4s.dsl.io._
 import org.http4s.{EntityDecoder, HttpApp, HttpRoutes}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
-import Name._
+import cats.effect.kernel.Ref
 import org.http4s.server.Server
 import pact4s.Authentication.BasicAuth
 import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
@@ -25,6 +25,13 @@ class MockProviderServer(port: Int) {
       .withHttpApp(app)
       .build
 
+  private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
+    implicit val decoder: Decoder[ProviderState] = Decoder.forProduct1("state")(ProviderState)
+    jsonOf
+  }
+
+  private val stateRef: Ref[IO, Option[String]] = Ref.unsafe(None)
+
   private def app: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
@@ -34,6 +41,18 @@ class MockProviderServer(port: Int) {
           req.as[Name].flatMap {
             case Name("harry") => Ok(Json.obj("hello" -> "harry".asJson))
             case _             => NotFound()
+          }
+        case GET -> Root / "anyone-there" =>
+          stateRef.get.flatMap {
+            case Some(s) => Ok(Json.obj("found" -> s.asJson))
+            case None    => NotFound()
+          }
+
+        case req @ POST -> Root / "setup" =>
+          req.as[ProviderState].flatMap {
+            case ProviderState("bob exists") =>
+              stateRef.set(Some("bob")) *> Ok()
+            case _ => Ok()
           }
       }
       .orNotFound
@@ -47,7 +66,9 @@ class MockProviderServer(port: Int) {
     ProviderInfoBuilder(
       name = providerName,
       pactSource = FileSource(consumerName, new File(fileName))
-    ).withPort(port).withOptionalVerificationSettings(verificationSettings)
+    ).withPort(port)
+      .withOptionalVerificationSettings(verificationSettings)
+      .withStateChangeEndpoint(s"setup")
 
   def brokerProviderInfo(
       providerName: String,
@@ -63,7 +84,9 @@ class MockProviderServer(port: Int) {
         providerTags = Nil,
         selectors = ConsumerVersionSelector(None) :: Nil
       )
-    ).withPort(port).withOptionalVerificationSettings(verificationSettings)
+    ).withPort(port)
+      .withOptionalVerificationSettings(verificationSettings)
+      .withStateChangeEndpoint(s"setup")
 }
 
 private[pact4s] final case class Name(name: String)
