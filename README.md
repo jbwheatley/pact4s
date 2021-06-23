@@ -105,13 +105,47 @@ override val provider: ProviderInfoBuilder =
 After defining the `provider`, the verification step can be run against your mock provider simply by adding a test that has the following body: 
 ```scala
 test("verify pacts") {
-  verifyPacts()
+  verifyPacts(
+    publishVerificationResults = Some(
+        PublishVerificationResults(
+          providerVersion = "ProviderVersion",
+          providerTags = Nil
+        )
+      )
+  )
 }
 ```
 
 Please note, due to the version of pact-jvm that is underpinning `pact4s`, the verification step uses the `Pacts For Verification` API in the pact broker. See this issue here for more information: https://github.com/pact-foundation/pact_broker/issues/307. This may not be available in earlier versions of the pact-broker, so make sure you are using the latest release of the broker. 
 
 Pacts produced by pact-jvm (and by extension pact4s) by default conform to V3 of the pact specification, which *CANNOT* be verified by `scala-pact`.
+
+### Provider state
+
+Some pacts have requirements on the state of the provider. These are defined by the consumer by creating a pact like: 
+```scala
+  val pact: RequestResponsePact =
+  ConsumerPactBuilder
+    .consumer("Consumer")
+    .hasPactWith("Provider")
+    .given("a user with id bob exists") //this is the provider state id
+    .uponReceiving(...)
+    ...
+```
+
+In order to verify pacts that require state, your mock provider server should expose a POST endpoint (e.g. named "setup", or something similar) that expects a request body of `{"state" : the provider state id string }`. Then by setting the field `stateChangeUrl` on the `provider` in your test suite:
+```scala
+override val provider: ProviderInfoBuilder = 
+  ProviderInfoBuilder(
+    name = "Provider",
+    protocol = "http",
+    host = "localhost",
+    port = 1234,
+    path = "/",
+    pactSource = ???
+  ).withStateChangeUrl("http://localhost:1234/setup") //alternatively, .withStateChangeEndpoint("/setup")
+```
+This will cause a request to be sent to the setup url with the state id for before verification of each interaction with a provider state is attempted. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state. 
 
 ## Prerequisites
 
