@@ -18,10 +18,12 @@ package pact4s.circe
 
 import au.com.dius.pact.core.model.messaging.Message
 import cats.implicits.toBifunctorOps
+import io.circe.Decoder.Result
 import io.circe.parser._
-import io.circe.{Decoder, Encoder}
+import io.circe.syntax._
+import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
-import pact4s.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder}
+import pact4s.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder, ProviderState}
 
 object implicits {
   implicit def pactBodyEncoder[A](implicit encoder: Encoder[A]): PactBodyJsonEncoder[A] =
@@ -32,4 +34,9 @@ object implicits {
 
   implicit def messagePactDecoder[A](implicit decoder: Decoder[A]): MessagePactDecoder[A] = (message: Message) =>
     parse(message.contentsAsString()).leftWiden[Throwable].flatMap(j => decoder.decodeJson(j))
+
+  implicit val providerStateCodec: Codec[ProviderState] = new Codec[ProviderState] {
+    def apply(a: ProviderState): Json            = Json.obj("state" -> a.state.asJson)
+    def apply(c: HCursor): Result[ProviderState] = c.get[String]("state").map(ProviderState)
+  }
 }

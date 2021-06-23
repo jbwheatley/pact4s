@@ -24,6 +24,7 @@ import pact4s.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactB
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
 import java.io.File
+import java.net.URL
 import java.util.Date
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
@@ -36,6 +37,7 @@ final case class ProviderInfoBuilder(
     port: Int,
     path: String,
     pactSource: PactSource,
+    stateChangeUrl: Option[String] = None,
     verificationSettings: Option[VerificationSettings] = None
 ) {
   def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
@@ -46,6 +48,11 @@ final case class ProviderInfoBuilder(
     this.copy(verificationSettings = Some(settings))
   def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
     this.copy(verificationSettings = settings)
+  def withStateChangeUrl(url: String): ProviderInfoBuilder = this.copy(stateChangeUrl = Some(url))
+  def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
+    val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
+    this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
+  }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
@@ -53,6 +60,7 @@ final case class ProviderInfoBuilder(
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
+    stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>

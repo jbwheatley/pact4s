@@ -38,6 +38,13 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
       .method("GET")
       .willRespondWith()
       .status(204)
+      .given("bob exists")
+      .uponReceiving("a request to find a friend")
+      .path("/anyone-there")
+      .method("GET")
+      .willRespondWith()
+      .status(200)
+      .body(Json.obj("found" -> "bob".asJson))
       .toPact()
 
   val client = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
@@ -66,6 +73,16 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
       .run(request)
       .use {
         _.status.code.pure[IO].map(_ shouldBe 204)
+      }
+      .unsafeRunSync()
+  }
+
+  it should "test with provider state" in {
+    val request = Request[IO](uri = Uri.unsafeFromString(mockServer.getUrl + "/anyone-there"))
+    client
+      .run(request)
+      .use {
+        _.as[String].map(_ shouldBe "{\"found\":\"bob\"}")
       }
       .unsafeRunSync()
   }
