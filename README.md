@@ -12,6 +12,8 @@ Currently supports writing consumer pact tests and verifying pacts from either a
 "io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
 ```
 
+Pact4s is still in the early stages of development! Please consider helping us out by contributing or raising issues :) 
+
 ## Writing Consumer Request/Response Pacts
 
 The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins share the following interfaces for defining pacts:
