@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val pactJvm = "4.2.6"
+  val pactJvm = "4.2.7"
   val http4s  = "1.0.0-M23"
   val _circe  = "0.14.1"
 
