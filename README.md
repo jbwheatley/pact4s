@@ -52,7 +52,10 @@ val pact: RequestResponsePact =
 
 Pacts are constructed using the pact-jvm dsl, but with additional helpers for easier interop with scala. For example, anywhere a java `Map` is expected, a scala `Map`, or scala tuples can be provided instead. 
 
-If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided. By adding the additional dependency `io.github.jbwheatley %% pact4s-circe % xxx`, instances of `pact4s.PactBodyEncoder` are provided for any type that has a `circe.Encoder` instance. This allows the following: 
+If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided. Instances of `pact4s.PactBodyEncoder` are provided for any type that has a `circe.Encoder` by adding the additional dependency:
+```io.github.jbwheatley %% pact4s-circe % xxx```
+
+This allows the following when using the import `pact4s.circe.implicits._`: 
 
 ```scala
 import pact4s.circe.implicits._
@@ -74,9 +77,9 @@ val pact: RequestResponsePact =
 
 Each of the APIs for writing consumer pact tests provided by each of `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` are slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the following test suites for examples of how each of these APIs looks: 
 
-- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/munit-cats-effect-pact/src/test/scala/pact4s/munit/RequestResponsePactForgerMUnitSuite.scala) 
-- [weaver](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/weaver-pact/src/test/scala/pact4s/weaver/RequestResponsePactForgerWeaverSuite.scala)
-- [scalatest](https://github.com/jbwheatley/pact4s/blob/549bc3e76d3e377862438f6f748075499cc39f7d/scalatest-pact/src/test/scala/pact4s/scalatest/RequestResponsePactForgerScalaTestSuite.scala)
+- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/munit-cats-effect-pact/src/test/scala/pact4s/munit/RequestResponsePactForgerMUnitSuite.scala) 
+- [weaver](https://github.com/jbwheatley/pact4s/blob/main/weaver-pact/src/test/scala/pact4s/weaver/RequestResponsePactForgerWeaverSuite.scala)
+- [scalatest](https://github.com/jbwheatley/pact4s/blob/main/scalatest-pact/src/test/scala/pact4s/scalatest/RequestResponsePactForgerScalaTestSuite.scala)
 
 ## Publishing Consumer Request/Response Pacts
 
@@ -146,6 +149,10 @@ override val provider: ProviderInfoBuilder =
   ).withStateChangeUrl("http://localhost:1234/setup") //alternatively, .withStateChangeEndpoint("/setup")
 ```
 This will cause a request to be sent to the setup url with the state id for before verification of each interaction with a provider state is attempted. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state. 
+
+## Message Pacts
+
+We do support message pacts! This needs documentation (please consider contributing!), but examples for both forging and verifying message pacts can be found in the test suites. 
 
 ## Prerequisites
 
