@@ -50,6 +50,9 @@ def moduleName(base: String, axis: Seq[VirtualAxis]): String = {
   s"$base$series"
 }
 
+val moduleBase =
+  Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
+
 lazy val shared =
   (projectMatrix in file("shared"))
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
@@ -60,6 +63,20 @@ lazy val shared =
       libraryDependencies ++= {
         val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
         Dependencies.shared(version)
+      },
+      Compile / unmanagedSourceDirectories ++= {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        version match {
+          case Dependencies.pactJvmJava11 =>
+            Seq(
+              moduleBase.value / s"src" / "main" / "java11+"
+            )
+          case Dependencies.pactJvmJava8 =>
+            Seq(
+              moduleBase.value / s"src" / "main" / "java8"
+            )
+          case _ => Nil
+        }
       }
     )
 
