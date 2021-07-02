@@ -16,11 +16,13 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.MessagePactBuilder
-import au.com.dius.pact.core.model.messaging.Message
+import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import pact4s.MessagePactOps.{MessageOps, MessagePactBuilderOps}
 
 import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
 
 object MessagePactOps {
   class MessagePactBuilderOps(val builder: MessagePactBuilder) extends AnyVal {
@@ -28,6 +30,8 @@ object MessagePactOps {
 
     def withContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): MessagePactBuilder =
       builder.withContent(ev.toPactDslJsonBody(content))
+
+    def toMessagePact: MessagePact = builder.toPact
   }
 
   class MessageOps(val message: Message) extends AnyVal {
@@ -42,4 +46,22 @@ trait MessagePactOps {
   )
 
   implicit def toMessageOps(message: Message): MessageOps = new MessageOps(message)
+
+  private[pact4s] def writeMessagePactToFile(
+      pact: MessagePact,
+      executionContext: PactTestExecutionContext,
+      version: PactSpecVersion
+  ): Either[Throwable, Unit] =
+    try Right(pact.write(executionContext.getPactFolder, version))
+    catch {
+      case NonFatal(err) => Left(err)
+    }
+
+  sealed abstract class Pact4sMessagePactBuilder() {
+    def consumer(consumer: String): MessagePactBuilder = MessagePactBuilder.consumer(consumer)
+  }
+
+  object Pact4sMessagePactBuilder {
+    def apply(): Pact4sMessagePactBuilder = new Pact4sMessagePactBuilder() {}
+  }
 }

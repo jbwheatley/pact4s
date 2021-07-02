@@ -1,6 +1,6 @@
 package pact4s.weaver
 
-import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.MessagePact
 import cats.effect.IO
 import io.circe.Json
@@ -13,7 +13,7 @@ object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactFo
     "./weaver-pact/target/pacts"
   )
 
-  val pact: MessagePact = new MessagePactBuilder()
+  val pact: MessagePact = Pact4sMessagePactBuilder()
     .consumer("Pact4sMessageConsumer")
     .hasPactWith("Pact4sMessageProvider")
     .expectsToReceive("A message to say hello")
@@ -21,7 +21,7 @@ object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactFo
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact[MessagePact]
+    .toMessagePact
 
   test("weaver message pact test") { messages =>
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))

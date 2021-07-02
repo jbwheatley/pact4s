@@ -1,5 +1,5 @@
+import commandmatrix.Dimension
 import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
-import sbt.Test
 
 val scala212       = "2.12.14"
 val scala213       = "2.13.6"
@@ -7,6 +7,12 @@ val scala2Versions = Seq(scala212, scala213)
 val scala3         = "3.0.0-RC2"
 
 sonatypeCredentialHost := Sonatype.sonatype01
+
+val javaVersionDimension =
+  Dimension.create("PACT_JVM") {
+    case PactJvmAxis.java8  => "java8"
+    case PactJvmAxis.java11 => "java11"
+  }
 
 inThisBuild(
   List(
@@ -25,7 +31,15 @@ inThisBuild(
       scala212,
       scala213
     ), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
-    Test / parallelExecution := false
+    commands ++= CrossCommand.single(
+      "test",
+      matrices = Seq(circe, munit, scalaTest, weaver),
+      dimensions = Seq(
+        javaVersionDimension,
+        Dimension.scala("2.13"),
+        Dimension.platform()
+      )
+    )
   )
 )
 
@@ -134,3 +148,15 @@ lazy val pact4s = (projectMatrix in file("."))
     shared,
     circe
   )
+
+addCommandAlias(
+  "commitCheck",
+  List("scalafmtAll", "test-java8-2_12-jvm", "test-java11-2_12-jvm", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
+    .mkString(";", ";", "")
+)
+
+addCommandAlias( //same as above but only tests 2.13
+  "quickCommitCheck",
+  List("scalafmtAll", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
+    .mkString(";", ";", "")
+)

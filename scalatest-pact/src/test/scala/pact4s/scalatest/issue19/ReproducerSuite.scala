@@ -1,8 +1,6 @@
 package pact4s.scalatest.issue19
 
 import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.BeforeAndAfterAll
@@ -39,15 +37,8 @@ class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterA
     new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
   }
 
-  var cleanUp: IO[Unit] = IO.unit
-
-  override def beforeAll(): Unit = {
-    val (_, shutdown) = mock.server.allocated.unsafeRunSync()
+  override def beforeAll(): Unit =
     metadata = Map("hi" -> "there")
-    cleanUp = shutdown
-  }
-
-  override def afterAll(): Unit = cleanUp.unsafeRunSync()
 
   it should "verify pacts" in {
     verifyPacts(
