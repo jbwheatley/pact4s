@@ -189,3 +189,9 @@ Due to the java version used by the underlying pact-jvm library, you won't be ab
 java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
 ```
+
+---
+
+### Notes on Contributing
+
+We use [sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) to easily reuse code across the different scala and jdk versions. Using `sbt test` with `projectmatrix` doesn't seem to respect turning off parallel test execution, which we need because the tests use locking resources. So instead, in order to run the tests use `sbt commitCheck` to run the tests in series. This is quite slow, so `sbt quickCommitCheck` will only run the tests on scala 2.13. Thanks to [sbt-commandmatrix](https://github.com/indoorvivants/sbt-commandmatrix) for enabling this. 
