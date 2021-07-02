@@ -181,15 +181,6 @@ This will cause a request to be sent to the setup url with the state id for befo
 
 We do support message pacts! This needs documentation (please consider contributing!), but examples for both forging and verifying message pacts can be found in the test suites. 
 
-## Prerequisites
-
-Due to the java version used by the underlying pact-jvm library, you won't be able to use this wrapper unless your project is being built on java 11+. If you build on java 8 for example, you might see something like this: 
-
-```
-java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
-55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
-```
-
 ---
 
 ### Notes on Contributing
