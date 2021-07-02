@@ -7,6 +7,8 @@ Lightweight wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) f
 
 `pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
 
+## Getting Started
+
 This library provides support for `munit-cats-effect`, `weaver`, and `scala-test`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
 
 | Branch | Pact Spec | JDK |
