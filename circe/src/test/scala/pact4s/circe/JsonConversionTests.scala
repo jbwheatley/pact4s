@@ -25,8 +25,7 @@ class JsonConversionTests extends CatsEffectSuite {
     IO.fromEither(
       parser
         .parse(
-          jsonToPactDslJsonBody(json).getBody
-            .prettyPrint(0, true)
+          jsonToPactDslJsonBody(json).getBody.toString
         )
     ).assertEquals(json)
   }

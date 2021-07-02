@@ -1,9 +1,8 @@
 import sbt.VirtualAxis
 
 case class PactJvmAxis(series: String, version: String) extends VirtualAxis.WeakAxis {
-  val directorySuffix      = series
-  val idSuffix             = series
-  override val suffixOrder = 50
+  val directorySuffix = series
+  val idSuffix        = series
 }
 
 object PactJvmAxis {
