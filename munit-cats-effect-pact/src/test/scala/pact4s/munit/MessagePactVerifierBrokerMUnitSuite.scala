@@ -12,13 +12,6 @@ class MessagePactVerifierBrokerMUnitSuite extends CatsEffectSuite with PactVerif
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
-  override val munitFixtures: Seq[Fixture[_]] = Seq(
-    ResourceSuiteLocalFixture(
-      "Mock Provider Server",
-      mock.server
-    )
-  )
-
   verifyPacts(
     publishVerificationResults = Some(
       PublishVerificationResults(

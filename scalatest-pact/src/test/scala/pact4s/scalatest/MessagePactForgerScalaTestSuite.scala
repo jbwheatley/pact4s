@@ -1,6 +1,6 @@
 package pact4s.scalatest
 
-import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.MessagePact
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -13,7 +13,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     "./scalatest-pact/target/pacts"
   )
 
-  val pact: MessagePact = new MessagePactBuilder()
+  val pact: MessagePact = Pact4sMessagePactBuilder()
     .consumer("Pact4sMessageConsumer")
     .hasPactWith("Pact4sMessageProvider")
     .expectsToReceive("A message to say hello")
@@ -21,7 +21,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact[MessagePact]
+    .toMessagePact
 
   it should "scalatest message pact test" in {
     messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"
