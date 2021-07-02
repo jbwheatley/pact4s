@@ -1,5 +1,5 @@
 package pact4s.munit
-import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.MessagePact
 import cats.effect.IO
 import io.circe.Json
@@ -11,7 +11,7 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     "./munit-cats-effect-pact/target/pacts"
   )
 
-  val pact: MessagePact = new MessagePactBuilder()
+  val pact: MessagePact = Pact4sMessagePactBuilder()
     .consumer("Pact4sMessageConsumer")
     .hasPactWith("Pact4sMessageProvider")
     .expectsToReceive("A message to say hello")
@@ -19,7 +19,7 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .toPact[MessagePact]
+    .toMessagePact
 
   test("munit message pact test") {
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello"))).assertEquals("harry") *>

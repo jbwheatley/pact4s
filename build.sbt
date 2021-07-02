@@ -1,11 +1,18 @@
+import commandmatrix.Dimension
 import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
-import sbt.Test
 
-val scala212 = "2.12.14"
-val scala213 = "2.13.6"
-val scala3   = "3.0.0-RC2"
+val scala212       = "2.12.14"
+val scala213       = "2.13.6"
+val scala2Versions = Seq(scala212, scala213)
+val scala3         = "3.0.0-RC2"
 
 sonatypeCredentialHost := Sonatype.sonatype01
+
+val javaVersionDimension =
+  Dimension.create("PACT_JVM") {
+    case PactJvmAxis.java8  => "java8"
+    case PactJvmAxis.java11 => "java11"
+  }
 
 inThisBuild(
   List(
@@ -24,7 +31,15 @@ inThisBuild(
       scala212,
       scala213
     ), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
-    Test / parallelExecution := false
+    commands ++= CrossCommand.single(
+      "test",
+      matrices = Seq(circe, munit, scalaTest, weaver),
+      dimensions = Seq(
+        javaVersionDimension,
+        Dimension.scala("2.13"),
+        Dimension.platform()
+      )
+    )
   )
 )
 
@@ -44,53 +59,86 @@ val commonSettings = Seq(
   )
 )
 
-lazy val shared = (project in file("shared"))
-  .settings(commonSettings)
-  .settings(
-    name := "shared",
-    libraryDependencies ++= Dependencies.shared
-  )
+def moduleName(base: String, axis: Seq[VirtualAxis]): String = {
+  val series = axis.collectFirst { case c: PactJvmAxis => c.series }.get
+  s"$base$series"
+}
 
-lazy val circe = (project in file("circe"))
-  .settings(commonSettings)
+val moduleBase =
+  Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
+
+lazy val shared =
+  (projectMatrix in file("shared"))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+    .settings(commonSettings)
+    .settings(
+      name := moduleName("shared", virtualAxes.value),
+      libraryDependencies ++= {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        Dependencies.shared(version)
+      },
+      Compile / unmanagedSourceDirectories ++= {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        version match {
+          case Dependencies.pactJvmJava11 =>
+            Seq(
+              moduleBase.value / s"src" / "main" / "java11+"
+            )
+          case Dependencies.pactJvmJava8 =>
+            Seq(
+              moduleBase.value / s"src" / "main" / "java8"
+            )
+          case _ => Nil
+        }
+      }
+    )
+
+lazy val circe = (projectMatrix in file("circe"))
+  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
   .settings(
-    name := "pact4s-circe",
+    name := moduleName("pact4s-circe", virtualAxes.value),
     libraryDependencies ++= Dependencies.circe,
     testFrameworks += new TestFramework("munit.Framework")
   )
   .dependsOn(shared)
 
 lazy val munit =
-  (project in file("munit-cats-effect-pact"))
-    .settings(commonSettings)
+  (projectMatrix in file("munit-cats-effect-pact"))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
     .settings(
-      name := "pact4s-munit-cats-effect",
+      name := moduleName("pact4s-munit-cats-effect", virtualAxes.value),
       libraryDependencies ++= Dependencies.munit,
       testFrameworks += new TestFramework("munit.Framework")
     )
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
-lazy val scalaTest = (project in file("scalatest-pact"))
-  .settings(commonSettings)
-  .settings(
-    name := "pact4s-scalatest",
-    libraryDependencies ++= Dependencies.scalatest
-  )
-  .dependsOn(shared % "compile->compile;test->test")
-  .dependsOn(circe % "test->test")
+lazy val scalaTest =
+  (projectMatrix in file("scalatest-pact"))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+    .settings(
+      name := moduleName("pact4s-scalatest", virtualAxes.value),
+      libraryDependencies ++= Dependencies.scalatest
+    )
+    .dependsOn(shared % "compile->compile;test->test")
+    .dependsOn(circe % "test->test")
 
-lazy val weaver = (project in file("weaver-pact"))
-  .settings(commonSettings)
+lazy val weaver = (projectMatrix in file("weaver-pact"))
+  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
   .settings(
-    name := "pact4s-weaver",
+    name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
     testFrameworks += new TestFramework("weaver.framework.CatsEffect")
   )
   .dependsOn(shared % "compile->compile;test->test")
   .dependsOn(circe % "test->test")
 
-lazy val pact4s = (project in file("."))
+lazy val pact4s = (projectMatrix in file("."))
   .settings(commonSettings)
   .enablePlugins(AutomateHeaderPlugin)
   .aggregate(
@@ -100,3 +148,15 @@ lazy val pact4s = (project in file("."))
     shared,
     circe
   )
+
+addCommandAlias(
+  "commitCheck",
+  List("scalafmtAll", "test-java8-2_12-jvm", "test-java11-2_12-jvm", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
+    .mkString(";", ";", "")
+)
+
+addCommandAlias( //same as above but only tests 2.13
+  "quickCommitCheck",
+  List("scalafmtAll", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
+    .mkString(";", ";", "")
+)
