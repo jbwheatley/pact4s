@@ -50,8 +50,10 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
             pact4sLogger.info(
               s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
             )
-            val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)
-            Option(write.component2()).foreach(throw _)
+            writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
+              case Left(e)  => throw e
+              case Right(_) => ()
+            }
         }
       }
     }
