@@ -3,16 +3,43 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.jbwheatley/pact4s-weaver_2.13.svg)](http://search.maven.org/#search%7Cga%7C1%7Cpact4s)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 
-Lightweight wrapper of pact-jvm for commonly used scala testing frameworks.
+Lightweight wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) for commonly used scala testing frameworks. Supported scala versions are 2.12 and 2.13.<sup>1</sup>
 
-Currently supports writing consumer pact tests and verifying pacts from either a file or a pact-broker in `munit-cats-effect`, `weaver`, and `scala-test`. Add one of the following dependencies to your project to use: 
+`pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
+
+This library provides support for `munit-cats-effect`, `weaver`, and `scala-test`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
+
+| Branch | Pact Spec | JDK |
+| ------ | ------------- | --- | 
+| [4.2.x](https://github.com/DiUS/pact-jvm/blob/v4.2.x/README.md) | V4* | 11+ |
+| [4.1.x](https://github.com/DiUS/pact-jvm/blob/v4.1.x/README.md) | V3 | 8-12 |
+
+All the modules in `pact4s` are built against both of these branches to accommodate all jdk versions. To use the java11+ modules, simply add one of the following dependencies to your project: 
 ```
 "io.github.jbwheatley" %% "pact4s-munit-cats-effect" % xxx
 "io.github.jbwheatley" %% "pact4s-weaver"            % xxx
 "io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
 ```
 
-Pact4s is still in the early stages of development! Please consider helping us out by contributing or raising issues :) 
+We recommend using these modules if possible, as v4.2.x+ of pact-jvm will see longer continued support. But, if you are unable to use java11+ for your build, add one of the following to your project instead:
+```
+"io.github.jbwheatley" %% "pact4s-munit-cats-effect-java8" % xxx
+"io.github.jbwheatley" %% "pact4s-weaver-java8"            % xxx
+"io.github.jbwheatley" %% "pact4s-scalatest-java8"         % xxx
+```
+
+We also offer some additional helpers for using JSON encoders directly in your pact definitions. Currently, support is offered for `circe` in the modules `pact4s-circe`/`pact4s-circe-java8`. If you would like to see support for your favourite scala JSON library, consider submitting a PR!
+
+**N.B.** If you try and use the non-java8 module versions, and your project is built on java8, you will see an error like this:
+
+```
+java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
+55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
+```
+
+---
+
+<sup>1</sup> support for scala 3 is currently blocked by https://github.com/lampepfl/dotty/issues/12086, as pact-jvm is written in kotlin
 
 ## Writing Consumer Request/Response Pacts
 
