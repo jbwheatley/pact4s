@@ -1,5 +1,5 @@
 import commandmatrix.Dimension
-import sbt.Keys.{crossScalaVersions, resolvers, testFrameworks}
+import sbt.Keys.{resolvers, testFrameworks}
 
 val scala212       = "2.12.14"
 val scala213       = "2.13.6"
@@ -26,11 +26,8 @@ inThisBuild(
         url("https://github.com/jbwheatley")
       )
     ),
+    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scalaVersion := scala213,
-    crossScalaVersions := List(
-      scala212,
-      scala213
-    ), //scala 3 support tmp removed due to https://github.com/lampepfl/dotty/issues/12086
     commands ++= CrossCommand.single(
       "test",
       matrices = Seq(circe, munit, scalaTest, weaver),
