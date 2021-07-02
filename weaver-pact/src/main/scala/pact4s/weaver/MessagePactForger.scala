@@ -60,9 +60,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
             s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
           )
         ) >>
-          F.delay(pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion)).flatMap { a =>
-            Option(a.component2()).traverse_(F.raiseError)
-          }
+          F.fromEither(writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion))
     }
   }
 
