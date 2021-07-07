@@ -58,7 +58,7 @@ private[circe] object JsonConversion {
 
   def jsonToPactDslJsonBody(json: Json): DslPart =
     json.fold(
-      jsonNull = throw new Exception("top-level json body must not be null"),
+      jsonNull = throw new IllegalArgumentException("Content cannot be null json value if set"),
       jsonBoolean = bool => PactDslJsonRootValue.booleanType(bool),
       jsonNumber = num => PactDslJsonRootValue.numberType(jsonNumberToNumber(num)),
       jsonString = str => PactDslJsonRootValue.stringType(str),

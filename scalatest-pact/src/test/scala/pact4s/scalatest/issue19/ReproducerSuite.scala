@@ -5,7 +5,7 @@ import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.{MessageAndMetadataBuilder, MockProviderServer, ProviderInfoBuilder}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import pact4s.scalatest.PactVerifier
 
@@ -35,6 +35,18 @@ class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterA
   def helloMessage(): MessageAndMetadata = {
     val body = Json.obj("hello" -> "harry".asJson)
     new MessageAndMetadata(body.toString.getBytes, metadata.asJava)
+  }
+
+  @PactVerifyProvider("A message with nested arrays in the body")
+  def nestedArrayMessage(): MessageAndMetadata = {
+    val body = """{"array": [1,2,3]}"""
+    MessageAndMetadataBuilder(body).build
+  }
+
+  @PactVerifyProvider("A message with a json array as content")
+  def topLevelArrayMessage(): MessageAndMetadata = {
+    val body = """[{"a":1},{"b":true}]"""
+    MessageAndMetadataBuilder(body).build
   }
 
   override def beforeAll(): Unit =
