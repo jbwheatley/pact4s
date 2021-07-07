@@ -20,11 +20,38 @@
       "metaData": {
         "hi": "there"
       }
+    },
+    {
+      "contents": [
+        {
+          "a": 1
+        },
+        {
+          "b": true
+        }
+      ],
+      "description": "A message with a json array as content",
+      "metaData": {
+        "contentType": "application/json"
+      }
+    },
+    {
+      "contents": {
+        "array": [
+          1,
+          2,
+          3
+        ]
+      },
+      "description": "A message with nested arrays in the body",
+      "metaData": {
+        "contentType": "application/json"
+      }
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.2.0"
+      "version": "4.2.7"
     },
     "pactSpecification": {
       "version": "3.0.0"

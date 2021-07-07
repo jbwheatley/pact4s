@@ -83,8 +83,4 @@ class JsonConversionTests extends CatsEffectSuite {
   test("should encode top level number") {
     assertEquals(jsonToPactDslJsonBody(12.asJson).getBody.asNumber().intValue(), 12)
   }
-
-  test("should encode top level null") {
-    println(None.asJson.spaces2)
-  }
 }
