@@ -19,4 +19,16 @@ class MessagesProvider {
     val body     = """{"hello":"harry"}"""
     MessageAndMetadataBuilder(body, metadata).build
   }
+
+  @PactVerifyProvider("A message with nested arrays in the body")
+  def nestedArrayMessage(): MessageAndMetadata = {
+    val body = """{"array": [1,2,3]}"""
+    MessageAndMetadataBuilder(body).build
+  }
+
+  @PactVerifyProvider("A message with a json array as content")
+  def topLevelArrayMessage(): MessageAndMetadata = {
+    val body = """[{"a":1},{"b":true}]"""
+    MessageAndMetadataBuilder(body).build
+  }
 }

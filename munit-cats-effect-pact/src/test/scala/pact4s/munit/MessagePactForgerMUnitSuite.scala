@@ -19,6 +19,10 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
     .withMetadata(Map("hi" -> "there"))
     .expectsToReceive("A message to say goodbye")
     .withContent(Json.obj("goodbye" -> "harry".asJson))
+    .expectsToReceive("A message with nested arrays in the body")
+    .withContent(Json.obj("array" -> List(1, 2, 3).asJson))
+    .expectsToReceive("A message with a json array as content")
+    .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
     .toMessagePact
 
   test("munit message pact test") {
@@ -28,5 +32,19 @@ class MessagePactForgerMUnitSuite extends MessagePactForger {
 
   test("another munit message pact test") {
     IO.fromEither(messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye"))).assertEquals("harry")
+  }
+
+  test("send a message with a nested array in its body") {
+    IO.fromEither(messages(2).as[Json].flatMap(_.hcursor.get[List[Int]]("array"))).assertEquals(List(1, 2, 3))
+  }
+
+  test("send a message with a json array as its content") {
+    val res = for {
+      json <- messages(3).as[Json]
+      acur = json.hcursor.downArray
+      int  <- acur.get[Int]("a")
+      bool <- acur.right.get[Boolean]("b")
+    } yield (int, bool)
+    IO.fromEither(res).assertEquals((1, true))
   }
 }

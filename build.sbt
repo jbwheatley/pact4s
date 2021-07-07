@@ -97,7 +97,21 @@ lazy val circe = (projectMatrix in file("circe"))
   .settings(
     name := moduleName("pact4s-circe", virtualAxes.value),
     libraryDependencies ++= Dependencies.circe,
-    testFrameworks += new TestFramework("munit.Framework")
+    testFrameworks += new TestFramework("munit.Framework"),
+    Test / unmanagedSourceDirectories ++= {
+      val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+      version match {
+        case Dependencies.pactJvmJava11 =>
+          Seq(
+            moduleBase.value / s"src" / "test" / "java11+"
+          )
+        case Dependencies.pactJvmJava8 =>
+          Seq(
+            moduleBase.value / s"src" / "test" / "java8"
+          )
+        case _ => Nil
+      }
+    }
   )
   .dependsOn(shared)
 
