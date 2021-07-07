@@ -16,8 +16,8 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
+import au.com.dius.pact.consumer.dsl.DslPart
 
 trait PactDslJsonBodyEncoder[A] {
-  def toPactDslJsonBody(a: A): PactDslJsonBody
+  def toPactDslJsonBody(a: A): DslPart
 }
