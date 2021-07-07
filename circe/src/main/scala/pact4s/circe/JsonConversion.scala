@@ -16,11 +16,12 @@
 
 package pact4s.circe
 
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
-import io.circe.{Json, JsonObject}
+import au.com.dius.pact.consumer.dsl.{DslPart, PactDslJsonArray, PactDslJsonBody, PactDslJsonRootValue}
+import io.circe.{Json, JsonNumber, JsonObject}
 
 private[circe] object JsonConversion {
-  private val arrayError = "Auto-conversion of circe.Json to PactDslJsonBody is unsupported for json containing arrays."
+  private def jsonNumberToNumber(num: JsonNumber): Number =
+    num.toLong.map(_.asInstanceOf[Number]).getOrElse(num.toDouble.asInstanceOf[Number])
 
   private def addFieldToBuilder(builder: PactDslJsonBody, fieldName: String, json: Json): PactDslJsonBody =
     json.fold[PactDslJsonBody](
@@ -28,9 +29,9 @@ private[circe] object JsonConversion {
       jsonBoolean = bool => builder.booleanValue(fieldName, bool),
       jsonNumber = num =>
         builder
-          .numberValue(fieldName, num.toLong.map(_.asInstanceOf[Number]).getOrElse(num.toDouble.asInstanceOf[Number])),
+          .numberValue(fieldName, jsonNumberToNumber(num)),
       jsonString = str => builder.stringValue(fieldName, str),
-      jsonArray = _ => throw new Exception(arrayError),
+      jsonArray = array => addArrayToJsonBody(builder, fieldName, array),
       jsonObject = jsonObject => builder.`object`(fieldName, addJsonObjToBuilder(new PactDslJsonBody(), jsonObject))
     )
 
@@ -39,16 +40,29 @@ private[circe] object JsonConversion {
       addFieldToBuilder(b, s, j)
     }
 
-  private def _jsonToPactDslJsonBody(builder: PactDslJsonBody, json: Json): PactDslJsonBody =
-    json.arrayOrObject(
-      builder,
-      _ => throw new Exception(arrayError),
-      jObj =>
-        jObj.toMap.foldLeft(builder) { case (b, (s, j)) =>
-          addFieldToBuilder(b, s, j)
-        }
-    )
+  private def addArrayToJsonBody(builder: PactDslJsonBody, fieldName: String, array: Vector[Json]): PactDslJsonBody =
+    addArrayValuesToArray(builder.array(fieldName), array).closeArray().asBody()
 
-  def jsonToPactDslJsonBody(json: Json): PactDslJsonBody =
-    _jsonToPactDslJsonBody(new PactDslJsonBody(), json)
+  private def addArrayValuesToArray(builder: PactDslJsonArray, array: Vector[Json]): PactDslJsonArray =
+    array
+      .foldLeft(builder) { (arrayBody, json) =>
+        json.fold[PactDslJsonArray](
+          jsonNull = arrayBody.nullValue(),
+          jsonBoolean = bool => arrayBody.booleanValue(bool),
+          jsonNumber = num => arrayBody.numberValue(jsonNumberToNumber(num)),
+          jsonString = str => arrayBody.stringValue(str),
+          jsonArray = jArr => addArrayValuesToArray(arrayBody.array(), jArr).closeArray().asArray(),
+          jsonObject = jObj => addJsonObjToBuilder(arrayBody.`object`(), jObj).closeObject().asArray()
+        )
+      }
+
+  def jsonToPactDslJsonBody(json: Json): DslPart =
+    json.fold(
+      jsonNull = throw new Exception("top-level json body must not be null"),
+      jsonBoolean = bool => PactDslJsonRootValue.booleanType(bool),
+      jsonNumber = num => PactDslJsonRootValue.numberType(jsonNumberToNumber(num)),
+      jsonString = str => PactDslJsonRootValue.stringType(str),
+      jsonArray = jArr => addArrayValuesToArray(new PactDslJsonArray(), jArr),
+      jsonObject = jObj => addJsonObjToBuilder(new PactDslJsonBody(), jObj)
+    )
 }
