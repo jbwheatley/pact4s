@@ -16,7 +16,7 @@ object Dependencies {
       "org.http4s"             %% "http4s-circe"            % http4s  % Test,
       "io.circe"               %% "circe-core"              % _circe  % Test,
       "org.log4s"              %% "log4s"                   % "1.10.0",
-      "ch.qos.logback"          % "logback-classic"         % "1.2.3" % Runtime,
+      "ch.qos.logback"          % "logback-classic"         % "1.2.4" % Runtime,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0",
       "com.lihaoyi"            %% "sourcecode"              % "0.2.7"
     )
