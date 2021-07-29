@@ -18,7 +18,7 @@ package pact4s.scalatest
 
 import au.com.dius.pact.core.model.messaging.Message
 import org.scalatest._
-import pact4s.MessagePactForgerResources
+import pact4s.{MessagePactForgerResources, MessagePactWriter}
 
 import scala.jdk.CollectionConverters._
 
@@ -50,7 +50,7 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
             pact4sLogger.info(
               s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
             )
-            writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
+            MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
               case Left(e)  => throw e
               case Right(_) => ()
             }
