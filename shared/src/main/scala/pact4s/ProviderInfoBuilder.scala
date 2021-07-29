@@ -17,14 +17,16 @@
 package pact4s
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
-import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
+import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
+import org.apache.http.HttpRequest
+import org.apache.http.message.BasicHeader
 import pact4s.Authentication.{BasicAuth, TokenAuth}
 import pact4s.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
 import java.io.File
-import java.net.URL
+import java.net.{URI, URL}
 import java.util.Date
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
@@ -38,7 +40,8 @@ final case class ProviderInfoBuilder(
     path: String,
     pactSource: PactSource,
     stateChangeUrl: Option[String] = None,
-    verificationSettings: Option[VerificationSettings] = None
+    verificationSettings: Option[VerificationSettings] = None,
+    requestFilter: Option[ProviderRequest => ProviderRequestFilter] = None
 ) {
   def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
@@ -53,6 +56,24 @@ final case class ProviderInfoBuilder(
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
   }
+  def withRequestFilter(requestFilter: ProviderRequest => ProviderRequestFilter): ProviderInfoBuilder =
+    this.copy(requestFilter = Some(requestFilter))
+
+  private[pact4s] def requestFilter(f: ProviderRequest => ProviderRequestFilter): HttpRequest => Unit = request => {
+    val requestLine = request.getRequestLine
+    val headers     = request.getAllHeaders.map(header => ProviderRequestHeader(header.getName, header.getValue)).toSeq
+    f(ProviderRequest(requestLine.getMethod, new URI(requestLine.getUri), headers)) match {
+      case ProviderRequestFilter.AppendHeaders(headers) =>
+        headers.foreach(header => request.addHeader(header.name, header.value))
+      case ProviderRequestFilter.RemoveHeaders(headerNames) =>
+        headerNames.foreach(name => request.removeHeaders(name))
+      case ProviderRequestFilter.SetHeaders(headers) =>
+        request.setHeaders(headers.map(header => new BasicHeader(header.name, header.value)).toArray)
+      case ProviderRequestFilter.Unmodified => ()
+      case ProviderRequestFilter.UpdateHeaders(headers) =>
+        headers.foreach(header => request.setHeader(header.name, header.value))
+    }
+  }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
@@ -61,6 +82,7 @@ final case class ProviderInfoBuilder(
       p.setPackagesToScan(packagesToScan.asJava)
     }
     stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
+    requestFilter.foreach(f => p.setRequestFilter(requestFilter(f)))
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
@@ -129,10 +151,10 @@ object PactSource {
   }
   final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
       extends PactBroker {
-    def withAuth(auth: Authentication) = this.copy(auth = Some(auth))
-    def withoutAuth                    = this.copy(auth = None)
-    def withTags(tags: List[String])   = this.copy(tags = tags)
-    def withTags(tags: String*)        = this.copy(tags = tags.toList)
+    def withAuth(auth: Authentication): PactBrokerWithTags = this.copy(auth = Some(auth))
+    def withoutAuth: PactBrokerWithTags                    = this.copy(auth = None)
+    def withTags(tags: List[String]): PactBrokerWithTags   = this.copy(tags = tags)
+    def withTags(tags: String*): PactBrokerWithTags        = this.copy(tags = tags.toList)
   }
   final case class PactBrokerWithSelectors(
       brokerUrl: String,
@@ -142,15 +164,18 @@ object PactSource {
       providerTags: List[String] = Nil,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
   ) extends PactBroker {
-    def withAuth(auth: Authentication)                          = this.copy(auth = Some(auth))
-    def withoutAuth                                             = this.copy(auth = None)
-    def withPendingPacts(enabled: Boolean)                      = this.copy(enablePending = enabled)
-    def withWipPactsSince(since: FiniteDuration)                = this.copy(includeWipPactsSince = Some(since))
-    def withoutWipPacts                                         = this.copy(includeWipPactsSince = None)
-    def withProviderTags(tags: List[String])                    = this.copy(providerTags = tags)
-    def withProviderTags(tags: String*)                         = this.copy(providerTags = tags.toList)
-    def withSelectors(selectors: List[ConsumerVersionSelector]) = this.copy(selectors = selectors)
-    def withSelectors(selectors: ConsumerVersionSelector*)      = this.copy(selectors = selectors.toList)
+    def withAuth(auth: Authentication): PactBrokerWithSelectors     = this.copy(auth = Some(auth))
+    def withoutAuth: PactBrokerWithSelectors                        = this.copy(auth = None)
+    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors = this.copy(enablePending = enabled)
+    def withWipPactsSince(since: FiniteDuration): PactBrokerWithSelectors =
+      this.copy(includeWipPactsSince = Some(since))
+    def withoutWipPacts: PactBrokerWithSelectors                      = this.copy(includeWipPactsSince = None)
+    def withProviderTags(tags: List[String]): PactBrokerWithSelectors = this.copy(providerTags = tags)
+    def withProviderTags(tags: String*): PactBrokerWithSelectors      = this.copy(providerTags = tags.toList)
+    def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
+      this.copy(selectors = selectors)
+    def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
+      this.copy(selectors = selectors.toList)
   }
 }
 
@@ -187,3 +212,22 @@ object Authentication {
   final case class BasicAuth(user: String, pass: String) extends Authentication
   final case class TokenAuth(token: String)              extends Authentication
 }
+
+final case class ProviderRequest(method: String, uri: URI, headers: Seq[ProviderRequestHeader])
+
+sealed trait ProviderRequestFilter
+
+object ProviderRequestFilter {
+  final case object Unmodified extends ProviderRequestFilter
+
+  final case class AppendHeaders(headers: Seq[ProviderRequestHeader]) extends ProviderRequestFilter
+  final case class RemoveHeaders(headerNames: Seq[String])            extends ProviderRequestFilter
+  final case class SetHeaders(headers: Seq[ProviderRequestHeader])    extends ProviderRequestFilter
+  final case class UpdateHeaders(headers: Seq[ProviderRequestHeader]) extends ProviderRequestFilter
+
+  def AppendHeader(header: ProviderRequestHeader): AppendHeaders = AppendHeaders(Seq(header))
+  def RemoveHeader(headerName: String): RemoveHeaders            = RemoveHeaders(Seq(headerName))
+  def UpdateHeader(header: ProviderRequestHeader): UpdateHeaders = UpdateHeaders(Seq(header))
+}
+
+final case class ProviderRequestHeader(name: String, value: String)
