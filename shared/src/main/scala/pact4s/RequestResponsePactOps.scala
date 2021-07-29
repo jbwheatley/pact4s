@@ -16,11 +16,12 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.dsl.{PactDslRequestWithPath, PactDslRequestWithoutPath, PactDslResponse}
+import au.com.dius.pact.consumer.dsl._
 
 import scala.jdk.CollectionConverters._
 import RequestResponsePactOps._
 import org.apache.http.entity.ContentType
+import pact4s.RequestResponsePactOpsForPlatform._
 
 object RequestResponsePactOps {
   class PactDslRequestWithPathOps(val builder: PactDslRequestWithPath) extends AnyVal {
@@ -53,7 +54,6 @@ object RequestResponsePactOps {
         ev: PactBodyJsonEncoder[A]
     ): PactDslRequestWithoutPath =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
-
   }
 
   class PactDslResponseOps(val builder: PactDslResponse) extends AnyVal {
@@ -67,7 +67,6 @@ object RequestResponsePactOps {
       builder.body(ev.toJsonString(body), ContentType.create(mimeType))
     def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
-
   }
 }
 
@@ -78,4 +77,8 @@ trait RequestResponsePactOps {
     new PactDslRequestWithoutPathOps(builder)
   implicit def toPactDslResponseOps(builder: PactDslResponse): PactDslResponseOps =
     new PactDslResponseOps(builder)
+  implicit def toPactDslResponseOpsForPlatform(builder: PactDslResponse): PactDslResponseOpsForPlatform =
+    new PactDslResponseOpsForPlatform(builder)
+  implicit def toPactDslWithStateOps(builder: PactDslWithState): PactDslWithStateOps =
+    new PactDslWithStateOps(builder)
 }
