@@ -1,20 +1,22 @@
 package pact4s
 
-import java.io.File
 import cats.effect.{IO, Resource}
+import cats.effect.kernel.Ref
 import com.comcast.ip4s.{Host, Port}
-import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
+import io.circe.syntax.EncoderOps
+import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.jsonOf
 import org.http4s.dsl.io._
-import org.http4s.{EntityDecoder, HttpApp, HttpRoutes}
 import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
-import cats.effect.kernel.Ref
 import org.http4s.server.Server
 import pact4s.Authentication.BasicAuth
 import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
+
+import java.io.File
 
 class MockProviderServer(port: Int) {
   def server: Resource[IO, Server] =
@@ -47,7 +49,19 @@ class MockProviderServer(port: Int) {
             case Some(s) => Ok(Json.obj("found" -> s.asJson))
             case None    => NotFound()
           }
-
+        case req @ GET -> Root / "authorized" =>
+          req.headers
+            .get[headers.Authorization]
+            .map(_.credentials)
+            .flatMap {
+              case Credentials.Token(AuthScheme.Bearer, token) => Some(token)
+              case _                                           => None
+            }
+            .map { token =>
+              if (token == "token") Ok()
+              else Forbidden()
+            }
+            .getOrElse(Unauthorized(`WWW-Authenticate`(Challenge(AuthScheme.Bearer.toString, "Authorized endpoints."))))
         case req @ POST -> Root / "setup" =>
           req.as[ProviderState].flatMap {
             case ProviderState("bob exists") =>
@@ -56,6 +70,12 @@ class MockProviderServer(port: Int) {
           }
       }
       .orNotFound
+
+  private def requestFilter(request: ProviderRequest): ProviderRequestFilter =
+    request.uri.getPath match {
+      case "/authorized" => ProviderRequestFilter.AppendHeader(ProviderRequestHeader("Authorization", "Bearer token"))
+      case _             => ProviderRequestFilter.Unmodified
+    }
 
   def fileSourceProviderInfo(
       consumerName: String,
@@ -68,7 +88,8 @@ class MockProviderServer(port: Int) {
       pactSource = FileSource(consumerName, new File(fileName))
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
-      .withStateChangeEndpoint(s"setup")
+      .withStateChangeEndpoint("setup")
+      .withRequestFilter(requestFilter)
 
   def brokerProviderInfo(
       providerName: String,
@@ -86,7 +107,8 @@ class MockProviderServer(port: Int) {
       )
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
-      .withStateChangeEndpoint(s"setup")
+      .withStateChangeEndpoint("setup")
+      .withRequestFilter(requestFilter)
 }
 
 private[pact4s] final case class Name(name: String)
