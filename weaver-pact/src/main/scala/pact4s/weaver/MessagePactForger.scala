@@ -19,7 +19,7 @@ package pact4s.weaver
 import au.com.dius.pact.core.model.messaging.Message
 import cats.effect.{Ref, Resource}
 import cats.implicits._
-import pact4s.MessagePactForgerResources
+import pact4s.{MessagePactForgerResources, MessagePactWriter}
 import weaver.MutableFSuite
 
 import scala.jdk.CollectionConverters._
@@ -60,7 +60,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
             s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
           )
         ) >>
-          F.fromEither(writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion))
+          F.fromEither(MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion))
     }
   }
 
