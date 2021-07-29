@@ -50,6 +50,16 @@
         },
         "status": 200
       }
+    },
+    {
+      "description": "a request to an authenticated endpoint",
+      "request": {
+        "method": "GET",
+        "path": "/authorized"
+      },
+      "response": {
+        "status": 200
+      }
     }
   ],
   "metadata": {
