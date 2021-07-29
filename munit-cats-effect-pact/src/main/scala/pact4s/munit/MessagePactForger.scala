@@ -19,7 +19,7 @@ package pact4s.munit
 import au.com.dius.pact.core.model.messaging.Message
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
-import pact4s.MessagePactForgerResources
+import pact4s.{MessagePactForgerResources, MessagePactWriter}
 
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -66,7 +66,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
           pact4sLogger.info(
             s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
           )
-          writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
+          MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
             case Left(e)  => throw e
             case Right(_) => ()
           }
