@@ -28,6 +28,7 @@ import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import java.io.File
 import java.net.{URI, URL}
 import java.util.Date
+import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
@@ -41,7 +42,7 @@ final case class ProviderInfoBuilder(
     pactSource: PactSource,
     stateChangeUrl: Option[String] = None,
     verificationSettings: Option[VerificationSettings] = None,
-    requestFilter: Option[ProviderRequest => ProviderRequestFilter] = None
+    requestFilter: ProviderRequest => List[ProviderRequestFilter] = _ => Nil
 ) {
   def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
@@ -56,23 +57,17 @@ final case class ProviderInfoBuilder(
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
   }
-  def withRequestFilter(requestFilter: ProviderRequest => ProviderRequestFilter): ProviderInfoBuilder =
-    this.copy(requestFilter = Some(requestFilter))
+  def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
+    this.copy(requestFilter = requestFilter)
 
-  private[pact4s] def requestFilter(f: ProviderRequest => ProviderRequestFilter): HttpRequest => Unit = request => {
+  private def pactJvmRequestFilter: HttpRequest => Unit = { request =>
     val requestLine = request.getRequestLine
-    val headers     = request.getAllHeaders.map(header => ProviderRequestHeader(header.getName, header.getValue)).toSeq
-    f(ProviderRequest(requestLine.getMethod, new URI(requestLine.getUri), headers)) match {
-      case ProviderRequestFilter.AppendHeaders(headers) =>
-        headers.foreach(header => request.addHeader(header.name, header.value))
-      case ProviderRequestFilter.RemoveHeaders(headerNames) =>
-        headerNames.foreach(name => request.removeHeaders(name))
-      case ProviderRequestFilter.SetHeaders(headers) =>
-        request.setHeaders(headers.map(header => new BasicHeader(header.name, header.value)).toArray)
-      case ProviderRequestFilter.Unmodified => ()
-      case ProviderRequestFilter.UpdateHeaders(headers) =>
-        headers.foreach(header => request.setHeader(header.name, header.value))
-    }
+    val providerRequest = ProviderRequest(
+      requestLine.getMethod,
+      new URI(requestLine.getUri),
+      request.getAllHeaders.toList.map(h => (h.getName, h.getValue))
+    )
+    requestFilter(providerRequest).foreach(_.filter(request))
   }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
@@ -82,7 +77,13 @@ final case class ProviderInfoBuilder(
       p.setPackagesToScan(packagesToScan.asJava)
     }
     stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
-    requestFilter.foreach(f => p.setRequestFilter(requestFilter(f)))
+    p.setRequestFilter {
+      //because java
+      new Consumer[HttpRequest] {
+        def accept(t: HttpRequest): Unit =
+          pactJvmRequestFilter(t)
+      }
+    }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
@@ -213,21 +214,55 @@ object Authentication {
   final case class TokenAuth(token: String)              extends Authentication
 }
 
-final case class ProviderRequest(method: String, uri: URI, headers: Seq[ProviderRequestHeader])
-
-sealed trait ProviderRequestFilter
-
-object ProviderRequestFilter {
-  final case object Unmodified extends ProviderRequestFilter
-
-  final case class AppendHeaders(headers: Seq[ProviderRequestHeader]) extends ProviderRequestFilter
-  final case class RemoveHeaders(headerNames: Seq[String])            extends ProviderRequestFilter
-  final case class SetHeaders(headers: Seq[ProviderRequestHeader])    extends ProviderRequestFilter
-  final case class UpdateHeaders(headers: Seq[ProviderRequestHeader]) extends ProviderRequestFilter
-
-  def AppendHeader(header: ProviderRequestHeader): AppendHeaders = AppendHeaders(Seq(header))
-  def RemoveHeader(headerName: String): RemoveHeaders            = RemoveHeaders(Seq(headerName))
-  def UpdateHeader(header: ProviderRequestHeader): UpdateHeaders = UpdateHeaders(Seq(header))
+final case class ProviderRequest private[pact4s] (method: String, uri: URI, headers: List[(String, String)]) {
+  def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)
+  def getHeaders(name: String): List[(String, String)] = headers.filter(_._1 == name)
+  def getFirstHeader(name: String): Option[(String, String)] = headers.collectFirst {
+    case (n, value) if n == name => (n, value)
+  }
+  def getLastHeader(name: String): Option[(String, String)] = headers.reverse.collectFirst {
+    case (n, value) if n == name => (n, value)
+  }
 }
 
-final case class ProviderRequestHeader(name: String, value: String)
+sealed trait ProviderRequestFilter {
+  def filter(request: HttpRequest): Unit
+}
+
+object ProviderRequestFilter {
+  sealed abstract class AddHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) => request.addHeader(name, value) }
+  }
+
+  object AddHeaders {
+    def apply(first: (String, String), rest: (String, String)*): AddHeaders = new AddHeaders(first :: rest.toList) {}
+  }
+
+  sealed abstract class SetHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) =>
+      request.setHeader(name, value)
+    }
+  }
+
+  object SetHeaders {
+    def apply(first: (String, String), rest: (String, String)*): SetHeaders = new SetHeaders(first :: rest.toList) {}
+  }
+
+  sealed abstract class OverwriteHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = request.setHeaders(headers.map { case (name, value) =>
+      new BasicHeader(name, value)
+    }.toArray)
+  }
+
+  object OverwriteHeaders {
+    def apply(headers: (String, String)*): OverwriteHeaders = new OverwriteHeaders(headers.toList) {}
+  }
+
+  sealed abstract class RemoveHeaders(headerNames: List[String]) extends ProviderRequestFilter {
+    override def filter(request: HttpRequest): Unit = headerNames.foreach(request.removeHeaders)
+  }
+
+  object RemoveHeaders {
+    def apply(first: String, rest: String*): RemoveHeaders = new RemoveHeaders(first :: rest.toList) {}
+  }
+}
