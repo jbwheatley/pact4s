@@ -17,15 +17,18 @@
 package pact4s
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
-import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
+import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
+import org.apache.http.HttpRequest
+import org.apache.http.message.BasicHeader
 import pact4s.Authentication.{BasicAuth, TokenAuth}
 import pact4s.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
 import java.io.File
-import java.net.URL
+import java.net.{URI, URL}
 import java.util.Date
+import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
@@ -38,7 +41,8 @@ final case class ProviderInfoBuilder(
     path: String,
     pactSource: PactSource,
     stateChangeUrl: Option[String] = None,
-    verificationSettings: Option[VerificationSettings] = None
+    verificationSettings: Option[VerificationSettings] = None,
+    requestFilter: ProviderRequest => List[ProviderRequestFilter] = _ => Nil
 ) {
   def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
@@ -53,6 +57,18 @@ final case class ProviderInfoBuilder(
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
   }
+  def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
+    this.copy(requestFilter = requestFilter)
+
+  private def pactJvmRequestFilter: HttpRequest => Unit = { request =>
+    val requestLine = request.getRequestLine
+    val providerRequest = ProviderRequest(
+      requestLine.getMethod,
+      new URI(requestLine.getUri),
+      request.getAllHeaders.toList.map(h => (h.getName, h.getValue))
+    )
+    requestFilter(providerRequest).foreach(_.filter(request))
+  }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
@@ -61,6 +77,13 @@ final case class ProviderInfoBuilder(
       p.setPackagesToScan(packagesToScan.asJava)
     }
     stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
+    p.setRequestFilter {
+      //because java
+      new Consumer[HttpRequest] {
+        def accept(t: HttpRequest): Unit =
+          pactJvmRequestFilter(t)
+      }
+    }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
       case FileSource(consumer, file) =>
@@ -129,10 +152,10 @@ object PactSource {
   }
   final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
       extends PactBroker {
-    def withAuth(auth: Authentication) = this.copy(auth = Some(auth))
-    def withoutAuth                    = this.copy(auth = None)
-    def withTags(tags: List[String])   = this.copy(tags = tags)
-    def withTags(tags: String*)        = this.copy(tags = tags.toList)
+    def withAuth(auth: Authentication): PactBrokerWithTags = this.copy(auth = Some(auth))
+    def withoutAuth: PactBrokerWithTags                    = this.copy(auth = None)
+    def withTags(tags: List[String]): PactBrokerWithTags   = this.copy(tags = tags)
+    def withTags(tags: String*): PactBrokerWithTags        = this.copy(tags = tags.toList)
   }
   final case class PactBrokerWithSelectors(
       brokerUrl: String,
@@ -142,15 +165,18 @@ object PactSource {
       providerTags: List[String] = Nil,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
   ) extends PactBroker {
-    def withAuth(auth: Authentication)                          = this.copy(auth = Some(auth))
-    def withoutAuth                                             = this.copy(auth = None)
-    def withPendingPacts(enabled: Boolean)                      = this.copy(enablePending = enabled)
-    def withWipPactsSince(since: FiniteDuration)                = this.copy(includeWipPactsSince = Some(since))
-    def withoutWipPacts                                         = this.copy(includeWipPactsSince = None)
-    def withProviderTags(tags: List[String])                    = this.copy(providerTags = tags)
-    def withProviderTags(tags: String*)                         = this.copy(providerTags = tags.toList)
-    def withSelectors(selectors: List[ConsumerVersionSelector]) = this.copy(selectors = selectors)
-    def withSelectors(selectors: ConsumerVersionSelector*)      = this.copy(selectors = selectors.toList)
+    def withAuth(auth: Authentication): PactBrokerWithSelectors     = this.copy(auth = Some(auth))
+    def withoutAuth: PactBrokerWithSelectors                        = this.copy(auth = None)
+    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors = this.copy(enablePending = enabled)
+    def withWipPactsSince(since: FiniteDuration): PactBrokerWithSelectors =
+      this.copy(includeWipPactsSince = Some(since))
+    def withoutWipPacts: PactBrokerWithSelectors                      = this.copy(includeWipPactsSince = None)
+    def withProviderTags(tags: List[String]): PactBrokerWithSelectors = this.copy(providerTags = tags)
+    def withProviderTags(tags: String*): PactBrokerWithSelectors      = this.copy(providerTags = tags.toList)
+    def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
+      this.copy(selectors = selectors)
+    def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
+      this.copy(selectors = selectors.toList)
   }
 }
 
@@ -186,4 +212,57 @@ sealed trait Authentication
 object Authentication {
   final case class BasicAuth(user: String, pass: String) extends Authentication
   final case class TokenAuth(token: String)              extends Authentication
+}
+
+final case class ProviderRequest private[pact4s] (method: String, uri: URI, headers: List[(String, String)]) {
+  def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)
+  def getHeaders(name: String): List[(String, String)] = headers.filter(_._1 == name)
+  def getFirstHeader(name: String): Option[(String, String)] = headers.collectFirst {
+    case (n, value) if n == name => (n, value)
+  }
+  def getLastHeader(name: String): Option[(String, String)] = headers.reverse.collectFirst {
+    case (n, value) if n == name => (n, value)
+  }
+}
+
+sealed trait ProviderRequestFilter {
+  def filter(request: HttpRequest): Unit
+}
+
+object ProviderRequestFilter {
+  sealed abstract class AddHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) => request.addHeader(name, value) }
+  }
+
+  object AddHeaders {
+    def apply(first: (String, String), rest: (String, String)*): AddHeaders = new AddHeaders(first :: rest.toList) {}
+  }
+
+  sealed abstract class SetHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) =>
+      request.setHeader(name, value)
+    }
+  }
+
+  object SetHeaders {
+    def apply(first: (String, String), rest: (String, String)*): SetHeaders = new SetHeaders(first :: rest.toList) {}
+  }
+
+  sealed abstract class OverwriteHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
+    def filter(request: HttpRequest): Unit = request.setHeaders(headers.map { case (name, value) =>
+      new BasicHeader(name, value)
+    }.toArray)
+  }
+
+  object OverwriteHeaders {
+    def apply(headers: (String, String)*): OverwriteHeaders = new OverwriteHeaders(headers.toList) {}
+  }
+
+  sealed abstract class RemoveHeaders(headerNames: List[String]) extends ProviderRequestFilter {
+    override def filter(request: HttpRequest): Unit = headerNames.foreach(request.removeHeaders)
+  }
+
+  object RemoveHeaders {
+    def apply(first: String, rest: String*): RemoveHeaders = new RemoveHeaders(first :: rest.toList) {}
+  }
 }
