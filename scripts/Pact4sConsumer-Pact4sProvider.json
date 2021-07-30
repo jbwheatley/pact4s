@@ -64,7 +64,7 @@
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.2.6"
+      "version": "4.2.8"
     },
     "pactSpecification": {
       "version": "3.0.0"

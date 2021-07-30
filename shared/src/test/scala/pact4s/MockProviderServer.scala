@@ -1,10 +1,10 @@
 package pact4s
 
-import cats.effect.{IO, Resource}
 import cats.effect.kernel.Ref
+import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
-import io.circe.{Decoder, Json}
 import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Json}
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.jsonOf
@@ -71,10 +71,10 @@ class MockProviderServer(port: Int) {
       }
       .orNotFound
 
-  private def requestFilter(request: ProviderRequest): ProviderRequestFilter =
+  private def requestFilter(request: ProviderRequest): List[ProviderRequestFilter] =
     request.uri.getPath match {
-      case "/authorized" => ProviderRequestFilter.AppendHeader(ProviderRequestHeader("Authorization", "Bearer token"))
-      case _             => ProviderRequestFilter.Unmodified
+      case s if s.matches(".*/authorized") => List(ProviderRequestFilter.SetHeaders(("Authorization", "Bearer token")))
+      case _                               => Nil
     }
 
   def fileSourceProviderInfo(
