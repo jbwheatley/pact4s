@@ -50,11 +50,21 @@
         },
         "status": 200
       }
+    },
+    {
+      "description": "a request to an authenticated endpoint",
+      "request": {
+        "method": "GET",
+        "path": "/authorized"
+      },
+      "response": {
+        "status": 200
+      }
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.2.6"
+      "version": "4.2.8"
     },
     "pactSpecification": {
       "version": "3.0.0"
