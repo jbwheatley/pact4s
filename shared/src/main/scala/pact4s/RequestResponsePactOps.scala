@@ -71,6 +71,8 @@ object RequestResponsePactOps {
 }
 
 trait RequestResponsePactOps {
+  implicit def toPactDslWithProviderOps(builder: PactDslWithProvider): PactDslWithProviderOps =
+    new PactDslWithProviderOps(builder)
   implicit def toPactDslRequestWithPathOps(builder: PactDslRequestWithPath): PactDslRequestWithPathOps =
     new PactDslRequestWithPathOps(builder)
   implicit def toPactDslRequestWithoutPathOps(builder: PactDslRequestWithoutPath): PactDslRequestWithoutPathOps =
