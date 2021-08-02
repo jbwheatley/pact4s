@@ -225,7 +225,7 @@ final case class ProviderRequest private[pact4s] (method: String, uri: URI, head
   }
 }
 
-sealed trait ProviderRequestFilter {
+trait ProviderRequestFilter {
   def filter(request: HttpRequest): Unit
 }
 
