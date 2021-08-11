@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val pactJvmJava11 = "4.2.9"
   val pactJvmJava8  = "4.1.24"
-  val http4s        = "1.0.0-M23"
+  val http4s        = "1.0.0-M24"
   val _circe        = "0.14.1"
 
   def shared(pactJvmVersion: String): Seq[ModuleID] =
