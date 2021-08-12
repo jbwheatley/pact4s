@@ -28,7 +28,7 @@ import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import java.io.File
 import java.net.{URI, URL}
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, OffsetDateTime, ZoneId, ZoneOffset}
+import java.time.{Instant, LocalDate, OffsetDateTime, ZoneOffset}
 import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
