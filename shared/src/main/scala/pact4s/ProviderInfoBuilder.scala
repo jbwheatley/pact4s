@@ -234,11 +234,7 @@ object PactSource {
     * @param enablePending
     * @see also https://github.com/pact-foundation/pact_broker/issues/320
     *
-<<<<<<< HEAD
-    * @param includeWipPactsSince is a scala.concurrent.duration.FiniteDuration, and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
-=======
     * @param includeWipPactsSince is a [[scala.concurrent.duration.FiniteDuration]], and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
->>>>>>> fab33b9... sbt-api-mappings, pr-build.yml
     * @see also https://github.com/pact-foundation/pact_broker/issues/338
     *
     * @param providerTags any tags that are going to be applied to the provider version when the verification results are published. Only used in the pending pact
