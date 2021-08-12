@@ -1,6 +1,8 @@
 import commandmatrix.Dimension
 import sbt.Keys.{resolvers, testFrameworks}
 
+import scala.util.Try
+
 val scala212       = "2.12.14"
 val scala213       = "2.13.6"
 val scala2Versions = Seq(scala212, scala213)
@@ -151,6 +153,8 @@ lazy val pact4s = (projectMatrix in file("."))
     shared,
     circe
   )
+
+Test / parallelExecution := Try(System.getenv("TEST_IN_PARALLEL")).map(_.toBoolean).getOrElse(true)
 
 addCommandAlias(
   "commitCheck",
