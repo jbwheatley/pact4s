@@ -28,7 +28,7 @@ import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import java.io.File
 import java.net.{URI, URL}
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneId}
+import java.time.{Instant, LocalDate, OffsetDateTime, ZoneId, ZoneOffset}
 import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
@@ -104,14 +104,16 @@ final case class ProviderInfoBuilder(
     }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
-      case FileSource(consumer, file) =>
-        p.hasPactWith(
-          consumer,
-          { consumer =>
-            consumer.setPactSource(new PactJVMFileSource(file))
-            kotlin.Unit.INSTANCE
-          }
-        )
+      case FileSource(consumers) =>
+        consumers.foreach { case (consumer, file) =>
+          p.hasPactWith(
+            consumer,
+            { consumer =>
+              consumer.setPactSource(new PactJVMFileSource(file))
+              kotlin.Unit.INSTANCE
+            }
+          )
+        }
         p
     }
   }
@@ -130,30 +132,22 @@ final case class ProviderInfoBuilder(
           case TokenAuth(token)      => options.put("authentication", List("bearer", token).asJava)
           case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
         }
-        includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", durationToDateString(since)))
+        includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", instantToDateString(since)))
         providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
         providerInfo
       case PactBrokerWithTags(brokerUrl, auth, tags) =>
         applyBrokerSourceToProvider(
           providerInfo,
           PactBrokerWithSelectors(
-            brokerUrl,
-            auth,
-            enablePending = false,
-            None,
-            Nil,
-            tags.map(tag => ConsumerVersionSelector(Some(tag)))
-          )
+            brokerUrl
+          ).withOptionalAuth(auth).withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
         )
     }
 
-  private def durationToDateString(duration: FiniteDuration): String =
-    Instant
-      .ofEpochSecond(duration.toSeconds)
-      .atZone(
-        ZoneId.of(
-          "Europe/London"
-        ) //Apologies for the euro-centrism, but as we use time relative to the epoch it doesn't really matter
+  private def instantToDateString(instant: Instant): String =
+    instant
+      .atOffset(
+        ZoneOffset.UTC //Apologies for the euro-centrism, but as we use time relative to the epoch it doesn't really matter
       )
       .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
@@ -204,10 +198,8 @@ object PactSource {
 
   /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts can also
     * be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
-    *
-    * @todo allow multiple files by passing a map of (consumer -> file)
     */
-  final case class FileSource(consumer: String, file: File) extends PactSource
+  final case class FileSource(consumers: Map[String, File]) extends PactSource
 
   sealed trait PactBroker extends PactSource {
     def brokerUrl: String
@@ -231,7 +223,7 @@ object PactSource {
     *
     * @see https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
-    * @param enablePending
+    * @param enablePending enable pending pacts. Off by default
     * @see also https://github.com/pact-foundation/pact_broker/issues/320
     *
     * @param includeWipPactsSince is a [[scala.concurrent.duration.FiniteDuration]], and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
@@ -245,37 +237,82 @@ object PactSource {
     * Example:
     * {{{
     *   PactBrokerWithSelectors(
-    *     brokerUrl = "https://test.pact.dius.com.au",
-    *     auth = Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
-    *     enablePending = true,
-    *     includeWipPactsSince = None,
-    *     providerTags = Nil,
-    *     selectors = ConsumerVersionSelector() :: Nil
-    *   )
+    *     brokerUrl = "https://test.pact.dius.com.au"
+    *   ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+    *    .withPendingPacts(enabled = true)
+    *    .withSelectors(ConsumerVersionSelector())
     * }}}
-    *
-    * @todo manage "illegal" value combinations with auxiliary constructors
     */
-  final case class PactBrokerWithSelectors(
+  sealed abstract case class PactBrokerWithSelectors(
       brokerUrl: String,
       auth: Option[Authentication] = None,
       enablePending: Boolean = false,
-      includeWipPactsSince: Option[FiniteDuration] = None,
+      includeWipPactsSince: Option[Instant] = None,
       providerTags: List[String] = Nil,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
   ) extends PactBroker {
-    def withAuth(auth: Authentication): PactBrokerWithSelectors     = this.copy(auth = Some(auth))
-    def withoutAuth: PactBrokerWithSelectors                        = this.copy(auth = None)
-    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors = this.copy(enablePending = enabled)
-    def withWipPactsSince(since: FiniteDuration): PactBrokerWithSelectors =
-      this.copy(includeWipPactsSince = Some(since))
-    def withoutWipPacts: PactBrokerWithSelectors                      = this.copy(includeWipPactsSince = None)
-    def withProviderTags(tags: List[String]): PactBrokerWithSelectors = this.copy(providerTags = tags)
-    def withProviderTags(tags: String*): PactBrokerWithSelectors      = this.copy(providerTags = tags.toList)
+    private def copy(
+        brokerUrl: String = brokerUrl,
+        auth: Option[Authentication] = auth,
+        enablePending: Boolean = enablePending,
+        includeWipPactsSince: Option[Instant] = includeWipPactsSince,
+        providerTags: List[String] = providerTags,
+        selectors: List[ConsumerVersionSelector] = selectors
+    ): PactBrokerWithSelectors =
+      new PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) {}
+
+    private[pact4s] def withOptionalAuth(auth: Option[Authentication]): PactBrokerWithSelectors = copy(auth = auth)
+
+    def withAuth(auth: Authentication): PactBrokerWithSelectors = copy(auth = Some(auth))
+
+    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors =
+      if (enabled) copy(enablePending = enabled)
+      else copy(enablePending = enabled, includeWipPactsSince = None, providerTags = Nil)
+
+    def withWipPactsSince(since: Instant): PactBrokerWithSelectors =
+      copy(enablePending = true, includeWipPactsSince = Some(since))
+
+    def withWipPactsSince(since: LocalDate): PactBrokerWithSelectors =
+      copy(includeWipPactsSince = Some(since.atStartOfDay().toInstant(ZoneOffset.UTC)))
+
+    def withWipPactsSince(since: OffsetDateTime): PactBrokerWithSelectors =
+      copy(includeWipPactsSince = Some(since.toInstant))
+
+    def withProviderTags(tags: List[String]): PactBrokerWithSelectors =
+      copy(enablePending = true, providerTags = tags)
+
+    def withProviderTags(tags: String*): PactBrokerWithSelectors =
+      copy(enablePending = true, providerTags = tags.toList)
+
     def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
-      this.copy(selectors = selectors)
+      copy(selectors = selectors)
+
     def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
-      this.copy(selectors = selectors.toList)
+      copy(selectors = selectors.toList)
+  }
+
+  object PactBrokerWithSelectors {
+    def apply(
+        brokerUrl: String
+    ): PactBrokerWithSelectors =
+      new PactBrokerWithSelectors(brokerUrl = brokerUrl) {}
+
+    @deprecated(message = "Use the other apply method", since = "0.0.17")
+    def apply(
+        brokerUrl: String,
+        auth: Option[Authentication] = None,
+        enablePending: Boolean = false,
+        includeWipPactsSince: Option[FiniteDuration] = None,
+        providerTags: List[String] = Nil,
+        selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
+    ): PactBrokerWithSelectors = new PactBrokerWithSelectors(
+      brokerUrl,
+      auth,
+      enablePending,
+      includeWipPactsSince.map(d => Instant.ofEpochSecond(d.toSeconds)),
+      providerTags,
+      selectors
+    ) {}
   }
 }
 
