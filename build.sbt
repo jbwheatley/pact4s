@@ -45,14 +45,6 @@ publish / skip := true // don't publish the root project
 val commonSettings = Seq(
   resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(
     Resolver.ivyStylePatterns
-  ),
-  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-  startYear := Some(2021),
-  headerLicense := Some(
-    HeaderLicense.ALv2(
-      s"${startYear.value.get}-${java.time.Year.now}",
-      organization.value
-    )
   )
 )
 

@@ -24,6 +24,32 @@ sealed abstract class ProviderVerificationOption(val key: String) {
 
 object ProviderVerificationOption {
 
+  /** Gives a more detailed output for pact verification failures */
+  case object SHOW_STACKTRACE extends BooleanProviderVerificationOption(ProviderVerifier.PACT_SHOW_STACKTRACE)
+
+  /** Doesn't need to be set if publishVerificationResults is non-empty in [[PactVerifyResources.verifyPacts]] */
+  case object VERIFIER_PUBLISH_RESULTS
+      extends BooleanProviderVerificationOption(ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS)
+
+  /** @param consumers pacts for these consumers won't be verified */
+  final case class FILTER_CONSUMERS(consumers: List[String])
+      extends ListProviderVerificationOption(ProviderVerifier.PACT_FILTER_CONSUMERS, consumers)
+
+  /** @param regex won't verify pacts whose descriptions match this regex */
+  final case class FILTER_DESCRIPTION(regex: String)
+      extends RegexProviderVerificationOption(ProviderVerifier.PACT_FILTER_DESCRIPTION, regex)
+
+  /** @param regex won't verify pacts whose states match this regex */
+  final case class FILTER_PROVIDERSTATE(regex: String)
+      extends RegexProviderVerificationOption(ProviderVerifier.PACT_FILTER_PROVIDERSTATE, regex)
+
+  /** Gives a more detailed output for pact verification results */
+  case object SHOW_FULLDIFF extends BooleanProviderVerificationOption(ProviderVerifier.PACT_SHOW_FULLDIFF)
+
+  /** Will trim the snapshot off the provider version before publishing the results */
+  case object PROVIDER_VERSION_TRIM_SNAPSHOT
+      extends BooleanProviderVerificationOption(ProviderVerifier.PACT_PROVIDER_VERSION_TRIM_SNAPSHOT)
+
   sealed abstract class BooleanProviderVerificationOption(_key: String) extends ProviderVerificationOption(_key) {
     def value: String = "true"
   }
@@ -35,23 +61,4 @@ object ProviderVerificationOption {
       extends ProviderVerificationOption(_key) {
     def value: String = values.mkString(",")
   }
-
-  case object SHOW_STACKTRACE extends BooleanProviderVerificationOption(ProviderVerifier.PACT_SHOW_STACKTRACE)
-
-  case object VERIFIER_PUBLISH_RESULTS
-      extends BooleanProviderVerificationOption(ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS)
-
-  final case class FILTER_CONSUMERS(consumers: List[String])
-      extends ListProviderVerificationOption(ProviderVerifier.PACT_FILTER_CONSUMERS, consumers)
-
-  final case class FILTER_DESCRIPTION(regex: String)
-      extends RegexProviderVerificationOption(ProviderVerifier.PACT_FILTER_DESCRIPTION, regex)
-
-  final case class FILTER_PROVIDERSTATE(regex: String)
-      extends RegexProviderVerificationOption(ProviderVerifier.PACT_FILTER_PROVIDERSTATE, regex)
-
-  case object SHOW_FULLDIFF extends BooleanProviderVerificationOption(ProviderVerifier.PACT_SHOW_FULLDIFF)
-
-  case object PROVIDER_VERSION_TRIM_SNAPSHOT
-      extends BooleanProviderVerificationOption(ProviderVerifier.PACT_PROVIDER_VERSION_TRIM_SNAPSHOT)
 }

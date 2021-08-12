@@ -17,19 +17,17 @@
 package pact4s
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
-import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
+import au.com.dius.pact.core.model.PactSpecVersion
 
-trait BasePactForgerResources[Pact <: BasePact[_]] extends Pact4sLogger {
-
-  def pact: Pact
-
+trait BasePactForgerResources extends Pact4sLogger {
   val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = Right {
-    val _ = version
-  }
+  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit]
 
   private[pact4s] type Effect[_]
 
+  /** This effect runs after the consumer pact tests are run, but before they get written to a file.
+    * An example use is to check that all the defined pacts have a corresponding test.
+    */
   def beforeWritePacts(): Effect[Unit]
 }

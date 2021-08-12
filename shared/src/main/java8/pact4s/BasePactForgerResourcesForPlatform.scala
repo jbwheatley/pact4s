@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 io.github.jbwheatley
+ * Copyright 2021-2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package pact4s.munit
+package pact4s
 
-import munit.{Assertions, Location}
-import pact4s.PactVerifyResources
-import sourcecode.{File, FileName, Line}
+import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 
-trait PactVerifier extends Assertions with PactVerifyResources {
-  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
-    fail(message)(new Location(file.value, line.value))
+trait BasePactForgerResourcesForPlatform[Pact <: BasePact[_]] extends BasePactForgerResources {
+
+  def pact: Pact
+
+  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = Right {
+    val _ = version
+  }
 }
