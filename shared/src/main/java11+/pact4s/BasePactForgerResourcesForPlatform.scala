@@ -16,17 +16,14 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 import au.com.dius.pact.core.support.V4PactFeaturesException
 
 import scala.jdk.CollectionConverters._
 
-trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
+trait BasePactForgerResourcesForPlatform[Pact <: BasePact] extends BasePactForgerResources {
 
   def pact: Pact
-
-  val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
   private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = {
     val errors: List[String] = pact.validateForVersion(version).asScala.toList
@@ -40,8 +37,4 @@ trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
       )
     }
   }
-
-  private[pact4s] type Effect[_]
-
-  def beforeWritePacts(): Effect[Unit]
 }
