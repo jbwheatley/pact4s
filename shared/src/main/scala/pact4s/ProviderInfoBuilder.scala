@@ -34,7 +34,7 @@ import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
-/** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to [[au.com.dius.pact.provider.ProviderInfo]]
+/** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to au.com.dius.pact.provider.ProviderInfo
   * during verification.
   *
   * @param name the name of the provider
@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters._
   * address of the mock provider server is {protocol}://{host}:{port}{path}
   * @param pactSource pacts to verify can come either from a file location, or from a pact broker.
   * @param stateChangeUrl full url of the mock provider endpoint that can be used for setting provider state before each pact with state is run.
-  * state is sent as JSON of the form {"state": "state goes here"}. Can also be set using [[withStateChangeEndpoint(endpoint)]] just by providing the path.
+  * state is sent as JSON of the form {"state": "state goes here"}. Can also be set using withStateChangeEndpoint(endpoint) just by providing the path.
   * @param verificationSettings Required if verifying message pacts
   *
   * @param requestFilter Apply filters to certain consumer requests. The most common use case for this is adding auth headers to requests
@@ -234,7 +234,7 @@ object PactSource {
     * @param enablePending
     * @see also https://github.com/pact-foundation/pact_broker/issues/320
     *
-    * @param includeWipPactsSince is a [[FiniteDuration]], and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
+    * @param includeWipPactsSince is a scala.concurrent.duration.FiniteDuration, and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
     * @see also https://github.com/pact-foundation/pact_broker/issues/338
     *
     * @param providerTags any tags that are going to be applied to the provider version when the verification results are published. Only used in the pending pact
@@ -280,7 +280,7 @@ object PactSource {
 }
 
 /** @see https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors/ and https://github.com/pact-foundation/pact_broker/issues/307
-  * Gets converted into a [[au.com.dius.pact.core.pactbroker.ConsumerVersionSelector]] under the hood.
+  * Gets converted into a au.com.dius.pact.core.pactbroker.ConsumerVersionSelector under the hood.
   *
   * @param tag the tag name(s) of the consumer versions to get the pacts for.
   * @param latest the name of the tag to fallback to if the specified tag does not exist.
@@ -327,7 +327,7 @@ final case class ProviderRequest private[pact4s] (method: String, uri: URI, head
   }
 }
 
-/** pact-jvm using [[org.apache.http]] as its http implementation. A ProviderRequestFilter applies a transformation to a [[HttpRequest]]
+/** pact-jvm using org.apache.http as its http implementation. A ProviderRequestFilter applies a transformation to a org.apache.http.HttpRequest
   * before passing it to the mock provider server. Its called a "filter" as this is what its called in other pact implementations. It doesn't
   * filter in the sense of stopping certain requests from reaching the mock server.
   */
