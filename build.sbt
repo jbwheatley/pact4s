@@ -163,7 +163,7 @@ lazy val pact4s = (projectMatrix in file("."))
 addCommandAlias(
   "commitCheck",
   List(
-    "scalafmtAll",
+    "scalafmtCheck",
     "compile:doc",
     "test-java8-2_12-jvm",
     "test-java11-2_12-jvm",
@@ -175,6 +175,6 @@ addCommandAlias(
 
 addCommandAlias( //same as above but only tests 2.13
   "quickCommitCheck",
-  List("scalafmtAll", "compile:doc", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
+  List("scalafmtCheck", "compile:doc", "test-java8-2_13-jvm", "test-java11-2_13-jvm")
     .mkString(";", ";", "")
 )
