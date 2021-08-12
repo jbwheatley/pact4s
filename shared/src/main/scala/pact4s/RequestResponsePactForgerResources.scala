@@ -21,7 +21,7 @@ import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.core.model.RequestResponsePact
 
 trait RequestResponsePactForgerResources
-    extends BasePactForgerResources[RequestResponsePact]
+    extends BasePactForgerResourcesForPlatform[RequestResponsePact]
     with RequestResponsePactOps {
   val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
