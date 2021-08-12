@@ -85,7 +85,7 @@ class MockProviderServer(port: Int) {
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
-      pactSource = FileSource(consumerName, new File(fileName))
+      pactSource = FileSource(Map(consumerName -> new File(fileName)))
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
@@ -98,13 +98,10 @@ class MockProviderServer(port: Int) {
     ProviderInfoBuilder(
       name = providerName,
       pactSource = PactBrokerWithSelectors(
-        brokerUrl = "https://test.pact.dius.com.au",
-        auth = Some(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1")),
-        enablePending = true,
-        includeWipPactsSince = None,
-        providerTags = Nil,
-        selectors = ConsumerVersionSelector(None) :: Nil
-      )
+        brokerUrl = "https://test.pact.dius.com.au"
+      ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+        .withPendingPacts(enabled = true)
+        .withSelectors(ConsumerVersionSelector())
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
