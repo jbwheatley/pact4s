@@ -142,9 +142,8 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
       if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
         Seq(new TestFramework("weaver.framework.CatsEffect"))
       else {
-        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
-        version match {
-          case Dependencies.pactJvmJava11 =>
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, 13)) =>
             Seq(new TestFramework("weaver.framework.CatsEffect"))
           case _ => Nil
         }
