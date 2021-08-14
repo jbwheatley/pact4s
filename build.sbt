@@ -139,7 +139,7 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
     testFrameworks ++= {
-      if (Try(System.getenv("TEST_WEAVER")).map(_.toBoolean).getOrElse(true))
+      if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
         Seq(new TestFramework("weaver.framework.CatsEffect"))
       else Nil
     }
