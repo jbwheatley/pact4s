@@ -138,7 +138,11 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
   .settings(
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
-//    testFrameworks += new TestFramework("weaver.framework.CatsEffect")
+    testFrameworks ++= {
+      if (Try(System.getenv("TEST_WEAVER")).map(_.toBoolean).getOrElse(true))
+        Seq(new TestFramework("weaver.framework.CatsEffect"))
+      else Nil
+    }
   )
   .dependsOn(shared % "compile->compile;test->test")
   .dependsOn(circe % "test->test")
@@ -153,8 +157,6 @@ lazy val pact4s = (projectMatrix in file("."))
     shared,
     circe
   )
-
-Test / parallelExecution := Try(System.getenv("TEST_IN_PARALLEL")).map(_.toBoolean).getOrElse(true)
 
 addCommandAlias(
   "commitCheck",
