@@ -139,8 +139,14 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
     testFrameworks ++= {
-      if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
-        Seq(new TestFramework("weaver.framework.CatsEffect"))
+      if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true)) {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        version match {
+          case Dependencies.pactJvmJava11 =>
+            Seq(new TestFramework("weaver.framework.CatsEffect"))
+          case _ => Nil
+        }
+      }
       else Nil
     }
   )
