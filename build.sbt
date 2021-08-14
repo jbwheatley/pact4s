@@ -138,7 +138,7 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
   .settings(
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
-    testFrameworks += new TestFramework("weaver.framework.CatsEffect")
+//    testFrameworks += new TestFramework("weaver.framework.CatsEffect")
   )
   .dependsOn(shared % "compile->compile;test->test")
   .dependsOn(circe % "test->test")
