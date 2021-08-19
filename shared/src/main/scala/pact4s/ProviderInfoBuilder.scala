@@ -226,7 +226,7 @@ object PactSource {
     * @param enablePending enable pending pacts. Off by default
     * @see also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
-    * @param includeWipPactsSince is a [[scala.concurrent.duration.FiniteDuration]], and represents the duration since the EPOCH.
+    * @param includeWipPactsSince is a [[java.time.Instant]], but can also be set using a [[java.time.LocalDate]] or [[java.time.OffsetDateTime]] for convenience.
     * All WIP pacts are pending pacts, so we enforce the setting of [[enablePending]] if this field is set.
     * @see also the master issue for WIP pacts here for more discussion https://github.com/pact-foundation/pact_broker/issues/338
     *
