@@ -1,5 +1,6 @@
 package pact4s.weaver
 
+import cats.effect.IO
 import pact4s.{MockProviderServer, ProviderInfoBuilder}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import weaver.SimpleIOSuite
@@ -14,7 +15,7 @@ object MessagePactVerifierWeaverTestSuite extends SimpleIOSuite with PactVerifie
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
-  pureTest("Verify pacts for provider `MessageProvider`") {
-    succeed(verifyPacts())
+  test("Verify pacts for provider `MessageProvider`") {
+    IO(verifyPacts()).map(succeed)
   }
 }

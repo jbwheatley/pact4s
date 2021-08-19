@@ -14,8 +14,8 @@ object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVer
 
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
 
-  pureTest("Verify pacts for provider `Pact4sProvider`") {
-    succeed(
+  test("Verify pacts for provider `Pact4sProvider`") {
+    IO(
       verifyPacts(
         publishVerificationResults = Some(
           PublishVerificationResults(
@@ -24,6 +24,6 @@ object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVer
           )
         )
       )
-    )
+    ).map(succeed)
   }
 }

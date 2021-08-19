@@ -1,5 +1,6 @@
 package pact4s.weaver
 
+import cats.effect.IO
 import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 import weaver.SimpleIOSuite
@@ -12,8 +13,8 @@ object MessagePactVerifierBrokerWeaverTestSuite extends SimpleIOSuite with PactV
     verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
   )
 
-  pureTest("Verify pacts for provider `MessageProvider`") {
-    succeed(
+  test("Verify pacts for provider `MessageProvider`") {
+    IO(
       verifyPacts(
         publishVerificationResults = Some(
           PublishVerificationResults(
@@ -22,7 +23,7 @@ object MessagePactVerifierBrokerWeaverTestSuite extends SimpleIOSuite with PactV
           )
         )
       )
-    )
+    ).map(succeed)
   }
 
 }

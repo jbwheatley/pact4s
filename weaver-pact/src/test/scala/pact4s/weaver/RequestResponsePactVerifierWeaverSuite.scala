@@ -18,7 +18,7 @@ object RequestResponsePactVerifierWeaverSuite extends IOSuite with PactVerifier 
     fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
   )
 
-  pureTest("Verify pacts for provider `Pact4sProvider`") {
-    succeed(verifyPacts())
+  test("Verify pacts for provider `Pact4sProvider`") {
+    IO(verifyPacts()).map(succeed)
   }
 }

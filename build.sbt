@@ -1,8 +1,6 @@
 import commandmatrix.Dimension
 import sbt.Keys.{resolvers, testFrameworks}
 
-import scala.util.Try
-
 val scala212       = "2.12.14"
 val scala213       = "2.13.6"
 val scala2Versions = Seq(scala212, scala213)
@@ -138,11 +136,7 @@ lazy val weaver = (projectMatrix in file("weaver-pact"))
   .settings(
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
-    testFrameworks ++= {
-      if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
-        Seq(new TestFramework("weaver.framework.CatsEffect"))
-      else Nil
-    }
+    testFrameworks += new TestFramework("weaver.framework.CatsEffect")
   )
   .dependsOn(shared % "compile->compile;test->test")
   .dependsOn(circe % "test->test")
