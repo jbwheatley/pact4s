@@ -42,6 +42,8 @@ inThisBuild(
 
 publish / skip := true // don't publish the root project
 
+Test / fork := true
+
 val commonSettings = Seq(
   resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(
     Resolver.ivyStylePatterns
