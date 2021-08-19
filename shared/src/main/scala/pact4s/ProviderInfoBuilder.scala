@@ -224,13 +224,14 @@ object PactSource {
     * @see https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
     * @param enablePending enable pending pacts. Off by default
-    * @see also https://github.com/pact-foundation/pact_broker/issues/320
+    * @see also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
-    * @param includeWipPactsSince is a [[scala.concurrent.duration.FiniteDuration]], and represents the duration since the EPOCH. Should not be set if [[enablePending]] is set to false.
-    * @see also https://github.com/pact-foundation/pact_broker/issues/338
+    * @param includeWipPactsSince is a [[scala.concurrent.duration.FiniteDuration]], and represents the duration since the EPOCH.
+    * All WIP pacts are pending pacts, so we enforce the setting of [[enablePending]] if this field is set.
+    * @see also the master issue for WIP pacts here for more discussion https://github.com/pact-foundation/pact_broker/issues/338
     *
     * @param providerTags any tags that are going to be applied to the provider version when the verification results are published. Only used in the pending pact
-    * calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is false.
+    * calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is set to false.
     *
     * @param selectors specifies which consumer pacts should be chosen for verification
     *
@@ -297,7 +298,7 @@ object PactSource {
     ): PactBrokerWithSelectors =
       new PactBrokerWithSelectors(brokerUrl = brokerUrl) {}
 
-    @deprecated(message = "Use the other apply method", since = "0.0.17")
+    @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
     def apply(
         brokerUrl: String,
         auth: Option[Authentication] = None,
