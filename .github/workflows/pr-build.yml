@@ -18,4 +18,4 @@ jobs:
           java-version: adopt@1.11
       - run: sbt commitCheck
         env:
-          TEST_IN_PARALLEL: false
+          TEST_WEAVER: false
