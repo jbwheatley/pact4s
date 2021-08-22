@@ -32,6 +32,7 @@ trait PactVerifyResources {
 
   private[pact4s] val verifier = new ProviderVerifier()
 
+  private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
 
   private[pact4s] def verifySingleConsumer(
@@ -40,7 +41,11 @@ trait PactVerifyResources {
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
       case failed: VerificationResult.Failed =>
         verifier.displayFailures(List(failed).asJava)
-        failure(s"Verification failed:\n ${failed.toString}")
+        // Don't fail the build if the pact is pending.
+        val pending = failed.getPending
+        val message = s"Verification failed${if (pending) " [SKIPPED]" else ""}:\n ${failed.toString}"
+        val action  = if (pending) skip _ else failure _
+        action(message)
       case _: VerificationResult.Ok => ()
       case _                        => ???
     }
