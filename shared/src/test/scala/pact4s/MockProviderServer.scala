@@ -101,6 +101,7 @@ class MockProviderServer(port: Int) {
         brokerUrl = "https://test.pact.dius.com.au"
       ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withPendingPacts(enabled = true)
+        .withProviderTags("SNAPSHOT")
         .withSelectors(ConsumerVersionSelector())
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
