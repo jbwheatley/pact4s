@@ -148,6 +148,10 @@ def verify(message: Message): Result = message.getDescription match {
 
 If your application framework supports it, another option would be to publish the Pact message and have your application consume it without error. Note that this would be testing more than just the Pact itself, though, and may or may not be beneficial to you.
 
+### Mixed Pacts
+
+Note that if your project has both request/response and message pacts, you will need to write them into separate pact files due to [pact-jvm not currently supporting mixed pacts](https://github.com/pact-foundation/pact-jvm/issues/610). Pact JSON files are written in the format `<consumer_name>_<provider_name>.json`. Realistically, this means that you will need to choose a different provider name for the message pacts, the request/response pacts, or both. For example, you could use `api.provider` as the provider name for the request/response pacts, or `message.provider` as the provider name for the message pacts.
+
 ## Publishing Pacts
 
 This library does not (and won't ever) provide native support for publishing consumer pacts to the pact broker. For this, we recommend using the [Pact Broker CLI](https://github.com/pact-foundation/pact_broker-client) provided by the pact foundation as part of your CI pipeline.
