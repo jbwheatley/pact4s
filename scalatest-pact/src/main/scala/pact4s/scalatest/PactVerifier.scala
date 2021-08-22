@@ -25,3 +25,8 @@ trait PactVerifier extends Assertions with PactVerifyResources {
   override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
     fail(message)(Position(fileName.value, file.value, line.value))
 }
+
+trait MessagePactVerifier extends PactVerifier {
+  def messages: ResponseFactory
+  override def responseFactory: Option[ResponseFactory] = Some(messages)
+}

@@ -25,3 +25,8 @@ trait PactVerifier extends PactVerifyResources {
   override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
     throw AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
 }
+
+trait MessagePactVerifier extends PactVerifier {
+  def messages: ResponseFactory
+  override def responseFactory: Option[ResponseFactory] = Some(messages)
+}
