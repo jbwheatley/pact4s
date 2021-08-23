@@ -48,8 +48,6 @@ trait PactVerifyResources {
   /** @param publishVerificationResults if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance The method instance to use when invoking methods with [[pact4s.VerificationSettings.AnnotatedMethodVerificationSettings]].
     * @param providerVerificationOptions list of options to pass to the pact-jvm verifier
-    * @param providerResponseFactory A response factory method which takes an interaction description and returns a [[ResponseBuilder]].
-    *                                Providing this will automatically set [[PactVerification.RESPONSE_FACTORY]].
     */
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
