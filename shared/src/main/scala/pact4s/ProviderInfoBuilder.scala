@@ -18,6 +18,7 @@ package pact4s
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
+import au.com.dius.pact.core.support.Auth
 import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
 import org.apache.http.HttpRequest
 import org.apache.http.message.BasicHeader
@@ -130,8 +131,8 @@ final case class ProviderInfoBuilder(
         options.put("enablePending", enablePending)
         options.put("providerTags", providerTags.toList.asJava)
         auth.foreach {
-          case TokenAuth(token)      => options.put("authentication", List("bearer", token).asJava)
-          case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
+          case TokenAuth(token)      => options.put("authentication", new Auth.BearerAuthentication(token))
+          case BasicAuth(user, pass) => options.put("authentication", new Auth.BasicAuthentication(user, pass))
         }
         includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", instantToDateString(since)))
         providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
