@@ -19,7 +19,7 @@ package pact4s
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 import au.com.dius.pact.core.support.Auth
-import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
+import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderInfo}
 import org.apache.http.HttpRequest
 import org.apache.http.message.BasicHeader
 import pact4s.Authentication.{BasicAuth, TokenAuth}
@@ -127,15 +127,22 @@ final case class ProviderInfoBuilder(
   ): ProviderInfo =
     pactSource match {
       case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
-        val options: java.util.HashMap[String, Any] = new java.util.HashMap()
-        options.put("enablePending", enablePending)
-        options.put("providerTags", providerTags.toList.asJava)
-        auth.foreach {
-          case TokenAuth(token)      => options.put("authentication", new Auth.BearerAuthentication(token))
-          case BasicAuth(user, pass) => options.put("authentication", new Auth.BasicAuthentication(user, pass))
+        val pactJvmAuth: Option[Auth] = auth.map {
+          case TokenAuth(token)      => new Auth.BearerAuthentication(token)
+          case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
         }
-        includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", instantToDateString(since)))
-        providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
+        val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
+          enablePending,
+          providerTags.map(_.toList).getOrElse(Nil).asJava,
+          includeWipPactsSince.map(instantToDateString).orNull,
+          false,
+          pactJvmAuth.orNull
+        )
+        providerInfo.hasPactsFromPactBrokerWithSelectors(
+          brokerUrl,
+          selectors.map(_.toPactJVMSelector).asJava,
+          brokerOptions
+        )
         providerInfo
       case PactBrokerWithTags(brokerUrl, auth, tags) =>
         applyBrokerSourceToProvider(
