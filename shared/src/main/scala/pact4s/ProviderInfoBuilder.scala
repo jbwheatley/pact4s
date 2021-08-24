@@ -126,7 +126,15 @@ final case class ProviderInfoBuilder(
       pactSource: PactBroker
   ): ProviderInfo =
     pactSource match {
-      case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
+      case PactBrokerWithSelectors(
+            brokerUrl,
+            insecureTLS,
+            auth,
+            enablePending,
+            includeWipPactsSince,
+            providerTags,
+            selectors
+          ) =>
         val pactJvmAuth: Option[Auth] = auth.map {
           case TokenAuth(token)      => new Auth.BearerAuthentication(token)
           case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
@@ -135,7 +143,7 @@ final case class ProviderInfoBuilder(
           enablePending,
           providerTags.map(_.toList).getOrElse(Nil).asJava,
           includeWipPactsSince.map(instantToDateString).orNull,
-          false,
+          insecureTLS,
           pactJvmAuth.orNull
         )
         providerInfo.hasPactsFromPactBrokerWithSelectors(
@@ -144,12 +152,14 @@ final case class ProviderInfoBuilder(
           brokerOptions
         )
         providerInfo
-      case PactBrokerWithTags(brokerUrl, auth, tags) =>
+      case PactBrokerWithTags(brokerUrl, insecureTLS, auth, tags) =>
         applyBrokerSourceToProvider(
           providerInfo,
           PactBrokerWithSelectors(
             brokerUrl
-          ).withOptionalAuth(auth).withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+          ).withOptionalAuth(auth)
+            .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+            .withInsecureTLS(insecureTLS)
         )
     }
 
@@ -219,8 +229,12 @@ object PactSource {
     * @param auth authentication for accessing the pact broker. Can be token or basic auth.
     * @param tags fetches all the latest pacts from the pact-broker for the provider with the given tags, all ignoring tags if [[tags]] is empty.
     */
-  final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
-      extends PactBroker {
+  final case class PactBrokerWithTags(
+      brokerUrl: String,
+      insecureTLS: Boolean = false,
+      auth: Option[Authentication] = None,
+      tags: List[String] = Nil
+  ) extends PactBroker {
     def withAuth(auth: Authentication): PactBrokerWithTags = this.copy(auth = Some(auth))
     def withoutAuth: PactBrokerWithTags                    = this.copy(auth = None)
     def withTags(tags: List[String]): PactBrokerWithTags   = this.copy(tags = tags)
@@ -255,6 +269,7 @@ object PactSource {
     */
   sealed abstract case class PactBrokerWithSelectors(
       brokerUrl: String,
+      insecureTLS: Boolean = false,
       auth: Option[Authentication] = None,
       enablePending: Boolean = false,
       includeWipPactsSince: Option[Instant] = None,
@@ -263,13 +278,22 @@ object PactSource {
   ) extends PactBroker {
     private def copy(
         brokerUrl: String = brokerUrl,
+        insecureTLS: Boolean = insecureTLS,
         auth: Option[Authentication] = auth,
         enablePending: Boolean = enablePending,
         includeWipPactsSince: Option[Instant] = includeWipPactsSince,
         providerTags: Option[ProviderTags] = providerTags,
         selectors: List[ConsumerVersionSelector] = selectors
     ): PactBrokerWithSelectors =
-      new PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) {}
+      new PactBrokerWithSelectors(
+        brokerUrl,
+        insecureTLS,
+        auth,
+        enablePending,
+        includeWipPactsSince,
+        providerTags,
+        selectors
+      ) {}
 
     private[pact4s] def withOptionalAuth(auth: Option[Authentication]): PactBrokerWithSelectors = copy(auth = auth)
 
@@ -295,6 +319,8 @@ object PactSource {
 
     def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
       copy(selectors = selectors.toList)
+
+    def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithSelectors = copy(insecureTLS = insecureTLS)
   }
 
   object PactBrokerWithSelectors {
@@ -317,12 +343,13 @@ object PactSource {
         case Nil          => None
       }
       new PactBrokerWithSelectors(
-        brokerUrl,
-        auth,
-        enablePending,
-        includeWipPactsSince.map(d => Instant.ofEpochSecond(d.toSeconds)),
-        tags,
-        selectors
+        brokerUrl = brokerUrl,
+        insecureTLS = false,
+        auth = auth,
+        enablePending = enablePending,
+        includeWipPactsSince = includeWipPactsSince.map(d => Instant.ofEpochSecond(d.toSeconds)),
+        providerTags = tags,
+        selectors = selectors
       ) {}
     }
 
