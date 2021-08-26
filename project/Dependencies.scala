@@ -30,8 +30,8 @@ object Dependencies {
   )
 
   val weaver: Seq[ModuleID] = Seq(
-    "com.disneystreaming" %% "weaver-core" % "0.7.4" % Provided,
-    "com.disneystreaming" %% "weaver-cats" % "0.7.4" % Test
+    "com.disneystreaming" %% "weaver-core" % "0.7.5" % Provided,
+    "com.disneystreaming" %% "weaver-cats" % "0.7.5" % Test
   )
 
   val circe: Seq[ModuleID] = Seq(
