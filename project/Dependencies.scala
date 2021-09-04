@@ -1,9 +1,9 @@
 import sbt._
 
 object Dependencies {
-  val pactJvmJava11 = "4.2.10"
-  val pactJvmJava8  = "4.1.25"
-  val http4s        = "1.0.0-M24"
+  val pactJvmJava11 = "4.2.11"
+  val pactJvmJava8  = "4.1.26"
+  val http4s        = "1.0.0-M25"
   val _circe        = "0.14.1"
 
   def shared(pactJvmVersion: String): Seq[ModuleID] =
@@ -30,8 +30,8 @@ object Dependencies {
   )
 
   val weaver: Seq[ModuleID] = Seq(
-    "com.disneystreaming" %% "weaver-core" % "0.7.4" % Provided,
-    "com.disneystreaming" %% "weaver-cats" % "0.7.4" % Test
+    "com.disneystreaming" %% "weaver-core" % "0.7.6" % Provided,
+    "com.disneystreaming" %% "weaver-cats" % "0.7.6" % Test
   )
 
   val circe: Seq[ModuleID] = Seq(
