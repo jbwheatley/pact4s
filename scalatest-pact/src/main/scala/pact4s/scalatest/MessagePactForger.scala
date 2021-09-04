@@ -61,5 +61,4 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
   type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
-
 }
