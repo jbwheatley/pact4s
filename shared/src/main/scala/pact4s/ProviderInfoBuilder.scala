@@ -18,10 +18,12 @@ package pact4s
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
-import au.com.dius.pact.provider.{PactVerification, ProviderInfo}
+import au.com.dius.pact.core.support.Auth
+import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderInfo}
 import org.apache.http.HttpRequest
 import org.apache.http.message.BasicHeader
 import pact4s.Authentication.{BasicAuth, TokenAuth}
+import pact4s.PactSource.PactBrokerWithSelectors.ProviderTags
 import pact4s.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
 import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
 
@@ -34,22 +36,29 @@ import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
-/** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to au.com.dius.pact.provider.ProviderInfo
-  * during verification.
+/** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to
+  * au.com.dius.pact.provider.ProviderInfo during verification.
   *
-  * @param name the name of the provider
+  * @param name
+  *   the name of the provider
   * @param protocol
   * @param host
   * @param port
   * @param path
-  * address of the mock provider server is {protocol}://{host}:{port}{path}
-  * @param pactSource pacts to verify can come either from a file location, or from a pact broker.
-  * @param stateChangeUrl full url of the mock provider endpoint that can be used for setting provider state before each pact with state is run.
-  * state is sent as JSON of the form {"state": "state goes here"}. Can also be set using [[ProviderInfoBuilder#withStateChangeEndpoint]] just by providing the path.
-  * @param verificationSettings Required if verifying message pacts
+  *   address of the mock provider server is {protocol}://{host}:{port}{path}
+  * @param pactSource
+  *   pacts to verify can come either from a file location, or from a pact broker.
+  * @param stateChangeUrl
+  *   full url of the mock provider endpoint that can be used for setting provider state before each pact with state is
+  *   run. state is sent as JSON of the form {"state": "state goes here"}. Can also be set using
+  *   [[ProviderInfoBuilder#withStateChangeEndpoint]] just by providing the path.
+  * @param verificationSettings
+  *   Required if verifying message pacts
   *
-  * @param requestFilter Apply filters to certain consumer requests. The most common use case for this is adding auth headers to requests
-  * @see https://docs.pact.io/faq/#how-do-i-test-oauth-or-other-security-headers
+  * @param requestFilter
+  *   Apply filters to certain consumer requests. The most common use case for this is adding auth headers to requests
+  * @see
+  *   https://docs.pact.io/faq/#how-do-i-test-oauth-or-other-security-headers
   */
 final case class ProviderInfoBuilder(
     name: String,
@@ -124,25 +133,55 @@ final case class ProviderInfoBuilder(
       pactSource: PactBroker
   ): ProviderInfo =
     pactSource match {
-      case PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) =>
-        val options: java.util.HashMap[String, Any] = new java.util.HashMap()
-        options.put("enablePending", enablePending)
-        options.put("providerTags", providerTags.asJava)
-        auth.foreach {
-          case TokenAuth(token)      => options.put("authentication", List("bearer", token).asJava)
-          case BasicAuth(user, pass) => options.put("authentication", List("basic", user, pass).asJava)
+      case PactBrokerWithSelectors(
+            brokerUrl,
+            insecureTLS,
+            auth,
+            enablePending,
+            includeWipPactsSince,
+            providerTags,
+            selectors
+          ) =>
+        val pactJvmAuth: Option[Auth] = auth.map {
+          case TokenAuth(token)      => new Auth.BearerAuthentication(token)
+          case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
         }
-        includeWipPactsSince.foreach(since => options.put("includeWipPactsSince", instantToDateString(since)))
-        providerInfo.hasPactsFromPactBrokerWithSelectors(options, brokerUrl, selectors.map(_.toPactJVMSelector).asJava)
+        val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
+          enablePending,
+          providerTags.map(_.toList).getOrElse(Nil).asJava,
+          includeWipPactsSince.map(instantToDateString).orNull,
+          insecureTLS,
+          pactJvmAuth.orNull
+        )
+        providerInfo.hasPactsFromPactBrokerWithSelectors(
+          brokerUrl,
+          selectors.map(_.toPactJVMSelector).asJava,
+          brokerOptions
+        )
+        auth.foreach(configureConsumers(providerInfo))
         providerInfo
-      case PactBrokerWithTags(brokerUrl, auth, tags) =>
+      case PactBrokerWithTags(brokerUrl, insecureTLS, auth, tags) =>
         applyBrokerSourceToProvider(
           providerInfo,
           PactBrokerWithSelectors(
             brokerUrl
-          ).withOptionalAuth(auth).withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+          ).withOptionalAuth(auth)
+            .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+            .withInsecureTLS(insecureTLS)
         )
     }
+
+  private def configureConsumers(providerInfo: ProviderInfo)(auth: Authentication): Unit = {
+    val authAsStringList = auth match {
+      case TokenAuth(token)      => "Bearer" :: token :: Nil
+      case BasicAuth(user, pass) => "Basic" :: user :: pass :: Nil
+    }
+    val consumers = providerInfo.getConsumers.asScala
+    providerInfo.setConsumers(consumers.map { c =>
+      c.setPactFileAuthentication(authAsStringList.asJava)
+      c
+    }.asJava)
+  }
 
   private def instantToDateString(instant: Instant): String =
     instant
@@ -156,16 +195,19 @@ object ProviderInfoBuilder {
 
   /** Auxiliary constructor that provides some common defaults for the the mock provider address
     *
-    * @param name [[ProviderInfoBuilder.name]]
-    * @param pactSource [[ProviderInfoBuilder.pactSource]]
-    * @return [[ProviderInfoBuilder]]
+    * @param name
+    *   [[ProviderInfoBuilder.name]]
+    * @param pactSource
+    *   [[ProviderInfoBuilder.pactSource]]
+    * @return
+    *   [[ProviderInfoBuilder]]
     *
     * Example usage:
     * {{{
-    *  ProviderInfoBuilder(
-    *      name = "Provider Service",
-    *      pactSource = FileSource("Consumer Service", new File("./pacts/pact.json"))
-    *    ).withPort(80)
+    *   ProviderInfoBuilder(
+    *       name = "Provider Service",
+    *       pactSource = FileSource("Consumer Service", new File("./pacts/pact.json"))
+    *     ).withPort(80)
     *     .withStateChangeEndpoint("setup")
     * }}}
     */
@@ -177,17 +219,18 @@ sealed trait VerificationSettings
 
 object VerificationSettings {
 
-  /** For verifying message pacts, pact-jvm searches across the classpath for uniquely defined annotated methods that represent
-    * the message produced by the provider. For example:
+  /** For verifying message pacts, pact-jvm searches across the classpath for uniquely defined annotated methods that
+    * represent the message produced by the provider. For example:
     * {{{
-    *  @PactVerifyProvider("A message to say goodbye")
-    *  def goodbyeMessage(): MessageAndMetadata = {
-    *    val body = """{"goodbye":"harry"}"""
-    *    MessageAndMetadataBuilder(body).build
-    *  }
+    *   @PactVerifyProvider("A message to say goodbye")
+    *   def goodbyeMessage(): MessageAndMetadata = {
+    *     val body = """{"goodbye":"harry"}"""
+    *     MessageAndMetadataBuilder(body).build
+    *   }
     * }}}
     *
-    * @param packagesToScan which packages to scan, e.g. "pact4s.messages"
+    * @param packagesToScan
+    *   which packages to scan, e.g. "pact4s.messages"
     */
   final case class AnnotatedMethodVerificationSettings(packagesToScan: List[String]) extends VerificationSettings
 }
@@ -196,8 +239,8 @@ sealed trait PactSource
 
 object PactSource {
 
-  /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts can also
-    * be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
+  /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts
+    * can also be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
     */
   final case class FileSource(consumers: Map[String, File]) extends PactSource
 
@@ -206,90 +249,118 @@ object PactSource {
     def auth: Option[Authentication]
   }
 
-  /** @param brokerUrl pact broker address
-    * @param auth authentication for accessing the pact broker. Can be token or basic auth.
-    * @param tags fetches all the latest pacts from the pact-broker for the provider with the given tags, all ignoring tags if [[tags]] is empty.
+  /** @param brokerUrl
+    *   pact broker address
+    * @param auth
+    *   authentication for accessing the pact broker. Can be token or basic auth.
+    * @param tags
+    *   fetches all the latest pacts from the pact-broker for the provider with the given tags, all ignoring tags if
+    *   [[tags]] is empty.
     */
-  final case class PactBrokerWithTags(brokerUrl: String, auth: Option[Authentication] = None, tags: List[String] = Nil)
-      extends PactBroker {
+  final case class PactBrokerWithTags(
+      brokerUrl: String,
+      insecureTLS: Boolean = false,
+      auth: Option[Authentication] = None,
+      tags: List[String] = Nil
+  ) extends PactBroker {
     def withAuth(auth: Authentication): PactBrokerWithTags = this.copy(auth = Some(auth))
     def withoutAuth: PactBrokerWithTags                    = this.copy(auth = None)
     def withTags(tags: List[String]): PactBrokerWithTags   = this.copy(tags = tags)
     def withTags(tags: String*): PactBrokerWithTags        = this.copy(tags = tags.toList)
   }
 
-  /** @param brokerUrl pact broker address
-    * @param auth authentication for accessing the pact broker. Can be token or basic auth.
+  /** @param brokerUrl
+    *   pact broker address
+    * @param auth
+    *   authentication for accessing the pact broker. Can be token or basic auth.
     *
-    * @see https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
+    * @see
+    *   https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
-    * @param enablePending enable pending pacts. Off by default
-    * @see also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
+    * @param enablePending
+    *   enable pending pacts. Off by default. If enabled, [[providerTags]] must be provided.
+    * @see
+    *   also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
-    * @param includeWipPactsSince is a [[java.time.Instant]], but can also be set using a [[java.time.LocalDate]] or [[java.time.OffsetDateTime]] for convenience.
-    * All WIP pacts are pending pacts, so we enforce the setting of [[enablePending]] if this field is set.
-    * @see also the master issue for WIP pacts here for more discussion https://github.com/pact-foundation/pact_broker/issues/338
+    * @param includeWipPactsSince
+    *   is a [[java.time.Instant]], but can also be set using a [[java.time.LocalDate]] or [[java.time.OffsetDateTime]]
+    *   for convenience. All WIP pacts are pending pacts, so we enforce the setting of [[enablePending]] if this field
+    *   is set.
+    * @see
+    *   also the master issue for WIP pacts here for more discussion
+    *   https://github.com/pact-foundation/pact_broker/issues/338
     *
-    * @param providerTags any tags that are going to be applied to the provider version when the verification results are published. Only used in the pending pact
-    * calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is set to false.
+    * @param providerTags
+    *   any tags that are going to be applied to the provider version when the verification results are published. Only
+    *   used in the pending pact calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is
+    *   set to false.
     *
-    * @param selectors specifies which consumer pacts should be chosen for verification
+    * @param selectors
+    *   specifies which consumer pacts should be chosen for verification
     *
     * Example:
     * {{{
     *   PactBrokerWithSelectors(
     *     brokerUrl = "https://test.pact.dius.com.au"
     *   ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-    *    .withPendingPacts(enabled = true)
-    *    .withSelectors(ConsumerVersionSelector())
+    *     .withPendingPacts(enabled = true)
+    *     .withSelectors(ConsumerVersionSelector())
     * }}}
     */
   sealed abstract case class PactBrokerWithSelectors(
       brokerUrl: String,
+      insecureTLS: Boolean = false,
       auth: Option[Authentication] = None,
       enablePending: Boolean = false,
       includeWipPactsSince: Option[Instant] = None,
-      providerTags: List[String] = Nil,
+      providerTags: Option[ProviderTags] = None,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
   ) extends PactBroker {
     private def copy(
         brokerUrl: String = brokerUrl,
+        insecureTLS: Boolean = insecureTLS,
         auth: Option[Authentication] = auth,
         enablePending: Boolean = enablePending,
         includeWipPactsSince: Option[Instant] = includeWipPactsSince,
-        providerTags: List[String] = providerTags,
+        providerTags: Option[ProviderTags] = providerTags,
         selectors: List[ConsumerVersionSelector] = selectors
     ): PactBrokerWithSelectors =
-      new PactBrokerWithSelectors(brokerUrl, auth, enablePending, includeWipPactsSince, providerTags, selectors) {}
+      new PactBrokerWithSelectors(
+        brokerUrl,
+        insecureTLS,
+        auth,
+        enablePending,
+        includeWipPactsSince,
+        providerTags,
+        selectors
+      ) {}
 
     private[pact4s] def withOptionalAuth(auth: Option[Authentication]): PactBrokerWithSelectors = copy(auth = auth)
 
     def withAuth(auth: Authentication): PactBrokerWithSelectors = copy(auth = Some(auth))
 
-    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors =
-      if (enabled) copy(enablePending = enabled)
-      else copy(enablePending = enabled, includeWipPactsSince = None, providerTags = Nil)
+    def withPendingPactsEnabled(providerTags: ProviderTags): PactBrokerWithSelectors =
+      copy(enablePending = true, providerTags = Some(providerTags))
 
-    def withWipPactsSince(since: Instant): PactBrokerWithSelectors =
-      copy(enablePending = true, includeWipPactsSince = Some(since))
+    def withPendingPactsDisabled: PactBrokerWithSelectors =
+      copy(enablePending = false, includeWipPactsSince = None, providerTags = None)
 
-    def withWipPactsSince(since: LocalDate): PactBrokerWithSelectors =
-      copy(includeWipPactsSince = Some(since.atStartOfDay().toInstant(ZoneOffset.UTC)))
+    def withWipPactsSince(since: Instant, providerTags: ProviderTags): PactBrokerWithSelectors =
+      copy(enablePending = true, includeWipPactsSince = Some(since), providerTags = Some(providerTags))
 
-    def withWipPactsSince(since: OffsetDateTime): PactBrokerWithSelectors =
-      copy(includeWipPactsSince = Some(since.toInstant))
+    def withWipPactsSince(since: LocalDate, providerTags: ProviderTags): PactBrokerWithSelectors =
+      withWipPactsSince(since.atStartOfDay().toInstant(ZoneOffset.UTC), providerTags)
 
-    def withProviderTags(tags: List[String]): PactBrokerWithSelectors =
-      copy(enablePending = true, providerTags = tags)
-
-    def withProviderTags(tags: String*): PactBrokerWithSelectors =
-      copy(enablePending = true, providerTags = tags.toList)
+    def withWipPactsSince(since: OffsetDateTime, providerTags: ProviderTags): PactBrokerWithSelectors =
+      withWipPactsSince(since.toInstant, providerTags)
 
     def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
       copy(selectors = selectors)
 
     def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
       copy(selectors = selectors.toList)
+
+    def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithSelectors = copy(insecureTLS = insecureTLS)
   }
 
   object PactBrokerWithSelectors {
@@ -306,28 +377,52 @@ object PactSource {
         includeWipPactsSince: Option[FiniteDuration] = None,
         providerTags: List[String] = Nil,
         selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
-    ): PactBrokerWithSelectors = new PactBrokerWithSelectors(
-      brokerUrl,
-      auth,
-      enablePending,
-      includeWipPactsSince.map(d => Instant.ofEpochSecond(d.toSeconds)),
-      providerTags,
-      selectors
-    ) {}
+    ): PactBrokerWithSelectors = {
+      val tags = providerTags match {
+        case head :: tail => Some(ProviderTags(head, tail))
+        case Nil          => None
+      }
+      new PactBrokerWithSelectors(
+        brokerUrl = brokerUrl,
+        insecureTLS = false,
+        auth = auth,
+        enablePending = enablePending,
+        includeWipPactsSince = includeWipPactsSince.map(d => Instant.ofEpochSecond(d.toSeconds)),
+        providerTags = tags,
+        selectors = selectors
+      ) {}
+    }
+
+    final case class ProviderTags(head: String, tail: List[String]) {
+      def ::(tag: String): ProviderTags        = ProviderTags(tag, head :: tail)
+      private[pact4s] def toList: List[String] = head :: tail
+    }
+
+    object ProviderTags {
+      def one(tag: String): ProviderTags = ProviderTags(tag, Nil)
+    }
   }
 }
 
-/** @see https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors/ and https://github.com/pact-foundation/pact_broker/issues/307
-  * Gets converted into a au.com.dius.pact.core.pactbroker.ConsumerVersionSelector under the hood.
+/** @see
+  *   https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors/ and
+  *   https://github.com/pact-foundation/pact_broker/issues/307 Gets converted into a
+  *   au.com.dius.pact.core.pactbroker.ConsumerVersionSelector under the hood.
   *
-  * @param tag the tag name(s) of the consumer versions to get the pacts for.
-  * @param latest the name of the tag to fallback to if the specified tag does not exist.
-  * This is useful when the consumer and provider use matching branch names to coordinate the development of new features.
-  * @param fallbackTag default true. If the latest flag is omitted, all the pacts with the specified tag will be returned.
-  * (This might seem a bit weird, but it's done this way to match the syntax used for the matrix query params. See https://docs.pact.io/selectors)
-  * @param consumer allows a selector to only be applied to a certain consumer.
-  * This is used for example when there is an API that has multiple consumers, one of which is a deployed service, and one of which is a mobile consumer.
-  * The deployed service only needs the latest production pact verified, where as the mobile consumer may want all the production pacts verified.
+  * @param tag
+  *   the tag name(s) of the consumer versions to get the pacts for.
+  * @param latest
+  *   the name of the tag to fallback to if the specified tag does not exist. This is useful when the consumer and
+  *   provider use matching branch names to coordinate the development of new features.
+  * @param fallbackTag
+  *   default true. If the latest flag is omitted, all the pacts with the specified tag will be returned. (This might
+  *   seem a bit weird, but it's done this way to match the syntax used for the matrix query params. See
+  *   https://docs.pact.io/selectors)
+  * @param consumer
+  *   allows a selector to only be applied to a certain consumer. This is used for example when there is an API that has
+  *   multiple consumers, one of which is a deployed service, and one of which is a mobile consumer. The deployed
+  *   service only needs the latest production pact verified, where as the mobile consumer may want all the production
+  *   pacts verified.
   */
 final case class ConsumerVersionSelector(
     tag: Option[String] = None,
@@ -351,8 +446,8 @@ object Authentication {
   final case class TokenAuth(token: String)              extends Authentication
 }
 
-/** A simplified interface for managing the requests sent by pact-jvm to the mock provider service.
-  * Used in conjunction with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.requestFilter]]
+/** A simplified interface for managing the requests sent by pact-jvm to the mock provider service. Used in conjunction
+  * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.requestFilter]]
   */
 final case class ProviderRequest private[pact4s] (method: String, uri: URI, headers: List[(String, String)]) {
   def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)
@@ -365,9 +460,10 @@ final case class ProviderRequest private[pact4s] (method: String, uri: URI, head
   }
 }
 
-/** pact-jvm uses apache-http as its http implementation. A ProviderRequestFilter applies a transformation to a [[org.apache.http.HttpRequest]]
-  * before passing it to the mock provider server. Its called a "filter" as this is what its called in other pact implementations. It doesn't
-  * filter in the sense of stopping certain requests from reaching the mock server.
+/** pact-jvm uses apache-http as its http implementation. A ProviderRequestFilter applies a transformation to a
+  * [[org.apache.http.HttpRequest]] before passing it to the mock provider server. Its called a "filter" as this is what
+  * its called in other pact implementations. It doesn't filter in the sense of stopping certain requests from reaching
+  * the mock server.
   */
 trait ProviderRequestFilter {
   def filter(request: HttpRequest): Unit
