@@ -5,7 +5,7 @@ import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResul
 import pact4s.messages.MessagesProvider
 
 class MessagePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with MessagePactVerifier with BeforeAndAfterAll {
-  lazy val mock = new MockProviderServer
+  lazy val mock = new MockProviderServer(isRequestResponse = false)
 
   def messages: ResponseFactory     = MessagesProvider.messages
   def provider: ProviderInfoBuilder = mock.brokerProviderInfo(providerName = "Pact4sMessageProvider")
