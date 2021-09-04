@@ -5,7 +5,7 @@ import pact4s.messages.MessagesProvider
 import weaver.SimpleIOSuite
 
 object MessagePactVerifierBrokerWeaverTestSuite extends SimpleIOSuite with MessagePactVerifier {
-  val mock = new MockProviderServer(1237)
+  val mock = new MockProviderServer(isRequestResponse = false)
 
   def messages: ResponseFactory              = MessagesProvider.messages
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(providerName = "Pact4sMessageProvider")

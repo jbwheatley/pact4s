@@ -8,7 +8,7 @@ import weaver.IOSuite
 object RequestResponsePactVerifierWeaverSuite extends IOSuite with PactVerifier {
   type Res = Server
 
-  val mock = new MockProviderServer(1235)
+  val mock = new MockProviderServer
 
   override def sharedResource: Resource[IO, Server] = mock.server
 
