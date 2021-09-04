@@ -19,20 +19,38 @@ import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
 
 import java.io.File
 import java.net.ServerSocket
+import scala.util.control.NonFatal
 
 class MockProviderServer {
 
-  private val socket = new ServerSocket(0)
-  private val port   = socket.getLocalPort
+  @volatile private var port: Int = _
 
-  def server: Resource[IO, Server] =
+  private val socket = {
+    var p = 49152
+    var bound = false
+    var sock: ServerSocket = null
+    while (!bound && p < 50000) {
+      try {
+        val s = new ServerSocket(p)
+        bound = true
+        sock = s
+      } catch {
+        case NonFatal(_) => p += 1
+      }
+    }
+    port = p
+    sock
+  }
+
+  def server: Resource[IO, Server] = {
+    socket.close()
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
       .withHttpApp(app)
       .build
-      .onFinalize(IO(socket.close()))
+  }
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
     implicit val decoder: Decoder[ProviderState] = Decoder.forProduct1("state")(ProviderState)
