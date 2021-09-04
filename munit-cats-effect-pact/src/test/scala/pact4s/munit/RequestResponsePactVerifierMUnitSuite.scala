@@ -4,7 +4,7 @@ import munit.CatsEffectSuite
 import pact4s.{MockProviderServer, ProviderInfoBuilder}
 
 class RequestResponsePactVerifierMUnitSuite extends CatsEffectSuite with PactVerifier {
-  val mock = new MockProviderServer(2345)
+  val mock = new MockProviderServer
 
   override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
     consumerName = "Pact4sConsumer",
