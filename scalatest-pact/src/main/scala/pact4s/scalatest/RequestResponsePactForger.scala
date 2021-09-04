@@ -17,10 +17,17 @@
 package pact4s.scalatest
 
 import au.com.dius.pact.consumer.BaseMockServer
+import au.com.dius.pact.core.model.RequestResponseInteraction
 import org.scalatest.{Args, CompositeStatus, Status, Suite, SuiteMixin}
 import pact4s.RequestResponsePactForgerResources
 
+import scala.jdk.CollectionConverters._
+
 trait RequestResponsePactForger extends RequestResponsePactForgerResources with SuiteMixin { self: Suite =>
+
+  def interactions: List[RequestResponseInteraction] =
+    // This seems to be the only reliable way to access RequestResponseInteraction across JDK versions
+    pact.getInteractions.asScala.toList.collect { case interaction: RequestResponseInteraction => interaction }
 
   def mockServer: BaseMockServer = allocatedServer.get
 

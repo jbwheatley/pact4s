@@ -1,11 +1,12 @@
 package pact4s.scalatest
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
-import au.com.dius.pact.core.model.messaging.MessagePact
+import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.Assertion
 import pact4s.circe.implicits._
 
 class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with MessagePactForger {
@@ -27,26 +28,26 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
     .toMessagePact
 
-  it should "scalatest message pact test" in {
-    messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"
-    messages.head.metadata.getOrElse("hi", fail()) shouldBe "there"
+  def verify(message: Message): Assertion = message.getDescription match {
+    case "A message to say hello" =>
+      message.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"
+      message.metadata.getOrElse("hi", fail()) shouldBe "there"
+    case "A message to say goodbye" =>
+      message.as[Json].flatMap(_.hcursor.get[String]("goodbye")).getOrElse(fail()) shouldBe "harry"
+    case "A message with nested arrays in the body" =>
+      message.as[Json].flatMap(_.hcursor.get[List[Int]]("array")).getOrElse(fail()) shouldBe List(1, 2, 3)
+    case "A message with a json array as content" =>
+      val res = for {
+        json <- message.as[Json]
+        acur = json.hcursor.downArray
+        int  <- acur.get[Int]("a")
+        bool <- acur.right.get[Boolean]("b")
+      } yield (int, bool)
+      res.getOrElse(fail()) shouldBe ((1, true))
+    case description => fail(s"Missing verification for message: '$description'.'")
   }
 
-  it should "another scalatest message pact test" in {
-    messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye")).getOrElse(fail()) shouldBe "harry"
-  }
-
-  it should "send a message with a nested array in its body" in {
-    messages(2).as[Json].flatMap(_.hcursor.get[List[Int]]("array")).getOrElse(fail()) shouldBe List(1, 2, 3)
-  }
-
-  it should "send a message with a json array as its content" in {
-    val res = for {
-      json <- messages(3).as[Json]
-      acur = json.hcursor.downArray
-      int  <- acur.get[Int]("a")
-      bool <- acur.right.get[Boolean]("b")
-    } yield (int, bool)
-    res.getOrElse(fail()) shouldBe ((1, true))
+  messages.foreach { message =>
+    it should s"forge: ${message.getDescription}" in verify(message)
   }
 }

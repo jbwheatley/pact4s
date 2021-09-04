@@ -16,15 +16,19 @@
 
 package pact4s
 
-import au.com.dius.pact.provider.{IConsumerInfo, ProviderVerifier, VerificationResult}
+import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
 import sourcecode.{File, FileName, Line}
 
 import scala.jdk.CollectionConverters._
 
 trait PactVerifyResources {
+  type ResponseFactory = String => ResponseBuilder
+
   def provider: ProviderInfoBuilder
 
-  private[pact4s] def providerInfo = provider.toProviderInfo
+  def responseFactory: Option[ResponseFactory] = None
+
+  private[pact4s] lazy val providerInfo = provider.toProviderInfo
 
   private[pact4s] val verifier = new ProviderVerifier()
 
@@ -44,6 +48,8 @@ trait PactVerifyResources {
   /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance
+    *   The method instance to use when invoking methods with
+    *   [[pact4s.VerificationSettings.AnnotatedMethodVerificationSettings]].
     * @param providerVerificationOptions
     *   list of options to pass to the pact-jvm verifier
     */
@@ -60,6 +66,10 @@ trait PactVerifyResources {
         .map(opt => (opt.key, opt.value))
         .toMap
     )
+    responseFactory.foreach { responseFactory =>
+      providerInfo.setVerificationType(PactVerification.RESPONSE_FACTORY)
+      verifier.setResponseFactory(description => responseFactory(description).build)
+    }
     verifier.initialiseReporters(providerInfo)
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
     verifier.setProjectGetProperty(p => propertyResolver.getProperty(p).orNull)
