@@ -12,7 +12,7 @@ import pact4s.scalatest.PactVerifier
 import scala.jdk.CollectionConverters._
 
 class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
-  lazy val mock = new MockProviderServer(3459)
+  lazy val mock = new MockProviderServer(isRequestResponse = false)
 
   // Because this is mutable, it will trigger the issue.
   var metadata: Map[String, String] = _
