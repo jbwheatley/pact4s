@@ -23,8 +23,8 @@ class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers 
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
-      .consumer("Consumer")
-      .hasPactWith("Provider")
+      .consumer("Pact4sConsumer")
+      .hasPactWith("Pact4sProvider")
       .uponReceiving("a request to say Hello")
       .path("/hello")
       .method("POST")
