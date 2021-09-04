@@ -18,8 +18,13 @@ import pact4s.PactSource.PactBrokerWithSelectors.ProviderTags
 import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
 
 import java.io.File
+import java.net.ServerSocket
 
-class MockProviderServer(port: Int) {
+class MockProviderServer {
+
+  private val socket = new ServerSocket(0)
+  private val port   = socket.getLocalPort
+
   def server: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
@@ -27,6 +32,7 @@ class MockProviderServer(port: Int) {
       .withPort(Port.fromInt(port).get)
       .withHttpApp(app)
       .build
+      .onFinalize(IO(socket.close()))
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
     implicit val decoder: Decoder[ProviderState] = Decoder.forProduct1("state")(ProviderState)
