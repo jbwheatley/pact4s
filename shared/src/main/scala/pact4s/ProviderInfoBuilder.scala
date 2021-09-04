@@ -151,6 +151,7 @@ final case class ProviderInfoBuilder(
           selectors.map(_.toPactJVMSelector).asJava,
           brokerOptions
         )
+        auth.foreach(configureConsumers(providerInfo))
         providerInfo
       case PactBrokerWithTags(brokerUrl, insecureTLS, auth, tags) =>
         applyBrokerSourceToProvider(
@@ -162,6 +163,18 @@ final case class ProviderInfoBuilder(
             .withInsecureTLS(insecureTLS)
         )
     }
+
+  private def configureConsumers(providerInfo: ProviderInfo)(auth: Authentication): Unit = {
+    val authAsStringList = auth match {
+      case TokenAuth(token)      => "Bearer" :: token :: Nil
+      case BasicAuth(user, pass) => "Basic" :: user :: pass :: Nil
+    }
+    val consumers = providerInfo.getConsumers.asScala
+    providerInfo.setConsumers(consumers.map { c =>
+      c.setPactFileAuthentication(authAsStringList.asJava)
+      c
+    }.asJava)
+  }
 
   private def instantToDateString(instant: Instant): String =
     instant
