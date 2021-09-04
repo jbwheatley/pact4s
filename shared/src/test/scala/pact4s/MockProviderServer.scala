@@ -21,19 +21,19 @@ import java.io.File
 import java.net.ServerSocket
 import scala.util.control.NonFatal
 
-class MockProviderServer {
+class MockProviderServer(isRequestResponse: Boolean = true) {
 
   @volatile private var port: Int = _
 
-  private val socket = {
+  private val socket: Option[ServerSocket] = {
     var p = 49152
     var bound = false
-    var sock: ServerSocket = null
-    while (!bound && p < 65535) {
+    var sock: Option[ServerSocket] = None
+    while (isRequestResponse && !bound && p < 65535) {
       try {
         val s = new ServerSocket(p)
         bound = true
-        sock = s
+        sock = Option(s)
       } catch {
         case NonFatal(_) => p += 1
       }
@@ -43,7 +43,7 @@ class MockProviderServer {
   }
 
   def server: Resource[IO, Server] = {
-    socket.close()
+    socket.foreach(_.close())
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)
