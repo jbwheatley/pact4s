@@ -45,8 +45,9 @@ inThisBuild(
 publish / skip := true // don't publish the root project
 
 val commonSettings = Seq(
-  resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(
-    Resolver.ivyStylePatterns
+  resolvers ++= Seq(
+    Resolver.mavenLocal,
+    Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
   )
 )
 
@@ -56,7 +57,7 @@ def moduleName(base: String, axis: Seq[VirtualAxis]): String = {
 }
 
 val moduleBase =
-  Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
+  Def.setting((Compile / scalaSource).value.getParentFile.getParentFile.getParentFile)
 
 lazy val shared =
   (projectMatrix in file("shared"))

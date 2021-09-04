@@ -2,15 +2,13 @@ package pact4s.munit
 
 import munit.CatsEffectSuite
 import pact4s.{MockProviderServer, ProviderInfoBuilder, PublishVerificationResults}
-import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
+import pact4s.messages.MessagesProvider
 
-class MessagePactVerifierBrokerMUnitSuite extends CatsEffectSuite with PactVerifier {
+class MessagePactVerifierBrokerMUnitSuite extends CatsEffectSuite with MessagePactVerifier {
   val mock = new MockProviderServer(2348)
 
-  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(
-    providerName = "Pact4sMessageProvider",
-    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.messages")))
-  )
+  def messages: ResponseFactory              = MessagesProvider.messages
+  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(providerName = "Pact4sMessageProvider")
 
   verifyPacts(
     publishVerificationResults = Some(
