@@ -45,11 +45,13 @@ trait PactVerifyResources {
       case _                        => ???
     }
 
-  /** @param publishVerificationResults 
+  /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
-    * @param providerMethodInstance 
-    *   The method instance to use when invoking methods with [[pact4s.VerificationSettings.AnnotatedMethodVerificationSettings]].
-    * @param providerVerificationOptions list of options to pass to the pact-jvm verifier
+    * @param providerMethodInstance
+    *   The method instance to use when invoking methods with
+    *   [[pact4s.VerificationSettings.AnnotatedMethodVerificationSettings]].
+    * @param providerVerificationOptions
+    *   list of options to pass to the pact-jvm verifier
     */
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
