@@ -29,7 +29,7 @@ class MockProviderServer {
     var p = 49152
     var bound = false
     var sock: ServerSocket = null
-    while (!bound && p < 50000) {
+    while (!bound && p < 65535) {
       try {
         val s = new ServerSocket(p)
         bound = true
