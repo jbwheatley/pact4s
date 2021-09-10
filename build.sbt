@@ -19,7 +19,7 @@ val javaVersionDimension =
 inThisBuild(
   List(
     organization := "io.github.jbwheatley",
-    homepage := Some(url("https://github.com/jbwheatley/pact4s")),
+    homepage     := Some(url("https://github.com/jbwheatley/pact4s")),
     developers := List(
       Developer(
         "jbwheatley",
@@ -28,7 +28,7 @@ inThisBuild(
         url("https://github.com/jbwheatley")
       )
     ),
-    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scalaVersion := scala213,
     commands ++= CrossCommand.single(
       "test",
