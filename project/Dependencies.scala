@@ -1,6 +1,7 @@
 import sbt._
 
 object Dependencies {
+  val mockitoScala     = "1.16.39"
   val pactJvmJava11    = "4.2.11"
   val pactJvmJava8     = "4.1.26"
   val http4s           = "1.0.0-M25"
@@ -17,13 +18,14 @@ object Dependencies {
     Seq(
       "au.com.dius.pact"        % "consumer"                % pactJvmVersion,
       "au.com.dius.pact"        % "provider"                % pactJvmVersion,
-      "org.http4s"             %% "http4s-ember-client"     % http4s  % Test,
-      "org.http4s"             %% "http4s-dsl"              % http4s  % Test,
-      "org.http4s"             %% "http4s-ember-server"     % http4s  % Test,
-      "org.http4s"             %% "http4s-circe"            % http4s  % Test,
-      "io.circe"               %% "circe-core"              % _circe  % Test,
+      "org.http4s"             %% "http4s-ember-client"     % http4s       % Test,
+      "org.http4s"             %% "http4s-dsl"              % http4s       % Test,
+      "org.http4s"             %% "http4s-ember-server"     % http4s       % Test,
+      "org.http4s"             %% "http4s-circe"            % http4s       % Test,
+      "io.circe"               %% "circe-core"              % _circe       % Test,
+      "org.mockito"            %% "mockito-scala"           % mockitoScala % Test,
       "org.log4s"              %% "log4s"                   % log4s,
-      "ch.qos.logback"          % "logback-classic"         % logback % Runtime,
+      "ch.qos.logback"          % "logback-classic"         % logback      % Runtime,
       "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompat,
       "com.lihaoyi"            %% "sourcecode"              % sourcecode
     )

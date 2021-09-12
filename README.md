@@ -260,6 +260,10 @@ This will cause a request to be sent to the setup url prior to verification of e
 
 ---
 
-### Notes on Contributing
+## Contributing
 
 We use [sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) to easily reuse code across the different scala and jdk versions. Using `sbt test` with `projectmatrix` doesn't seem to respect turning off parallel test execution, which we need because the tests use locking resources. So instead, in order to run the tests use `sbt commitCheck` to run the tests in series. This is quite slow, so `sbt quickCommitCheck` will only run the tests on scala 2.13. Thanks to [sbt-commandmatrix](https://github.com/indoorvivants/sbt-commandmatrix) for enabling this. 
+
+### IntelliJ
+
+When importing the project into the [IntelliJ IDE](https://www.jetbrains.com/idea/), the Scala 2.12.x and Java 8 projects and dependency classpaths will be excluded to prevent IntelliJ from complaining about duplicate classes on the classpath. This means when developing and running tests inside the IDE, Scala 2.13.x and Java 11 will be used.

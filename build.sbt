@@ -19,7 +19,7 @@ val javaVersionDimension =
 inThisBuild(
   List(
     organization := "io.github.jbwheatley",
-    homepage := Some(url("https://github.com/jbwheatley/pact4s")),
+    homepage     := Some(url("https://github.com/jbwheatley/pact4s")),
     developers := List(
       Developer(
         "jbwheatley",
@@ -28,7 +28,7 @@ inThisBuild(
         url("https://github.com/jbwheatley")
       )
     ),
-    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scalaVersion := scala213,
     commands ++= CrossCommand.single(
       "test",
@@ -45,6 +45,9 @@ inThisBuild(
 publish / skip := true // don't publish the root project
 
 val commonSettings = Seq(
+  // When using IntelliJ, don't import projects for Scala 2.12.x or Java 8. This prevents classpath conflicts.
+  // See: https://github.com/sbt/sbt-projectmatrix/issues/25
+  ideSkipProject.withRank(KeyRanks.Invisible) := scalaVersion.value.startsWith("2.12.") || name.value.contains("java8"),
   resolvers ++= Seq(
     Resolver.mavenLocal,
     Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
@@ -89,6 +92,7 @@ lazy val shared =
 lazy val circe = (projectMatrix in file("circe"))
   .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
   .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+  .settings(commonSettings)
   .settings(
     name := moduleName("pact4s-circe", virtualAxes.value),
     libraryDependencies ++= Dependencies.circe,
@@ -114,6 +118,7 @@ lazy val munit =
   (projectMatrix in file("munit-cats-effect-pact"))
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+    .settings(commonSettings)
     .settings(
       name := moduleName("pact4s-munit-cats-effect", virtualAxes.value),
       libraryDependencies ++= Dependencies.munit,
@@ -126,6 +131,7 @@ lazy val scalaTest =
   (projectMatrix in file("scalatest-pact"))
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+    .settings(commonSettings)
     .settings(
       name := moduleName("pact4s-scalatest", virtualAxes.value),
       libraryDependencies ++= Dependencies.scalatest
@@ -136,6 +142,7 @@ lazy val scalaTest =
 lazy val weaver = (projectMatrix in file("weaver-pact"))
   .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
   .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+  .settings(commonSettings)
   .settings(
     name := moduleName("pact4s-weaver", virtualAxes.value),
     libraryDependencies ++= Dependencies.weaver,
