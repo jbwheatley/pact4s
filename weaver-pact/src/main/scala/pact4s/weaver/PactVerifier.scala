@@ -19,9 +19,11 @@ package pact4s.weaver
 import cats.data.NonEmptyList
 import pact4s.PactVerifyResources
 import sourcecode.{File, FileName, Line}
-import weaver.{AssertionException, SourceLocation}
+import weaver.{AssertionException, CanceledException, SourceLocation}
 
 trait PactVerifier extends PactVerifyResources {
+  override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
+    throw new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value))
   override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
     throw AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
 }

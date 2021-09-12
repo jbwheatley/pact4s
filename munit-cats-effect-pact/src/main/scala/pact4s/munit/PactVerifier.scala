@@ -21,6 +21,8 @@ import pact4s.PactVerifyResources
 import sourcecode.{File, FileName, Line}
 
 trait PactVerifier extends Assertions with PactVerifyResources {
+  override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
+    assume(cond = false, message)
   override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
     fail(message)(new Location(file.value, line.value))
 }

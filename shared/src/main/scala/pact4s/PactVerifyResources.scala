@@ -32,18 +32,25 @@ trait PactVerifyResources {
 
   private[pact4s] val verifier = new ProviderVerifier()
 
+  private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
 
   private[pact4s] def verifySingleConsumer(
       consumer: IConsumerInfo
-  )(implicit fileName: FileName, file: File, line: Line): Unit =
-    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer) match {
-      case failed: VerificationResult.Failed =>
-        verifier.displayFailures(List(failed).asJava)
-        failure(s"Verification failed:\n ${failed.toString}")
-      case _: VerificationResult.Ok => ()
-      case _                        => ???
-    }
+  )(implicit fileName: FileName, file: File, line: Line): Unit = runVerification(consumer) match {
+    case failed: VerificationResult.Failed =>
+      verifier.displayFailures(List(failed).asJava)
+      // Don't fail the build if the pact is pending.
+      val pending = failed.getPending
+      val message = s"""Verification failed${if (pending) " [PENDING]" else ""}: "${failed.getDescription}""""
+      val action  = if (pending) skip _ else failure _
+      action(message)
+    case _: VerificationResult.Ok => ()
+    case _                        => ???
+  }
+
+  private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult =
+    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
 
   /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
