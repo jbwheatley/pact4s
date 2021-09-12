@@ -26,10 +26,10 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
   @volatile private var port: Int = _
 
   private val socket: Option[ServerSocket] = {
-    var p = 49152
-    var bound = false
+    var p                          = 49152
+    var bound                      = false
     var sock: Option[ServerSocket] = None
-    while (isRequestResponse && !bound && p < 65535) {
+    while (isRequestResponse && !bound && p < 65535)
       try {
         val s = new ServerSocket(p)
         bound = true
@@ -37,7 +37,6 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
       } catch {
         case NonFatal(_) => p += 1
       }
-    }
     port = p
     sock
   }
