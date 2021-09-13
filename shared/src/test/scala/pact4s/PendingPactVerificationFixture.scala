@@ -22,6 +22,8 @@ trait PendingPactVerificationFixture extends MockitoSugar { this: PactVerifyReso
   override private[pact4s] lazy val providerInfo = {
     val providerInfo = mock[ProviderInfo]
     val consumer     = mock[IConsumerInfo]
+    when(providerInfo.getName).thenReturn("PendingPactProvider")
+    when(consumer.getName).thenReturn("PendingPactConsumer")
     when(providerInfo.getConsumers).thenReturn(List(consumer).asJava)
     providerInfo
   }
