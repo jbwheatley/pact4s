@@ -29,7 +29,8 @@ trait PactVerifyResources {
 
   def responseFactory: Option[ResponseFactory] = None
 
-  private val failures: ListBuffer[String] = new ListBuffer[String]()
+  private val failures: ListBuffer[String]        = new ListBuffer[String]()
+  private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
 
   private[pact4s] lazy val providerInfo = provider.toProviderInfo
 
@@ -40,16 +41,16 @@ trait PactVerifyResources {
 
   private[pact4s] def verifySingleConsumer(
       consumer: IConsumerInfo
-  )(implicit fileName: FileName, file: File, line: Line): Unit = runVerification(consumer) match {
+  ): Unit = runVerification(consumer) match {
     case failed: VerificationResult.Failed =>
       verifier.displayFailures(List(failed).asJava)
       // Don't fail the build if the pact is pending.
       val pending = failed.getPending
       val message =
-        s"""Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
+        s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
           " [PENDING]"
-        else ""}: ${failed.getDescription}""".stripMargin
-      if (pending) skip(message) else failures += message
+        else ""}: '${failed.getDescription}'"
+      if (pending) pendingFailures += message else failures += message
     case _: VerificationResult.Ok => ()
     case _                        => ???
   }
@@ -90,8 +91,10 @@ trait PactVerifyResources {
     verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags).getOrElse(Nil).asJava)
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
-    val failedMessages = failures.toList
-    if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n\n"))
+    val failedMessages  = failures.toList
+    val pendingMessages = pendingFailures.toList
+    if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
+    if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
   }
 }
 
