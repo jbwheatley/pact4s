@@ -19,6 +19,7 @@ package pact4s
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
 import sourcecode.{File, FileName, Line}
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
 trait PactVerifyResources {
@@ -27,6 +28,8 @@ trait PactVerifyResources {
   def provider: ProviderInfoBuilder
 
   def responseFactory: Option[ResponseFactory] = None
+
+  private val failures: ListBuffer[String] = new ListBuffer[String]()
 
   private[pact4s] lazy val providerInfo = provider.toProviderInfo
 
@@ -42,9 +45,11 @@ trait PactVerifyResources {
       verifier.displayFailures(List(failed).asJava)
       // Don't fail the build if the pact is pending.
       val pending = failed.getPending
-      val message = s"""Verification failed${if (pending) " [PENDING]" else ""}: "${failed.getDescription}""""
-      val action  = if (pending) skip _ else failure _
-      action(message)
+      val message =
+        s"""Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
+          " [PENDING]"
+        else ""}: ${failed.getDescription}""".stripMargin
+      if (pending) skip(message) else failures += message
     case _: VerificationResult.Ok => ()
     case _                        => ???
   }
@@ -85,6 +90,8 @@ trait PactVerifyResources {
     verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags).getOrElse(Nil).asJava)
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
+    val failedMessages = failures.toList
+    if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n\n"))
   }
 }
 
