@@ -278,7 +278,7 @@ object PactSource {
     *   https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
     * @param enablePending
-    *   enable pending pacts. Off by default. If enabled, [[providerTags]] must be provided.
+    *   enable pending pacts. Enabled by default. If enabled, [[providerTags]] must be provided.
     * @see
     *   also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
@@ -303,7 +303,6 @@ object PactSource {
     *   PactBrokerWithSelectors(
     *     brokerUrl = "https://test.pact.dius.com.au"
     *   ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-    *     .withPendingPacts(enabled = true)
     *     .withSelectors(ConsumerVersionSelector())
     * }}}
     */
@@ -311,7 +310,7 @@ object PactSource {
       brokerUrl: String,
       insecureTLS: Boolean = false,
       auth: Option[Authentication] = None,
-      enablePending: Boolean = false,
+      enablePending: Boolean = true,
       includeWipPactsSince: Option[Instant] = None,
       providerTags: Option[ProviderTags] = None,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
@@ -339,8 +338,8 @@ object PactSource {
 
     def withAuth(auth: Authentication): PactBrokerWithSelectors = copy(auth = Some(auth))
 
-    def withPendingPactsEnabled(providerTags: ProviderTags): PactBrokerWithSelectors =
-      copy(enablePending = true, providerTags = Some(providerTags))
+    def withProviderTags(providerTags: ProviderTags): PactBrokerWithSelectors =
+      copy(providerTags = Some(providerTags))
 
     def withPendingPactsDisabled: PactBrokerWithSelectors =
       copy(enablePending = false, includeWipPactsSince = None, providerTags = None)
@@ -368,6 +367,12 @@ object PactSource {
         brokerUrl: String
     ): PactBrokerWithSelectors =
       new PactBrokerWithSelectors(brokerUrl = brokerUrl) {}
+
+    def apply(
+        brokerUrl: String,
+        providerTags: ProviderTags
+    ): PactBrokerWithSelectors =
+      new PactBrokerWithSelectors(brokerUrl = brokerUrl, providerTags = Some(providerTags)) {}
 
     @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
     def apply(
