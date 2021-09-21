@@ -4,7 +4,7 @@ object Dependencies {
   val mockitoScala     = "1.16.42"
   val pactJvmJava11    = "4.2.11"
   val pactJvmJava8     = "4.1.26"
-  val http4s           = "1.0.0-M25"
+  val http4s           = "1.0.0-M27"
   val log4s            = "1.10.0"
   val logback          = "1.2.6"
   val collectionCompat = "2.5.0"
