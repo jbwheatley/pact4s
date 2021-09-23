@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - main
+env:
+  JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +17,7 @@ jobs:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
         with:
-          java-version: adopt@1.11
+          java-version: adoptium@17
       - run: sbt commitCheck
         env:
           TEST_WEAVER: false
