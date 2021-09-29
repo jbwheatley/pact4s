@@ -14,7 +14,6 @@ import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.Server
 import pact4s.Authentication.BasicAuth
-import pact4s.PactSource.PactBrokerWithSelectors.ProviderTags
 import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
 
 import java.io.File
@@ -123,8 +122,8 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
       name = providerName,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pact.dius.com.au"
-      ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withPendingPactsEnabled(ProviderTags.one("SNAPSHOT"))
+      ).withProviderTags(ProviderTags.one("SNAPSHOT"))
+        .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withSelectors(ConsumerVersionSelector())
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)

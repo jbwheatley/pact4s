@@ -103,6 +103,12 @@ final case class PublishVerificationResults(
     providerTags: List[String]
 )
 
+object PublishVerificationResults {
+  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, Nil)
+  def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
+    PublishVerificationResults(providerVersion, providerTags.toList)
+}
+
 private[pact4s] final class PactVerifierPropertyResolver(properties: Map[String, String]) {
   def getProperty(name: String): Option[String] = properties.get(name).orElse(Option(System.getProperty(name)))
 }
