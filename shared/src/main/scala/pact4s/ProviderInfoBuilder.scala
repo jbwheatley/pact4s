@@ -42,8 +42,11 @@ import scala.jdk.CollectionConverters._
   * @param name
   *   the name of the provider
   * @param protocol
+  *   e.g. http or https
   * @param host
+  *   mock provider host
   * @param port
+  *   mock provider port
   * @param path
   *   address of the mock provider server is {protocol}://{host}:{port}{path}
   * @param pactSource
@@ -133,7 +136,7 @@ final case class ProviderInfoBuilder(
       pactSource: PactBroker
   ): ProviderInfo =
     pactSource match {
-      case PactBrokerWithSelectors(
+      case p @ PactBrokerWithSelectors(
             brokerUrl,
             insecureTLS,
             auth,
@@ -142,6 +145,7 @@ final case class ProviderInfoBuilder(
             providerTags,
             selectors
           ) =>
+        p.validate()
         val pactJvmAuth: Option[Auth] = auth.map {
           case TokenAuth(token)      => new Auth.BearerAuthentication(token)
           case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
@@ -341,37 +345,37 @@ object PactSource {
 
     def withAuth(auth: Authentication): PactBrokerWithSelectors = copy(auth = Some(auth))
 
-    @deprecated(message = "new constructor ensures this setting is already configured", since = "0.0.19")
     def withPendingPactsEnabled(providerTags: ProviderTags): PactBrokerWithSelectors =
       copy(enablePending = true, providerTags = Some(providerTags))
 
-    @deprecated(message = "new constructor ensures this setting is already configured", since = "0.0.19")
     def withPendingPactsDisabled: PactBrokerWithSelectors =
-      copy(enablePending = false, includeWipPactsSince = WipPactsSince.never, providerTags = None)
+      copy(enablePending = false, includeWipPactsSince = WipPactsSince.never)
 
-    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince, providerTags: ProviderTags)", since = "0.0.19")
+    def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors =
+      copy(enablePending = enabled, includeWipPactsSince = if (enabled) includeWipPactsSince else WipPactsSince.never)
+
+    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince)", since = "0.0.19")
     def withWipPactsSince(since: Instant, providerTags: ProviderTags): PactBrokerWithSelectors =
-      copy(enablePending = true, includeWipPactsSince = WipPactsSince.instant(since), providerTags = Some(providerTags))
+      withWipPactsSince(WipPactsSince.instant(since)).withProviderTags(providerTags)
 
-    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince, providerTags: ProviderTags)", since = "0.0.19")
+    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince)", since = "0.0.19")
     def withWipPactsSince(since: LocalDate, providerTags: ProviderTags): PactBrokerWithSelectors =
-      withWipPactsSince(since.atStartOfDay().toInstant(ZoneOffset.UTC), providerTags)
+      withWipPactsSince(WipPactsSince.localDate(since)).withProviderTags(providerTags)
 
-    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince, providerTags: ProviderTags)", since = "0.0.19")
+    @deprecated(message = "Use withWipPactsSince(since: WipPactsSince)", since = "0.0.19")
     def withWipPactsSince(since: OffsetDateTime, providerTags: ProviderTags): PactBrokerWithSelectors =
-      withWipPactsSince(since.toInstant, providerTags)
+      withWipPactsSince(WipPactsSince.offsetDateTime(since)).withProviderTags(providerTags)
 
     /** this method is somewhat unsafe, as it is illegal to enable pending pacts (of which WIP pacts are a subset)
       * without provider tags being provided.
       */
-    def withWipPactsSince(since: WipPactsSince): PactBrokerWithSelectors = {
-      require(
-        !(since.since.isDefined && providerTags.isEmpty),
-        "WIP pacts cannot be enabled without providing any provider tags."
-      )
-      if (since.since.isDefined) copy(includeWipPactsSince = since)
-      else this
-    }
+    def withWipPactsSince(since: WipPactsSince): PactBrokerWithSelectors =
+      copy(enablePending = true, includeWipPactsSince = since)
+
+    def withProviderTags(providerTags: ProviderTags): PactBrokerWithSelectors = copy(providerTags = Some(providerTags))
+
+    def withOptionalProviderTags(providerTags: Option[ProviderTags]): PactBrokerWithSelectors =
+      copy(providerTags = providerTags)
 
     def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
       copy(selectors = selectors)
@@ -380,13 +384,21 @@ object PactSource {
       copy(selectors = selectors.toList)
 
     def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithSelectors = copy(insecureTLS = insecureTLS)
+
+    private[pact4s] def validate(): Unit = {
+      require(!(enablePending && providerTags.isEmpty), "Provider tags must be provided if pending pacts are enabled")
+      require(
+        !(includeWipPactsSince.since.isDefined && providerTags.isEmpty),
+        "Provider tags must be provided if WIP pacts are enabled"
+      )
+    }
   }
 
   object PactBrokerWithSelectors {
     def apply(
         brokerUrl: String
-    ): PactBrokerWithSelectorsPartiallyApplied =
-      new PactBrokerWithSelectorsPartiallyApplied(brokerUrl = brokerUrl, pendingEnabled = true) {}
+    ): PactBrokerWithSelectors =
+      new PactBrokerWithSelectors(brokerUrl = brokerUrl) {}
 
     @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
     def apply(
@@ -409,39 +421,6 @@ object PactSource {
         providerTags = tags,
         selectors = selectors
       ) {}
-    }
-
-    sealed abstract class PactBrokerWithSelectorsPartiallyApplied(
-        brokerUrl: String,
-        pendingEnabled: Boolean = true
-    ) {
-
-      /** useful if the pending pact setting is being set dynamically. Should be avoided if possible, as can lead to
-        * some illegal setting combinations. Pending pacts are enabled is on by default.
-        */
-      def withPendingPacts(enabled: Boolean): PactBrokerWithSelectorsPartiallyApplied =
-        new PactBrokerWithSelectorsPartiallyApplied(brokerUrl, enabled) {}
-
-      def withPendingPactsDisabled: PactBrokerWithSelectors =
-        new PactBrokerWithSelectors(brokerUrl = brokerUrl, enablePending = false) {}
-
-      def withProviderTags(providerTags: ProviderTags): PactBrokerWithSelectors = withOptionalProviderTags(
-        Some(providerTags)
-      )
-
-      /** this method is somewhat unsafe, as it is illegal to enable pending pacts without provider tags being provided.
-        */
-      def withOptionalProviderTags(providerTags: Option[ProviderTags]): PactBrokerWithSelectors = {
-        require(
-          !(pendingEnabled && providerTags.isEmpty),
-          "Pending pacts cannot be enabled without providing any provider tags."
-        )
-        new PactBrokerWithSelectors(
-          brokerUrl = brokerUrl,
-          enablePending = providerTags.isDefined,
-          providerTags = providerTags
-        ) {}
-      }
     }
 
     sealed abstract case class WipPactsSince(since: Option[Instant])

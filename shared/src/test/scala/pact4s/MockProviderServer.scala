@@ -122,7 +122,7 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
       name = providerName,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pact.dius.com.au"
-      ).withProviderTags(ProviderTags.one("SNAPSHOT"))
+      ).withProviderTags(ProviderTags("SNAPSHOT"))
         .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withSelectors(ConsumerVersionSelector())
     ).withPort(port)
