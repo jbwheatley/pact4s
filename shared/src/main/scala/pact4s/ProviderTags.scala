@@ -22,7 +22,7 @@ final case class ProviderTags(head: String, tail: List[String]) {
 }
 
 object ProviderTags {
-  def apply(tag: String, rest: String*): ProviderTags = ProviderTags(tag, rest: _*)
+  def apply(tag: String): ProviderTags = ProviderTags(tag, Nil)
 
   def fromList(tags: List[String]): Option[ProviderTags] = tags match {
     case head :: tail => Some(ProviderTags(head, tail))
