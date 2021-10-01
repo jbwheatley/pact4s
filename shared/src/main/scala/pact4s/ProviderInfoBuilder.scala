@@ -169,7 +169,7 @@ final case class ProviderInfoBuilder(
           providerInfo,
           PactBrokerWithSelectors(
             brokerUrl
-          ).withPendingPactsDisabled
+          )
             .withOptionalAuth(auth)
             .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
             .withInsecureTLS(insecureTLS)
@@ -283,7 +283,7 @@ object PactSource {
     *   https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
     * @param enablePending
-    *   enable pending pacts. On by default. If enabled, [[providerTags]] must be provided.
+    *   enable pending pacts. Off by default. If enabled, [[providerTags]] must be provided.
     * @see
     *   also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
@@ -317,7 +317,7 @@ object PactSource {
       brokerUrl: String,
       insecureTLS: Boolean = false,
       auth: Option[Authentication] = None,
-      enablePending: Boolean = true,
+      enablePending: Boolean = false,
       includeWipPactsSince: WipPactsSince = WipPactsSince.never,
       providerTags: Option[ProviderTags] = None,
       selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
