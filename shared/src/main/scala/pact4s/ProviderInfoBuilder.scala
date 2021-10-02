@@ -307,7 +307,7 @@ object PactSource {
     * {{{
     *   PactBrokerWithSelectors(
     *     brokerUrl = "https://test.pact.dius.com.au"
-    *   ).withProviderTags(ProviderTags.one("MAIN"))
+    *   ).withPendingPactsEnabled(ProviderTags("MAIN"))
     *     .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
     *     .withWipPactsSince(WipPactsSince.instant(Instant.EPOCH))
     *     .withSelectors(ConsumerVersionSelector())
