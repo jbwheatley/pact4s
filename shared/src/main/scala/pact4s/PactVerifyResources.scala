@@ -88,7 +88,9 @@ trait PactVerifyResources {
     verifier.setProjectGetProperty(p => propertyResolver.getProperty(p).orNull)
     verifier.setProjectHasProperty(name => propertyResolver.getProperty(name).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
-    verifier.setProviderTags(() => publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava)
+    verifier.setProviderTags(() =>
+      publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
+    )
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
     val failedMessages  = failures.toList
