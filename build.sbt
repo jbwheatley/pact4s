@@ -32,7 +32,7 @@ inThisBuild(
     scalaVersion := scala213,
     commands ++= CrossCommand.single(
       "test",
-      matrices = Seq(circe, munit, scalaTest, weaver),
+      matrices = Seq(shared, circe, munit, scalaTest, weaver),
       dimensions = Seq(
         javaVersionDimension,
         Dimension.scala("2.13"),
@@ -69,6 +69,7 @@ lazy val shared =
     .settings(commonSettings)
     .settings(
       name := moduleName("shared", virtualAxes.value),
+      testFrameworks += new TestFramework("munit.Framework"),
       libraryDependencies ++= {
         val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
         Dependencies.shared(version)

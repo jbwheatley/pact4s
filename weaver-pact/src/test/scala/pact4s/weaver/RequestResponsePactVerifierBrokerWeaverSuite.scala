@@ -19,8 +19,7 @@ object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVer
       verifyPacts(
         publishVerificationResults = Some(
           PublishVerificationResults(
-            providerVersion = "SNAPSHOT",
-            providerTags = Nil
+            providerVersion = "SNAPSHOT"
           )
         )
       )

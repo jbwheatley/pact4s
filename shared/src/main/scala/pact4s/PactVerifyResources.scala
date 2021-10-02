@@ -88,7 +88,9 @@ trait PactVerifyResources {
     verifier.setProjectGetProperty(p => propertyResolver.getProperty(p).orNull)
     verifier.setProjectHasProperty(name => propertyResolver.getProperty(name).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
-    verifier.setProviderTags(() => publishVerificationResults.map(_.providerTags).getOrElse(Nil).asJava)
+    verifier.setProviderTags(() =>
+      publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
+    )
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_))
     val failedMessages  = failures.toList
@@ -100,8 +102,19 @@ trait PactVerifyResources {
 
 final case class PublishVerificationResults(
     providerVersion: String,
-    providerTags: List[String]
+    providerTags: Option[ProviderTags]
 )
+
+object PublishVerificationResults {
+  @deprecated("use ProviderTags(..) or ProviderTags.fromList(..) rather than List[String]", "0.0.19")
+  def apply(providerVersion: String, providerTags: List[String]): PublishVerificationResults =
+    PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags))
+
+  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, None)
+
+  def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
+    PublishVerificationResults(providerVersion, Some(providerTags))
+}
 
 private[pact4s] final class PactVerifierPropertyResolver(properties: Map[String, String]) {
   def getProperty(name: String): Option[String] = properties.get(name).orElse(Option(System.getProperty(name)))

@@ -18,8 +18,7 @@ class RequestResponsePactVerifierBrokerMUnitSuite extends CatsEffectSuite with P
     verifyPacts(
       publishVerificationResults = Some(
         PublishVerificationResults(
-          providerVersion = "SNAPSHOT",
-          providerTags = Nil
+          providerVersion = "SNAPSHOT"
         )
       )
     )
