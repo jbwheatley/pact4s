@@ -24,8 +24,7 @@ class RequestResponsePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with P
     verifyPacts(
       publishVerificationResults = Some(
         PublishVerificationResults(
-          providerVersion = "SNAPSHOT",
-          providerTags = Nil
+          providerVersion = "SNAPSHOT"
         )
       )
     )
