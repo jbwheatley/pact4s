@@ -15,8 +15,7 @@ object MessagePactVerifierBrokerWeaverTestSuite extends SimpleIOSuite with Messa
       verifyPacts(
         publishVerificationResults = Some(
           PublishVerificationResults(
-            providerVersion = "SNAPSHOT",
-            providerTags = Nil
+            providerVersion = "SNAPSHOT"
           )
         )
       )
