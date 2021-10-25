@@ -68,7 +68,7 @@ lazy val shared =
     .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
     .settings(commonSettings)
     .settings(
-      name := moduleName("shared", virtualAxes.value),
+      name := moduleName("pact4s-core", virtualAxes.value),
       testFrameworks += new TestFramework("munit.Framework"),
       libraryDependencies ++= {
         val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
