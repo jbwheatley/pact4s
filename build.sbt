@@ -116,6 +116,28 @@ lazy val circe =
     )
     .dependsOn(shared)
 
+lazy val vulcan =
+  withStandardSettings(projectMatrix in file("vulcan"))
+    .settings(
+      name := moduleName("pact4s-vulcan", virtualAxes.value),
+      libraryDependencies ++= Dependencies.vulcan
+//      Test / unmanagedSourceDirectories ++= {
+//        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+//        version match {
+//          case Dependencies.pactJvmJava11 =>
+//            Seq(
+//              moduleBase.value / s"src" / "test" / "java11+"
+//            )
+//          case Dependencies.pactJvmJava8 =>
+//            Seq(
+//              moduleBase.value / s"src" / "test" / "java8"
+//            )
+//          case _ => Nil
+//        }
+//      }
+    )
+    .dependsOn(shared)
+
 lazy val munit =
   withStandardSettings(projectMatrix in file("munit-cats-effect-pact"))
     .settings(

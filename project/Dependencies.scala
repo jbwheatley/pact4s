@@ -13,6 +13,7 @@ object Dependencies {
   val _weaver          = "0.7.7"
   val _scalatest       = "3.2.10"
   val _munit           = "1.0.6"
+  val _vulcan          = "1.7.1"
 
   def shared(pactJvmVersion: String): Seq[ModuleID] =
     Seq(
@@ -48,5 +49,9 @@ object Dependencies {
     "io.circe"      %% "circe-core"          % _circe,
     "io.circe"      %% "circe-parser"        % _circe,
     "org.typelevel" %% "munit-cats-effect-3" % _munit % Test
+  )
+
+  val vulcan: Seq[ModuleID] = Seq(
+    "com.github.fd4s" %% "vulcan" % _vulcan
   )
 }
