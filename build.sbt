@@ -1,4 +1,5 @@
 import commandmatrix.Dimension
+import sbt.internal.ProjectMatrix
 import sbt.Keys.{resolvers, testFrameworks}
 
 import scala.util.Try
@@ -59,14 +60,16 @@ def moduleName(base: String, axis: Seq[VirtualAxis]): String = {
   s"$base$series"
 }
 
+val withStandardSettings: ProjectMatrix => ProjectMatrix =
+  _.customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
+    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
+    .settings(commonSettings)
+
 val moduleBase =
   Def.setting((Compile / scalaSource).value.getParentFile.getParentFile.getParentFile)
 
 lazy val shared =
-  (projectMatrix in file("shared"))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
-    .settings(commonSettings)
+  withStandardSettings(projectMatrix in file("shared"))
     .settings(
       name := moduleName("pact4s-core", virtualAxes.value),
       libraryDependencies ++= {
@@ -89,35 +92,30 @@ lazy val shared =
       }
     )
 
-lazy val circe = (projectMatrix in file("circe"))
-  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
-  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
-  .settings(commonSettings)
-  .settings(
-    name := moduleName("pact4s-circe", virtualAxes.value),
-    libraryDependencies ++= Dependencies.circe,
-    Test / unmanagedSourceDirectories ++= {
-      val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
-      version match {
-        case Dependencies.pactJvmJava11 =>
-          Seq(
-            moduleBase.value / s"src" / "test" / "java11+"
-          )
-        case Dependencies.pactJvmJava8 =>
-          Seq(
-            moduleBase.value / s"src" / "test" / "java8"
-          )
-        case _ => Nil
+lazy val circe =
+  withStandardSettings(projectMatrix in file("circe"))
+    .settings(
+      name := moduleName("pact4s-circe", virtualAxes.value),
+      libraryDependencies ++= Dependencies.circe,
+      Test / unmanagedSourceDirectories ++= {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        version match {
+          case Dependencies.pactJvmJava11 =>
+            Seq(
+              moduleBase.value / s"src" / "test" / "java11+"
+            )
+          case Dependencies.pactJvmJava8 =>
+            Seq(
+              moduleBase.value / s"src" / "test" / "java8"
+            )
+          case _ => Nil
+        }
       }
-    }
-  )
-  .dependsOn(shared)
+    )
+    .dependsOn(shared)
 
 lazy val munit =
-  (projectMatrix in file("munit-cats-effect-pact"))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
-    .settings(commonSettings)
+  withStandardSettings(projectMatrix in file("munit-cats-effect-pact"))
     .settings(
       name := moduleName("pact4s-munit-cats-effect", virtualAxes.value),
       libraryDependencies ++= Dependencies.munit
@@ -126,10 +124,7 @@ lazy val munit =
     .dependsOn(circe % "test->test")
 
 lazy val scalaTest =
-  (projectMatrix in file("scalatest-pact"))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
-    .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
-    .settings(commonSettings)
+  withStandardSettings(projectMatrix in file("scalatest-pact"))
     .settings(
       name := moduleName("pact4s-scalatest", virtualAxes.value),
       libraryDependencies ++= Dependencies.scalatest
@@ -137,21 +132,19 @@ lazy val scalaTest =
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
-lazy val weaver = (projectMatrix in file("weaver-pact"))
-  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java11), identity(_))
-  .customRow(scalaVersions = scala2Versions, axisValues = Seq(VirtualAxis.jvm, PactJvmAxis.java8), identity(_))
-  .settings(commonSettings)
-  .settings(
-    name := moduleName("pact4s-weaver", virtualAxes.value),
-    libraryDependencies ++= Dependencies.weaver,
-    testFrameworks ++= {
-      if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
-        Seq(new TestFramework("weaver.framework.CatsEffect"))
-      else Nil
-    }
-  )
-  .dependsOn(shared % "compile->compile;test->test")
-  .dependsOn(circe % "test->test")
+lazy val weaver =
+  withStandardSettings(projectMatrix in file("weaver-pact"))
+    .settings(
+      name := moduleName("pact4s-weaver", virtualAxes.value),
+      libraryDependencies ++= Dependencies.weaver,
+      testFrameworks ++= {
+        if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
+          Seq(new TestFramework("weaver.framework.CatsEffect"))
+        else Nil
+      }
+    )
+    .dependsOn(shared % "compile->compile;test->test")
+    .dependsOn(circe % "test->test")
 
 lazy val pact4s = (projectMatrix in file("."))
   .settings(commonSettings)
