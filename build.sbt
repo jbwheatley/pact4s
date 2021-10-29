@@ -69,7 +69,6 @@ lazy val shared =
     .settings(commonSettings)
     .settings(
       name := moduleName("pact4s-core", virtualAxes.value),
-      testFrameworks += new TestFramework("munit.Framework"),
       libraryDependencies ++= {
         val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
         Dependencies.shared(version)
@@ -97,7 +96,6 @@ lazy val circe = (projectMatrix in file("circe"))
   .settings(
     name := moduleName("pact4s-circe", virtualAxes.value),
     libraryDependencies ++= Dependencies.circe,
-    testFrameworks += new TestFramework("munit.Framework"),
     Test / unmanagedSourceDirectories ++= {
       val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
       version match {
@@ -122,8 +120,7 @@ lazy val munit =
     .settings(commonSettings)
     .settings(
       name := moduleName("pact4s-munit-cats-effect", virtualAxes.value),
-      libraryDependencies ++= Dependencies.munit,
-      testFrameworks += new TestFramework("munit.Framework")
+      libraryDependencies ++= Dependencies.munit
     )
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
