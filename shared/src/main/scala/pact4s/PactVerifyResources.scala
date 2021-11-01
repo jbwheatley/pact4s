@@ -17,9 +17,13 @@
 package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
+import com.google.common.util.concurrent.SimpleTimeLimiter
 import sourcecode.{File, FileName, Line}
 
+import java.util.concurrent.{Callable, Executors, TimeUnit}
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.TimeoutException
+import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 trait PactVerifyResources {
@@ -28,6 +32,25 @@ trait PactVerifyResources {
   def provider: ProviderInfoBuilder
 
   def responseFactory: Option[ResponseFactory] = None
+
+  private[pact4s] def runWithTimeout(
+      verify: => VerificationResult,
+      timeout: Option[FiniteDuration]
+  ): Either[TimeoutException, VerificationResult] = timeout match {
+    case Some(timeout) =>
+      val runVerification = new Callable[VerificationResult] {
+        def call(): VerificationResult = verify
+      }
+      try Right(
+        SimpleTimeLimiter
+          .create(Executors.newSingleThreadExecutor())
+          .callWithTimeout(runVerification, timeout.toSeconds, TimeUnit.SECONDS)
+      )
+      catch {
+        case e: TimeoutException => Left(e)
+      }
+    case None => Right(verify)
+  }
 
   private val failures: ListBuffer[String]        = new ListBuffer[String]()
   private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
@@ -40,20 +63,24 @@ trait PactVerifyResources {
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
 
   private[pact4s] def verifySingleConsumer(
-      consumer: IConsumerInfo
-  ): Unit = runVerification(consumer) match {
-    case failed: VerificationResult.Failed =>
-      verifier.displayFailures(List(failed).asJava)
-      // Don't fail the build if the pact is pending.
-      val pending = failed.getPending
-      val message =
-        s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
-          " [PENDING]"
-        else ""}: '${failed.getDescription}'"
-      if (pending) pendingFailures += message else failures += message
-    case _: VerificationResult.Ok => ()
-    case _                        => ???
-  }
+      consumer: IConsumerInfo,
+      timeout: Option[FiniteDuration]
+  ): Unit =
+    runWithTimeout(runVerification(consumer), timeout) match {
+      case Right(failed: VerificationResult.Failed) =>
+        verifier.displayFailures(List(failed).asJava)
+        // Don't fail the build if the pact is pending.
+        val pending = failed.getPending
+        val message =
+          s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
+            " [PENDING]"
+          else ""}: '${failed.getDescription}'"
+        if (pending) pendingFailures += message else failures += message
+      case Right(_: VerificationResult.Ok) => ()
+      case Right(_)                        => ???
+      case Left(_) =>
+        failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
+    }
 
   private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult =
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
@@ -69,7 +96,8 @@ trait PactVerifyResources {
   def verifyPacts(
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
-      providerVerificationOptions: List[ProviderVerificationOption] = Nil
+      providerVerificationOptions: List[ProviderVerificationOption] = Nil,
+      verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     val propertyResolver = new PactVerifierPropertyResolver(
       publishVerificationResults
@@ -92,7 +120,7 @@ trait PactVerifyResources {
       publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
     )
 
-    providerInfo.getConsumers.forEach(verifySingleConsumer(_))
+    providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
     val failedMessages  = failures.toList
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
