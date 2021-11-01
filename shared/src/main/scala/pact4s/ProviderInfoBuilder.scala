@@ -108,7 +108,7 @@ final case class ProviderInfoBuilder(
     }
     stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
     p.setRequestFilter {
-      //because java
+      // because java
       new Consumer[HttpRequest] {
         def accept(t: HttpRequest): Unit =
           pactJvmRequestFilter(t)
@@ -191,7 +191,7 @@ final case class ProviderInfoBuilder(
   private def instantToDateString(instant: Instant): String =
     instant
       .atOffset(
-        ZoneOffset.UTC //Apologies for the euro-centrism, but as we use time relative to the epoch it doesn't really matter
+        ZoneOffset.UTC // Apologies for the euro-centrism, but as we use time relative to the epoch it doesn't really matter
       )
       .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
