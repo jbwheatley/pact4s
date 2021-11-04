@@ -37,12 +37,12 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
     fail(message)(new Location(file.value, line.value))
 
   override private[pact4s] def runWithTimeout(
-      verify: => VerificationResult,
+      verify: () => VerificationResult,
       timeout: Option[FiniteDuration]
   ): Either[TimeoutException, VerificationResult] =
     timeout match {
       case Some(timeout) =>
-        IO.delay(verify)
+        IO.delay(verify())
           .timeout(timeout)
           .attempt
           .flatMap[Either[TimeoutException, VerificationResult]] {
@@ -51,7 +51,7 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
             case Right(value)               => IO(Right(value))
           }
           .unsafeRunSync()
-      case None => Right(verify)
+      case None => Right(verify())
     }
 }
 
