@@ -16,8 +16,18 @@
 
 package pact4s
 
-import org.log4s.Logger
+import au.com.dius.pact.provider.VerificationResult
 
-trait Pact4sLogger {
-  private[pact4s] val pact4sLogger: Logger = org.log4s.getLogger("Pact4s-Logger")
+import scala.concurrent.TimeoutException
+import scala.concurrent.duration.FiniteDuration
+
+trait PactVerifyResourcesForPlatform extends Pact4sLogger {
+  private[pact4s] def runWithTimeout(
+    verify: => VerificationResult,
+    timeout: Option[FiniteDuration]
+  ): Either[TimeoutException, VerificationResult] = {
+    val _ = timeout
+    pact4sLogger.warn("Configuring the timeout for verification is not currently available in the java 8 version of pact4s.")
+    Right(verify)
+  }
 }
