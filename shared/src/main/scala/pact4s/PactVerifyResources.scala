@@ -17,40 +17,19 @@
 package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
-import com.google.common.util.concurrent.SimpleTimeLimiter
 import sourcecode.{File, FileName, Line}
 
-import java.util.concurrent.{Callable, Executors, TimeUnit}
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
-trait PactVerifyResources {
+trait PactVerifyResources extends PactVerifyResourcesForPlatform {
   type ResponseFactory = String => ResponseBuilder
 
   def provider: ProviderInfoBuilder
 
   def responseFactory: Option[ResponseFactory] = None
-
-  private[pact4s] def runWithTimeout(
-      verify: => VerificationResult,
-      timeout: Option[FiniteDuration]
-  ): Either[TimeoutException, VerificationResult] = timeout match {
-    case Some(timeout) =>
-      val runVerification = new Callable[VerificationResult] {
-        def call(): VerificationResult = verify
-      }
-      try Right(
-        SimpleTimeLimiter
-          .create(Executors.newSingleThreadExecutor())
-          .callWithTimeout(runVerification, timeout.toSeconds, TimeUnit.SECONDS)
-      )
-      catch {
-        case e: TimeoutException => Left(e)
-      }
-    case None => Right(verify)
-  }
 
   private val failures: ListBuffer[String]        = new ListBuffer[String]()
   private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
@@ -85,6 +64,9 @@ trait PactVerifyResources {
   private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult =
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
 
+  private def resolveProperty(properties: Map[String, String], name: String): Option[String] =
+    properties.get(name).orElse(Try(System.getProperty(name)).toOption)
+
   /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance
@@ -99,51 +81,31 @@ trait PactVerifyResources {
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
-    val propertyResolver = new PactVerifierPropertyResolver(
+    val properties =
       publishVerificationResults
         .fold(providerVerificationOptions)(_ =>
           ProviderVerificationOption.VERIFIER_PUBLISH_RESULTS :: providerVerificationOptions
         )
         .map(opt => (opt.key, opt.value))
         .toMap
-    )
     responseFactory.foreach { responseFactory =>
       providerInfo.setVerificationType(PactVerification.RESPONSE_FACTORY)
       verifier.setResponseFactory(description => responseFactory(description).build)
     }
     verifier.initialiseReporters(providerInfo)
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
-    verifier.setProjectGetProperty(p => propertyResolver.getProperty(p).orNull)
-    verifier.setProjectHasProperty(name => propertyResolver.getProperty(name).isDefined)
+    verifier.setProjectGetProperty(p => resolveProperty(properties, p).orNull)
+    verifier.setProjectHasProperty(name => resolveProperty(properties, name).isDefined)
     verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
     verifier.setProviderTags(() =>
       publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
     )
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
+
     val failedMessages  = failures.toList
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
     if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
   }
-}
-
-final case class PublishVerificationResults(
-    providerVersion: String,
-    providerTags: Option[ProviderTags]
-)
-
-object PublishVerificationResults {
-  @deprecated("use ProviderTags(..) or ProviderTags.fromList(..) rather than List[String]", "0.0.19")
-  def apply(providerVersion: String, providerTags: List[String]): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags))
-
-  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, None)
-
-  def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, Some(providerTags))
-}
-
-private[pact4s] final class PactVerifierPropertyResolver(properties: Map[String, String]) {
-  def getProperty(name: String): Option[String] = properties.get(name).orElse(Option(System.getProperty(name)))
 }
