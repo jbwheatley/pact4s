@@ -16,18 +16,16 @@
 
 package pact4s
 
-import au.com.dius.pact.provider.VerificationResult
+import com.google.common.util.concurrent.SimpleTimeLimiter
 
-import scala.concurrent.TimeoutException
-import scala.concurrent.duration.FiniteDuration
+import java.util.concurrent.{Callable, Executors, TimeUnit}
 
-trait PactVerifyResourcesForPlatform extends Pact4sLogger {
-  private[pact4s] def runWithTimeout(
-    verify: => VerificationResult,
-    timeout: Option[FiniteDuration]
-  ): Either[TimeoutException, VerificationResult] = {
-    val _ = timeout
-    pact4sLogger.warn("Configuring the timeout for verification is not currently available in the java 8 version of pact4s.")
-    Right(verify)
+object TimeLimiter {
+  def callWithTimeout[T](thunk: () => T, timeoutDuration: Long, timeoutUnit: TimeUnit): T = {
+    val callable = new Callable[T] {
+      def call(): T = thunk()
+    }
+    new SimpleTimeLimiter(Executors.newSingleThreadExecutor())
+      .callWithTimeout(callable, timeoutDuration, timeoutUnit, true)
   }
 }

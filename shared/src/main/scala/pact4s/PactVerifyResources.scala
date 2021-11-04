@@ -19,12 +19,13 @@ package pact4s
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
 import sourcecode.{File, FileName, Line}
 
+import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-import scala.util.Try
 
-trait PactVerifyResources extends PactVerifyResourcesForPlatform {
+trait PactVerifyResources {
   type ResponseFactory = String => ResponseBuilder
 
   def provider: ProviderInfoBuilder
@@ -41,11 +42,25 @@ trait PactVerifyResources extends PactVerifyResourcesForPlatform {
   private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
 
+  private[pact4s] def runWithTimeout(
+      verify: () => VerificationResult,
+      timeout: Option[FiniteDuration]
+  ): Either[TimeoutException, VerificationResult] = timeout match {
+    case Some(timeout) =>
+      try Right(
+        TimeLimiter.callWithTimeout(verify, timeout.toSeconds, TimeUnit.SECONDS)
+      )
+      catch {
+        case e: TimeoutException => Left(e)
+      }
+    case None => Right(verify())
+  }
+
   private[pact4s] def verifySingleConsumer(
       consumer: IConsumerInfo,
       timeout: Option[FiniteDuration]
   ): Unit =
-    runWithTimeout(runVerification(consumer), timeout) match {
+    runWithTimeout(() => runVerification(consumer), timeout) match {
       case Right(failed: VerificationResult.Failed) =>
         verifier.displayFailures(List(failed).asJava)
         // Don't fail the build if the pact is pending.
@@ -65,7 +80,7 @@ trait PactVerifyResources extends PactVerifyResourcesForPlatform {
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
 
   private def resolveProperty(properties: Map[String, String], name: String): Option[String] =
-    properties.get(name).orElse(Try(System.getProperty(name)).toOption)
+    properties.get(name).orElse(Option(System.getProperty(name)))
 
   /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
