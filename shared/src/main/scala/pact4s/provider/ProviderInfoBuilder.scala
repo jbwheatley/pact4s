@@ -69,7 +69,7 @@ final case class ProviderInfoBuilder(
     pactSource: PactSource,
     stateChangeUrl: Option[String] = None,
     verificationSettings: Option[VerificationSettings] = None,
-    requestFilter: ProviderRequest => List[ProviderRequestFilter] = _ => Nil
+    requestFilter: ProviderRequest => Option[ProviderRequestFilter] = _ => None
 ) {
   def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
@@ -84,8 +84,13 @@ final case class ProviderInfoBuilder(
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
   }
+
+  @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
-    this.copy(requestFilter = requestFilter)
+    this.copy(requestFilter = request => requestFilter(request).reduceLeftOption(_ andThen _))
+
+  def withRequestFiltering(requestFilter: ProviderRequest => ProviderRequestFilter): ProviderInfoBuilder =
+    this.copy(requestFilter = request => Some(requestFilter(request)))
 
   private def pactJvmRequestFilter: HttpRequest => Unit = { request =>
     val requestLine = request.getRequestLine
