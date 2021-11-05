@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package provider
 
 final case class PublishVerificationResults(
     providerVersion: String,

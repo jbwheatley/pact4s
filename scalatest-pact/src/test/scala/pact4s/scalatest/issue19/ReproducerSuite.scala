@@ -5,8 +5,10 @@ import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import pact4s.{MessageAndMetadataBuilder, MockProviderServer, ProviderInfoBuilder}
-import pact4s.VerificationSettings.AnnotatedMethodVerificationSettings
+import pact4s.MockProviderServer
+import pact4s.provider.ProviderInfoBuilder
+import pact4s.provider.ResponseBuilder.MessageAndMetadataBuilder
+import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
 import pact4s.scalatest.PactVerifier
 
 import scala.jdk.CollectionConverters._

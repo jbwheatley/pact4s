@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package provider
 
 final case class ProviderTags(head: String, tail: List[String]) {
   def ::(tag: String): ProviderTags        = ProviderTags(tag, head :: tail)

@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
+import pact4s.provider.{ProviderInfoBuilder, ProviderVerificationOption, PublishVerificationResults, ResponseBuilder}
 import sourcecode.{File, FileName, Line}
 
 import java.util.concurrent.TimeUnit
@@ -86,7 +87,7 @@ trait PactVerifyResources {
     *   if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance
     *   The method instance to use when invoking methods with
-    *   [[pact4s.VerificationSettings.AnnotatedMethodVerificationSettings]].
+    *   [[pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings]].
     * @param providerVerificationOptions
     *   list of options to pass to the pact-jvm verifier
     */
