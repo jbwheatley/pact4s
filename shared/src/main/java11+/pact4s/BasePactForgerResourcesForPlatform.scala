@@ -21,7 +21,7 @@ import au.com.dius.pact.core.support.V4PactFeaturesException
 
 import scala.jdk.CollectionConverters._
 
-trait BasePactForgerResourcesForPlatform[Pact <: BasePact] extends BasePactForgerResources {
+private[pact4s] trait BasePactForgerResourcesForPlatform[Pact <: BasePact] extends BasePactForgerResources {
 
   def pact: Pact
 

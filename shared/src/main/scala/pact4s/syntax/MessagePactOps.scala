@@ -15,11 +15,13 @@
  */
 
 package pact4s
+package syntax
 
 import au.com.dius.pact.consumer.MessagePactBuilder
 import au.com.dius.pact.core.model.messaging.Message
-import pact4s.MessagePactOps.{MessageOps, MessagePactBuilderOps}
-import pact4s.MessagePactOpsForPlatform._
+import MessagePactOpsForPlatform._
+import pact4s.syntax.MessagePactOps.{MessageOps, MessagePactBuilderOps}
+import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
 
 import scala.jdk.CollectionConverters._
 
