@@ -27,9 +27,15 @@ import org.apache.http.message.BasicHeader
   */
 trait ProviderRequestFilter {
   def filter(request: HttpRequest): Unit
+  def andThen(that: ProviderRequestFilter): ProviderRequestFilter = (request: HttpRequest) => {
+    this.filter(request)
+    that.filter(request)
+  }
 }
 
 object ProviderRequestFilter {
+  val NoOpFilter: ProviderRequestFilter = (_: HttpRequest) => ()
+
   sealed abstract class AddHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
     def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) => request.addHeader(name, value) }
   }
