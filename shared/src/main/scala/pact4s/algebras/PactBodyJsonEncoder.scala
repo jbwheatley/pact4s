@@ -15,9 +15,12 @@
  */
 
 package pact4s
+package algebras
 
-import au.com.dius.pact.consumer.dsl.DslPart
+trait PactBodyJsonEncoder[A] {
+  def toJsonString(a: A): String
+}
 
-trait PactDslJsonBodyEncoder[A] {
-  def toPactDslJsonBody(a: A): DslPart
+object PactBodyJsonEncoder {
+  def apply[A](implicit ev: PactBodyJsonEncoder[A]): PactBodyJsonEncoder[A] = ev
 }

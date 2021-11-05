@@ -18,6 +18,7 @@ package pact4s
 
 import au.com.dius.pact.core.model.messaging.MessagePact
 import au.com.dius.pact.core.model.PactSpecVersion
+import pact4s.syntax.MessagePactOps
 
 trait MessagePactForgerResources extends BasePactForgerResourcesForPlatform[MessagePact] with MessagePactOps {
   val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3

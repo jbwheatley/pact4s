@@ -15,11 +15,12 @@
  */
 
 package pact4s
+package provider
 
-trait PactBodyJsonEncoder[A] {
-  def toJsonString(a: A): String
-}
+/** Auth for accessing a pact-broker. Used in [[PactSource.PactBroker]] */
+sealed trait Authentication
 
-object PactBodyJsonEncoder {
-  def apply[A](implicit ev: PactBodyJsonEncoder[A]): PactBodyJsonEncoder[A] = ev
+object Authentication {
+  final case class BasicAuth(user: String, pass: String) extends Authentication
+  final case class TokenAuth(token: String)              extends Authentication
 }

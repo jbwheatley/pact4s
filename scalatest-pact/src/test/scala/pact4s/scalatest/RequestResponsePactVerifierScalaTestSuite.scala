@@ -4,7 +4,8 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.MockProviderServer
+import pact4s.provider.ProviderInfoBuilder
 
 class RequestResponsePactVerifierScalaTestSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   val mock = new MockProviderServer

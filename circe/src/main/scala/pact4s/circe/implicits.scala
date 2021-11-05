@@ -22,8 +22,9 @@ import io.circe.Decoder.Result
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
+import pact4s.algebras.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder}
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
-import pact4s.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder, ProviderState}
+import pact4s.provider.ProviderState
 
 object implicits {
   implicit def pactBodyEncoder[A](implicit encoder: Encoder[A]): PactBodyJsonEncoder[A] =

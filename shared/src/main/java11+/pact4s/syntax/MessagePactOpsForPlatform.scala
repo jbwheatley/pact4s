@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package syntax
 
 import au.com.dius.pact.consumer.MessagePactBuilder
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}

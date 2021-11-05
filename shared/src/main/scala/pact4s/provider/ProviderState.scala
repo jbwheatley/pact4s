@@ -15,14 +15,9 @@
  */
 
 package pact4s
+package provider
 
-import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
-
-private[pact4s] trait BasePactForgerResourcesForPlatform[Pact <: BasePact[_]] extends BasePactForgerResources {
-
-  def pact: Pact
-
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = Right {
-    val _ = version
-  }
-}
+/** entity passed to the mock provider state setup endpoint by pact-jvm before running consumer pacts with state. A
+  * circe.Decoder instance is provided in the pact4s-circe module.
+  */
+final case class ProviderState(state: String) extends AnyVal

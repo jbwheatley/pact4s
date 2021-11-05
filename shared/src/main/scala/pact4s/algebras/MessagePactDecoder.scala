@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package algebras
 
 import au.com.dius.pact.core.model.messaging.Message
 

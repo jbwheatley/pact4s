@@ -15,8 +15,10 @@
  */
 
 package pact4s
+package algebras
 
-/** entity passed to the mock provider state setup endpoint by pact-jvm before running consumer pacts with state. A
-  * circe.Decoder instance is provided in the pact4s-circe module.
-  */
-final case class ProviderState(state: String) extends AnyVal
+import au.com.dius.pact.consumer.dsl.DslPart
+
+trait PactDslJsonBodyEncoder[A] {
+  def toPactDslJsonBody(a: A): DslPart
+}

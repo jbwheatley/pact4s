@@ -15,13 +15,15 @@
  */
 
 package pact4s
+package syntax
 
 import au.com.dius.pact.consumer.dsl._
+import org.apache.http.entity.ContentType
+import RequestResponsePactOpsForPlatform._
+import pact4s.algebras.PactBodyJsonEncoder
+import pact4s.syntax.RequestResponsePactOps._
 
 import scala.jdk.CollectionConverters._
-import RequestResponsePactOps._
-import org.apache.http.entity.ContentType
-import pact4s.RequestResponsePactOpsForPlatform._
 
 object RequestResponsePactOps {
   class PactDslRequestWithPathOps(val builder: PactDslRequestWithPath) extends AnyVal {

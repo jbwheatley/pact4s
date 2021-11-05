@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.SimpleTimeLimiter
 
 import java.util.concurrent.{Callable, Executors, TimeUnit}
 
-object TimeLimiter {
+private[pact4s] object TimeLimiter {
   def callWithTimeout[T](thunk: () => T, timeoutDuration: Long, timeoutUnit: TimeUnit): T = {
     val callable = new Callable[T] {
       def call(): T = thunk()
