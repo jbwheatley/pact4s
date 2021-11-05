@@ -1,7 +1,8 @@
 package pact4s.weaver
 
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.MockProviderServer
 import pact4s.messages.MessagesProvider
+import pact4s.provider.ProviderInfoBuilder
 import weaver.SimpleIOSuite
 
 object MessagePactVerifierWeaverTestSuite extends SimpleIOSuite with MessagePactVerifier {

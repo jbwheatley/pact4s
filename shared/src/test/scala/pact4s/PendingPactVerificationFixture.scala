@@ -8,6 +8,7 @@ import au.com.dius.pact.provider.{
   VerificationResult
 }
 import org.mockito.MockitoSugar
+import pact4s.provider.{PactSource, ProviderInfoBuilder}
 
 import java.util
 import scala.annotation.nowarn

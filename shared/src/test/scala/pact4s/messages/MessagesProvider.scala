@@ -1,7 +1,7 @@
 package pact4s.messages
 
 import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
-import pact4s.MessageAndMetadataBuilder
+import pact4s.provider.ResponseBuilder.MessageAndMetadataBuilder
 
 // Provides message generators for annotated method verification.
 // Because pact-jvm searches across the classpath, we can only define these once.

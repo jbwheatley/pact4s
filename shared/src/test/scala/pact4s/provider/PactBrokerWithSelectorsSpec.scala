@@ -1,8 +1,7 @@
-package pact4s
+package pact4s.provider
 
 import munit.CatsEffectSuite
-import pact4s.PactSource.PactBrokerWithSelectors
-import pact4s.PactSource.PactBrokerWithSelectors.WipPactsSince
+import pact4s.provider.PactSource.PactBrokerWithSelectors
 
 import java.time.Instant
 

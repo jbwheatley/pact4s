@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package provider
 
 import au.com.dius.pact.provider.ProviderVerifier
 

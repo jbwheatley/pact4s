@@ -13,8 +13,17 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.Server
-import pact4s.Authentication.BasicAuth
-import pact4s.PactSource.{FileSource, PactBrokerWithSelectors}
+import pact4s.provider.Authentication.BasicAuth
+import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
+import pact4s.provider.{
+  ConsumerVersionSelector,
+  ProviderInfoBuilder,
+  ProviderRequest,
+  ProviderRequestFilter,
+  ProviderState,
+  ProviderTags,
+  VerificationSettings
+}
 
 import java.io.File
 import java.net.ServerSocket

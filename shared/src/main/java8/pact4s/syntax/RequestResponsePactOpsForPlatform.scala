@@ -15,6 +15,7 @@
  */
 
 package pact4s
+package syntax
 
 import au.com.dius.pact.consumer.dsl.{PactDslResponse, PactDslWithProvider, PactDslWithState}
 
@@ -22,18 +23,17 @@ import scala.jdk.CollectionConverters._
 
 object RequestResponsePactOpsForPlatform {
   class PactDslWithProviderOps(val builder: PactDslWithProvider) extends AnyVal {
-    def `given`(state: String, params: Map[String, Any]): PactDslWithState =
+    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
       builder.`given`(state, params.asJava)
   }
 
   class PactDslResponseOpsForPlatform(val builder: PactDslResponse) extends AnyVal {
-    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, params.asJava)
-
-    def statusCodes(codes: List[Int]): PactDslResponse = builder.statusCodes(codes.map(Integer.valueOf).asJava)
+    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
+      builder.`given`(state, params.asJava)
   }
 
   class PactDslWithStateOps(val builder: PactDslWithState) extends AnyVal {
-    def `given`(stateDesc: String, params: Map[String, Any]): PactDslWithState =
+    def `given`(stateDesc: String, params: Map[String, Object]): PactDslWithState =
       builder.`given`(stateDesc, params.asJava)
   }
 }

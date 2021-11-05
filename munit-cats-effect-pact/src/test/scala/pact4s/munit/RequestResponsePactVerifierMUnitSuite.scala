@@ -1,7 +1,8 @@
 package pact4s.munit
 
 import munit.CatsEffectSuite
-import pact4s.{MockProviderServer, ProviderInfoBuilder}
+import pact4s.MockProviderServer
+import pact4s.provider.ProviderInfoBuilder
 
 class RequestResponsePactVerifierMUnitSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer
