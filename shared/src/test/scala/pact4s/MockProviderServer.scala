@@ -15,15 +15,7 @@ import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.Server
 import pact4s.provider.Authentication.BasicAuth
 import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
-import pact4s.provider.{
-  ConsumerVersionSelector,
-  ProviderInfoBuilder,
-  ProviderRequest,
-  ProviderRequestFilter,
-  ProviderState,
-  ProviderTags,
-  VerificationSettings
-}
+import pact4s.provider._
 
 import java.io.File
 import java.net.ServerSocket
@@ -103,10 +95,10 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
       }
       .orNotFound
 
-  private def requestFilter(request: ProviderRequest): List[ProviderRequestFilter] =
+  private def requestFilter(request: ProviderRequest): ProviderRequestFilter =
     request.uri.getPath match {
-      case s if s.matches(".*/authorized") => List(ProviderRequestFilter.SetHeaders(("Authorization", "Bearer token")))
-      case _                               => Nil
+      case s if s.matches(".*/authorized") => ProviderRequestFilter.SetHeaders(("Authorization", "Bearer token"))
+      case _                               => ProviderRequestFilter.NoOpFilter
     }
 
   def fileSourceProviderInfo(
@@ -121,7 +113,7 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
-      .withRequestFilter(requestFilter)
+      .withRequestFiltering(requestFilter)
 
   def brokerProviderInfo(
       providerName: String,
@@ -137,7 +129,7 @@ class MockProviderServer(isRequestResponse: Boolean = true) {
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
-      .withRequestFilter(requestFilter)
+      .withRequestFiltering(requestFilter)
 }
 
 private[pact4s] final case class Name(name: String)
