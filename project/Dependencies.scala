@@ -12,7 +12,7 @@ object Dependencies {
   val _circe           = "0.14.1"
   val _weaver          = "0.7.7"
   val _scalatest       = "3.2.10"
-  val _munit           = "1.0.6"
+  val _munit           = "1.0.7"
 
   def shared(pactJvmVersion: String): Seq[ModuleID] =
     Seq(
