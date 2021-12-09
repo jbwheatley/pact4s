@@ -14,7 +14,7 @@ object Dependencies {
   val _weaver          = "0.7.9"
   val _scalatest       = "3.2.10"
   val _munit           = "0.7.29"
-  val _munitCatsEffect = "1.0.6"
+  val munitCatsEffect  = "1.0.7"
 
   def shared(pactJvmVersion: String): Seq[ModuleID] =
     Seq(
@@ -30,11 +30,11 @@ object Dependencies {
       "org.http4s"             %% "http4s-circe"            % http4s           % Test,
       "io.circe"               %% "circe-core"              % _circe           % Test,
       "org.mockito"            %% "mockito-scala"           % mockitoScala     % Test,
-      "org.typelevel"          %% "munit-cats-effect-3"     % _munitCatsEffect % Test
+      "org.typelevel"          %% "munit-cats-effect-3"     % munitCatsEffect % Test
     )
 
   val munit: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "munit-cats-effect-3" % _munitCatsEffect % Provided
+    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Provided
   )
 
   val scalatest: Seq[ModuleID] = Seq(
@@ -49,7 +49,7 @@ object Dependencies {
   val circe: Seq[ModuleID] = Seq(
     "io.circe"      %% "circe-core"          % _circe,
     "io.circe"      %% "circe-parser"        % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % _munitCatsEffect % Test
+    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test
   )
 
   val playJson: Seq[ModuleID] = Seq(
