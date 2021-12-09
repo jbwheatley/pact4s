@@ -11,7 +11,7 @@ object Dependencies {
   val sourcecode       = "0.2.7"
   val _circe           = "0.14.1"
   val _playJson        = "2.9.2"
-  val _weaver          = "0.7.7"
+  val _weaver          = "0.7.9"
   val _scalatest       = "3.2.10"
   val _munit           = "0.7.29"
   val _munitCatsEffect = "1.0.6"
