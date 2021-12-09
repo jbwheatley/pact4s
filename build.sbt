@@ -33,7 +33,7 @@ inThisBuild(
     scalaVersion := scala213,
     commands ++= CrossCommand.single(
       "test",
-      matrices = Seq(shared, circe, munit, scalaTest, weaver),
+      matrices = Seq(shared, circe, playJson, munit, scalaTest, weaver),
       dimensions = Seq(
         javaVersionDimension,
         Dimension.scala("2.13"),
@@ -114,6 +114,28 @@ lazy val circe =
     )
     .dependsOn(shared)
 
+lazy val playJson =
+  withStandardSettings(projectMatrix in file("play-json"))
+    .settings(
+      name := moduleName("pact4s-play-json", virtualAxes.value),
+      libraryDependencies ++= Dependencies.playJson,
+      Test / unmanagedSourceDirectories ++= {
+        val version = virtualAxes.value.collectFirst { case c: PactJvmAxis => c.version }.get
+        version match {
+          case Dependencies.pactJvmJava11 =>
+            Seq(
+              moduleBase.value / s"src" / "test" / "java11+"
+            )
+          case Dependencies.pactJvmJava8 =>
+            Seq(
+              moduleBase.value / s"src" / "test" / "java8"
+            )
+          case _ => Nil
+        }
+      }
+    )
+    .dependsOn(shared)
+
 lazy val munit =
   withStandardSettings(projectMatrix in file("munit-cats-effect-pact"))
     .settings(
@@ -154,7 +176,8 @@ lazy val pact4s = (projectMatrix in file("."))
     scalaTest,
     weaver,
     shared,
-    circe
+    circe,
+    playJson
   )
 
 addCommandAlias(
