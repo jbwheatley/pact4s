@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package syntax
 
 import au.com.dius.pact.consumer.dsl._
 import org.apache.hc.core5.http.ContentType
-import RequestResponsePactOpsForPlatform._
 import pact4s.algebras.PactBodyJsonEncoder
 import pact4s.syntax.RequestResponsePactOps._
 
@@ -69,6 +68,19 @@ object RequestResponsePactOps {
       builder.body(ev.toJsonString(body), ContentType.create(mimeType))
     def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
+
+    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
+      builder.`given`(state, params.asJava)
+  }
+
+  class PactDslWithProviderOps(val builder: PactDslWithProvider) extends AnyVal {
+    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
+      builder.`given`(state, params.asJava)
+  }
+
+  class PactDslWithStateOps(val builder: PactDslWithState) extends AnyVal {
+    def `given`(stateDesc: String, params: Map[String, Object]): PactDslWithState =
+      builder.`given`(stateDesc, params.asJava)
   }
 }
 
@@ -81,8 +93,6 @@ trait RequestResponsePactOps {
     new PactDslRequestWithoutPathOps(builder)
   implicit def toPactDslResponseOps(builder: PactDslResponse): PactDslResponseOps =
     new PactDslResponseOps(builder)
-  implicit def toPactDslResponseOpsForPlatform(builder: PactDslResponse): PactDslResponseOpsForPlatform =
-    new PactDslResponseOpsForPlatform(builder)
   implicit def toPactDslWithStateOps(builder: PactDslWithState): PactDslWithStateOps =
     new PactDslWithStateOps(builder)
 }

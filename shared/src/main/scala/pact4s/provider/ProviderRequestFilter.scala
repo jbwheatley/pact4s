@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 package pact4s
 package provider
 
-import org.apache.http.HttpRequest
-import org.apache.http.message.BasicHeader
+import org.apache.hc.core5.http.HttpRequest
+import org.apache.hc.core5.http.message.BasicHeader
 
 /** pact-jvm uses apache-http as its http implementation. A ProviderRequestFilter applies a transformation to a
-  * [[org.apache.http.HttpRequest]] before passing it to the mock provider server. Its called a "filter" here as this is
-  * what its called in other pact implementations. It doesn't filter in the sense of stopping certain requests from
-  * reaching the mock server.
+  * [[org.apache.hc.core5.http.HttpRequest]] before passing it to the mock provider server. Its called a "filter" here
+  * as this is what its called in other pact implementations. It doesn't filter in the sense of stopping certain
+  * requests from reaching the mock server.
   */
 trait ProviderRequestFilter {
   def filter(request: HttpRequest): Unit
@@ -57,7 +57,7 @@ object ProviderRequestFilter {
   sealed abstract class OverwriteHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
     def filter(request: HttpRequest): Unit = request.setHeaders(headers.map { case (name, value) =>
       new BasicHeader(name, value)
-    }.toArray)
+    }: _*)
   }
 
   object OverwriteHeaders {

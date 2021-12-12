@@ -4,9 +4,9 @@ import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.Assertion
 import pact4s.circe.implicits._
 
 class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with MessagePactForger {
