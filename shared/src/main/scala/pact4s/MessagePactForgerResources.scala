@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,6 @@ import au.com.dius.pact.core.model.messaging.MessagePact
 import au.com.dius.pact.core.model.PactSpecVersion
 import pact4s.syntax.MessagePactOps
 
-trait MessagePactForgerResources extends BasePactForgerResourcesForPlatform[MessagePact] with MessagePactOps {
+trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] with MessagePactOps {
   val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
 }

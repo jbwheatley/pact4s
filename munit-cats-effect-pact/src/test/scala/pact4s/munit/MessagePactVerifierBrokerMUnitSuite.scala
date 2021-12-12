@@ -6,7 +6,7 @@ import pact4s.messages.MessagesProvider
 import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 
 class MessagePactVerifierBrokerMUnitSuite extends CatsEffectSuite with MessagePactVerifier {
-  val mock = new MockProviderServer(isRequestResponse = false)
+  val mock = new MockProviderServer(49152)
 
   def messages: ResponseFactory              = MessagesProvider.messages
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(providerName = "Pact4sMessageProvider")
