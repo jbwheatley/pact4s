@@ -4,7 +4,7 @@ import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.MockProviderServer
 
 class RequestResponsePactVerifierBrokerMUnitSuite extends CatsEffectSuite with PactVerifier {
-  val mock = new MockProviderServer
+  val mock = new MockProviderServer(49154)
 
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
 

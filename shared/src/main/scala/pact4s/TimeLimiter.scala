@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
+import com.google.common.util.concurrent.SimpleTimeLimiter
 
-private[pact4s] trait BasePactForgerResourcesForPlatform[Pact <: BasePact[_]] extends BasePactForgerResources {
+import java.util.concurrent.{Callable, Executors, TimeUnit}
 
-  def pact: Pact
-
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = Right {
-    val _ = version
+private[pact4s] object TimeLimiter {
+  def callWithTimeout[T](thunk: () => T, timeoutDuration: Long, timeoutUnit: TimeUnit): T = {
+    val callable = new Callable[T] {
+      def call(): T = thunk()
+    }
+    new SimpleTimeLimiter(Executors.newSingleThreadExecutor())
+      .callWithTimeout(callable, timeoutDuration, timeoutUnit, true)
   }
 }

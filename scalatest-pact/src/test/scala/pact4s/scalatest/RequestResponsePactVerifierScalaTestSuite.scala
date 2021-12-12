@@ -8,7 +8,7 @@ import pact4s.MockProviderServer
 import pact4s.provider.ProviderInfoBuilder
 
 class RequestResponsePactVerifierScalaTestSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
-  val mock = new MockProviderServer
+  val mock = new MockProviderServer(49159)
 
   override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
     consumerName = "Pact4sConsumer",

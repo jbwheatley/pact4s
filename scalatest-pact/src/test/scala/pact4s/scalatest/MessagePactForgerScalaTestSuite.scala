@@ -1,12 +1,12 @@
 package pact4s.scalatest
 
-import au.com.dius.pact.consumer.PactTestExecutionContext
+import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.Assertion
 import pact4s.circe.implicits._
 
 class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with MessagePactForger {
@@ -14,7 +14,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     "./scalatest-pact/target/pacts"
   )
 
-  val pact: MessagePact = Pact4sMessagePactBuilder()
+  val pact: MessagePact = MessagePactBuilder
     .consumer("Pact4sMessageConsumer")
     .hasPactWith("Pact4sMessageProvider")
     .expectsToReceive("A message to say hello")
@@ -26,7 +26,7 @@ class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with Mes
     .withContent(Json.obj("array" -> List(1, 2, 3).asJson))
     .expectsToReceive("A message with a json array as content")
     .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
-    .toMessagePact
+    .toPact
 
   def verify(message: Message): Assertion = message.getDescription match {
     case "A message to say hello" =>
