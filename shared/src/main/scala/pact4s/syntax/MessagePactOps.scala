@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ package syntax
 
 import au.com.dius.pact.consumer.MessagePactBuilder
 import au.com.dius.pact.core.model.messaging.Message
-import MessagePactOpsForPlatform._
-import pact4s.syntax.MessagePactOps.{MessageOps, MessagePactBuilderOps}
 import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
+import pact4s.syntax.MessagePactOps.{MessageOps, MessagePactBuilderOps}
 
 import scala.jdk.CollectionConverters._
 
@@ -37,6 +36,8 @@ object MessagePactOps {
 
   class MessageOps(val message: Message) extends AnyVal {
     def as[A](implicit decoder: MessagePactDecoder[A]): Either[Throwable, A] = decoder.decode(message)
+
+    def metadata: Map[String, Any] = message.getMetaData.asScala.toMap
   }
 }
 
@@ -44,15 +45,6 @@ trait MessagePactOps {
   implicit def toMessagePactBuilderOps(builder: MessagePactBuilder): MessagePactBuilderOps = new MessagePactBuilderOps(
     builder
   )
-  implicit def toMessagePactBuilderOpsForPlatform(builder: MessagePactBuilder): MessagePactBuilderOpsForPlatform =
-    new MessagePactBuilderOpsForPlatform(builder)
 
-  implicit def toMessageOps(message: Message): MessageOps                       = new MessageOps(message)
-  implicit def toMessageOpsForPlatform(message: Message): MessageOpsForPlatform = new MessageOpsForPlatform(message)
-
-  sealed abstract class Pact4sMessagePactBuilder() extends MessagePactBuilderForPlatform
-
-  object Pact4sMessagePactBuilder {
-    def apply(): Pact4sMessagePactBuilder = new Pact4sMessagePactBuilder() {}
-  }
+  implicit def toMessageOps(message: Message): MessageOps = new MessageOps(message)
 }

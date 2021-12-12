@@ -40,7 +40,6 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
     if (expectedTestCount(args.filter) == 0) {
       new CompositeStatus(Set.empty)
     } else {
-      validatePactVersion(mockProviderConfig.getPactVersion).left.foreach(throw _)
       server.start()
       server.waitForServer()
       try {

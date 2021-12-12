@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import pact4s.syntax.RequestResponsePactOps
 
 trait RequestResponsePactForgerResources
-    extends BasePactForgerResourcesForPlatform[RequestResponsePact]
+    extends BasePactForgerResources[RequestResponsePact]
     with RequestResponsePactOps {
   val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
