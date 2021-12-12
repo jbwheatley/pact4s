@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ private[pact4s] object TimeLimiter {
     val callable = new Callable[T] {
       def call(): T = thunk()
     }
-    new SimpleTimeLimiter(Executors.newSingleThreadExecutor())
-      .callWithTimeout(callable, timeoutDuration, timeoutUnit, true)
+    SimpleTimeLimiter
+      .create(Executors.newSingleThreadExecutor())
+      .callWithTimeout(callable, timeoutDuration, timeoutUnit)
   }
 }

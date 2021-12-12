@@ -2,8 +2,7 @@ import sbt._
 
 object Dependencies {
   val mockitoScala     = "1.16.46"
-  val pactJvmJava11    = "4.3.1"
-  val pactJvmJava8     = "4.1.31"
+  val pactJvm          = "4.3.1"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
   val logback          = "1.2.7"
@@ -16,10 +15,10 @@ object Dependencies {
   val _munit           = "0.7.29"
   val munitCatsEffect  = "1.0.7"
 
-  def shared(pactJvmVersion: String): Seq[ModuleID] =
+  val shared: Seq[ModuleID] =
     Seq(
-      "au.com.dius.pact"        % "consumer"                % pactJvmVersion,
-      "au.com.dius.pact"        % "provider"                % pactJvmVersion,
+      "au.com.dius.pact"        % "consumer"                % pactJvm,
+      "au.com.dius.pact"        % "provider"                % pactJvm,
       "org.log4s"              %% "log4s"                   % log4s,
       "ch.qos.logback"          % "logback-classic"         % logback         % Runtime,
       "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompat,

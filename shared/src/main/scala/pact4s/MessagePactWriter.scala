@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
+import au.com.dius.pact.consumer.PactTestExecutionContext
+import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.MessagePact
 
-private[pact4s] trait BasePactForgerResourcesForPlatform[Pact <: BasePact[_]] extends BasePactForgerResources {
-
-  def pact: Pact
-
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = Right {
-    val _ = version
+private[pact4s] object MessagePactWriter {
+  def writeMessagePactToFile(
+      pact: MessagePact,
+      executionContext: PactTestExecutionContext,
+      version: PactSpecVersion
+  ): Either[Throwable, Unit] = {
+    val write = pact.write(executionContext.getPactFolder, version).component2()
+    if (write == null) Right(()) else Left(write)
   }
 }
