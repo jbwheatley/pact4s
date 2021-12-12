@@ -18,31 +18,10 @@ import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
 import pact4s.provider._
 
 import java.io.File
-import java.net.ServerSocket
-import scala.util.control.NonFatal
 
-class MockProviderServer(isRequestResponse: Boolean = true) {
-
-  @volatile private var port: Int = _
-
-  private val socket: Option[ServerSocket] = {
-    var p                          = 49152
-    var bound                      = false
-    var sock: Option[ServerSocket] = None
-    while (isRequestResponse && !bound && p < 65535)
-      try {
-        val s = new ServerSocket(p)
-        bound = true
-        sock = Option(s)
-      } catch {
-        case NonFatal(_) => p += 1
-      }
-    port = p
-    sock
-  }
+class MockProviderServer(port: Int) {
 
   def server: Resource[IO, Server] = {
-    socket.foreach(_.close())
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)

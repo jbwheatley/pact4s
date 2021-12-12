@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,20 @@
 
 package pact4s
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
+import au.com.dius.pact.consumer.PactTestExecutionContext
+import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.MessagePact
 
-import java.util.concurrent.{Callable, Executors, TimeUnit}
+import scala.util.control.NonFatal
 
-private[pact4s] object TimeLimiter {
-  def callWithTimeout[T](thunk: () => T, timeoutDuration: Long, timeoutUnit: TimeUnit): T = {
-    val callable = new Callable[T] {
-      def call(): T = thunk()
+private[pact4s] object MessagePactWriter {
+  def writeMessagePactToFile(
+      pact: MessagePact,
+      executionContext: PactTestExecutionContext,
+      version: PactSpecVersion
+  ): Either[Throwable, Unit] =
+    try Right(pact.write(executionContext.getPactFolder, version))
+    catch {
+      case NonFatal(err) => Left(err)
     }
-    new SimpleTimeLimiter(Executors.newSingleThreadExecutor())
-      .callWithTimeout(callable, timeoutDuration, timeoutUnit, true)
-  }
 }

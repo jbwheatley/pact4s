@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2021 io.github.jbwheatley
+ * Copyright 2021 io.github.jbwheatley
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package pact4s
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
-import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.BasePact
 
-trait BasePactForgerResources extends Pact4sLogger {
+trait BasePactForgerResources[Pact <: BasePact[_]] extends Pact4sLogger {
+  def pact: Pact
+
   val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
-
-  private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit]
 
   private[pact4s] type Effect[_]
 
