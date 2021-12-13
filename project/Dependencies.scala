@@ -14,6 +14,7 @@ object Dependencies {
   val _scalatest       = "3.2.10"
   val _munit           = "0.7.29"
   val munitCatsEffect  = "1.0.7"
+  val cask             = "0.8.0"
 
   val shared: Seq[ModuleID] =
     Seq(
@@ -23,6 +24,7 @@ object Dependencies {
       "ch.qos.logback"          % "logback-classic"         % logback         % Runtime,
       "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompat,
       "com.lihaoyi"            %% "sourcecode"              % sourcecode,
+      "com.lihaoyi"            %% "cask"                    % cask,
       "org.http4s"             %% "http4s-ember-client"     % http4s          % Test,
       "org.http4s"             %% "http4s-dsl"              % http4s          % Test,
       "org.http4s"             %% "http4s-ember-server"     % http4s          % Test,

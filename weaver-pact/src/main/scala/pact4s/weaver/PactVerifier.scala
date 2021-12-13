@@ -17,18 +17,34 @@
 package pact4s.weaver
 
 import cats.data.NonEmptyList
+import cats.effect.Resource
+import cats.implicits._
 import pact4s.PactVerifyResources
 import sourcecode.{File, FileName, Line}
-import weaver.{AssertionException, CanceledException, SourceLocation}
+import weaver.{AssertionException, CanceledException, MutableFSuite, SourceLocation}
 
-trait PactVerifier extends PactVerifyResources {
+trait PactVerifier[F[_]] extends PactVerifyResources { _: MutableFSuite[F] =>
+  private val F = effect
+
   override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
     throw new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value))
   override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
     throw AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
+
+  type Resources
+  override type Res = (Resources, Unit)
+
+  private def stateChangerResource: Resource[F, Unit] =
+    Resource.make(F.pure(stateChanger.start()))(_ => F.pure(stateChanger.shutdown()))
+
+  def additionalSharedResource: Resource[F, Resources]
+
+  override def sharedResource: Resource[F, (Resources, Unit)] =
+    (additionalSharedResource, stateChangerResource).tupled
+
 }
 
-trait MessagePactVerifier extends PactVerifier {
+trait MessagePactVerifier[F[_]] extends PactVerifier[F] { _: MutableFSuite[F] =>
   def messages: ResponseFactory
   override def responseFactory: Option[ResponseFactory] = Some(messages)
 }

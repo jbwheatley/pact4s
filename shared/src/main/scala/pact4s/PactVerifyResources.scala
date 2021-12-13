@@ -31,6 +31,12 @@ trait PactVerifyResources {
 
   def provider: ProviderInfoBuilder
 
+  private[pact4s] def stateChanger: StateChanger =
+    provider.stateChangeFunc match {
+      case Some(func) => new StateChanger.SimpleServer(func)
+      case None       => StateChanger.NoOpStateChanger
+    }
+
   def responseFactory: Option[ResponseFactory] = None
 
   private val failures: ListBuffer[String]        = new ListBuffer[String]()

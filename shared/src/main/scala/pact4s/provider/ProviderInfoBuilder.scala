@@ -68,6 +68,7 @@ final case class ProviderInfoBuilder(
     path: String,
     pactSource: PactSource,
     stateChangeUrl: Option[String] = None,
+    stateChangeFunc: Option[PartialFunction[ProviderState, Unit]] = None,
     verificationSettings: Option[VerificationSettings] = None,
     requestFilter: ProviderRequest => Option[ProviderRequestFilter] = _ => None
 ) {
@@ -79,11 +80,25 @@ final case class ProviderInfoBuilder(
     this.copy(verificationSettings = Some(settings))
   def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
     this.copy(verificationSettings = settings)
-  def withStateChangeUrl(url: String): ProviderInfoBuilder = this.copy(stateChangeUrl = Some(url))
+  def withStateChangeUrl(url: String): ProviderInfoBuilder = {
+    require(
+      stateChangeFunc.isEmpty,
+      "Do not provide a state change url if you have instead defined a state change function."
+    )
+    this.copy(stateChangeUrl = Some(url))
+  }
   def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
-    this.copy(stateChangeUrl = Some(s"$protocol://$host:$port$endpointWithLeadingSlash"))
+    withStateChangeUrl(s"$protocol://$host:$port$endpointWithLeadingSlash")
   }
+
+  def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
+    this.copy(stateChangeFunc = Some(stateChange), stateChangeUrl = Some("http://localhost:64646/pact4s-state-change"))
+  def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
+    this.copy(
+      stateChangeFunc = Some(PartialFunction.fromFunction(stateChange)),
+      stateChangeUrl = Some("http://localhost:64646/pact4s-state-change")
+    )
 
   @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
