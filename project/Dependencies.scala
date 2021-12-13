@@ -46,9 +46,9 @@ object Dependencies {
   )
 
   val circe: Seq[ModuleID] = Seq(
-    "io.circe"      %% "circe-core"          % _circe,
-    "io.circe"      %% "circe-parser"        % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test
+    "io.circe"      %% "circe-core"   % _circe,
+    "io.circe"      %% "circe-parser" % _circe,
+    "org.scalameta" %% "munit"        % _munit % Test
   )
 
   val playJson: Seq[ModuleID] = Seq(

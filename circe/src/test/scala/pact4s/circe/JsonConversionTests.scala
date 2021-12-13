@@ -1,21 +1,19 @@
 package pact4s.circe
 
-import cats.effect.IO
-import io.circe.Json
+import io.circe.{Json, parser}
 import io.circe.syntax.EncoderOps
-import io.circe.parser
-import munit.CatsEffectSuite
+import munit.FunSuite
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
 
-class JsonConversionTests extends CatsEffectSuite {
-  def testRoundTrip(json: Json): IO[Unit] = IO
-    .fromEither(
+class JsonConversionTests extends FunSuite {
+  def testRoundTrip(json: Json): Unit =
+    assertEquals(
       parser
         .parse(
           jsonToPactDslJsonBody(json).getBody.toString
-        )
+        ),
+      Right(json)
     )
-    .assertEquals(json)
 
   test("array-less JSON should round-trip with PactDslJsonBody") {
     val json = Json.obj(
@@ -73,14 +71,14 @@ class JsonConversionTests extends CatsEffectSuite {
   }
 
   test("should encode top level string") {
-    assertEquals(jsonToPactDslJsonBody("pact4s".asJson).getBody.asInstanceOf[String], "pact4s")
+    assertEquals(jsonToPactDslJsonBody("pact4s".asJson).getBody.asString(), "pact4s")
   }
 
   test("should encode top level boolean") {
-    assertEquals(jsonToPactDslJsonBody(true.asJson).getBody.asInstanceOf[Boolean], true)
+    assertEquals(jsonToPactDslJsonBody(true.asJson).getBody.asBoolean().booleanValue(), true)
   }
 
   test("should encode top level number") {
-    assertEquals(jsonToPactDslJsonBody(12.asJson).getBody.asInstanceOf[Long].toInt, 12)
+    assertEquals(jsonToPactDslJsonBody(12.asJson).getBody.asNumber().intValue(), 12)
   }
 }
