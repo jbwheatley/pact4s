@@ -7,6 +7,8 @@ import pact4s.provider.{ProviderInfoBuilder, ProviderState}
 class RequestResponseVerifierStateChangeFunctionMunitSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(49155)
 
+  override val staticStateChangePort: Int = 64643
+
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
       consumerName = "Pact4sConsumer",

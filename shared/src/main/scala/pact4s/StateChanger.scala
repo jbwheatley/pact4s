@@ -21,7 +21,11 @@ import io.undertow.Undertow
 import io.undertow.server.handlers.BlockingHandler
 import pact4s.provider.ProviderState
 
+import java.io.StringReader
+import javax.json.Json
 import scala.annotation.nowarn
+import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 private[pact4s] sealed trait StateChanger {
   def start(): Unit
@@ -34,14 +38,15 @@ private[pact4s] object StateChanger {
     def shutdown(): Unit = ()
   }
 
-  class SimpleServer(stateChange: PartialFunction[ProviderState, Unit]) extends cask.Routes with StateChanger {
-    private var server: Undertow = _
+  class SimpleServer(stateChange: PartialFunction[ProviderState, Unit], host: String, port: Int, endpoint: String)
+      extends cask.Routes
+      with StateChanger {
+    private var stopServer: () => Unit      = () => ()
+    private var interruptThread: () => Unit = () => ()
+
+    locally(endpoint)
 
     def allRoutes = Seq(this)
-
-    private val port: Int = 64646
-
-    private val host: String = "localhost"
 
     private implicit def log: cask.util.Logger = new cask.util.Logger.Console()
 
@@ -56,36 +61,18 @@ private[pact4s] object StateChanger {
       )
     )
 
-    private def getState(input: String): Option[ProviderState] = {
-      var state: Option[String] = None
-      var started               = false
-      var complete              = false
-      var outOfInput            = false
-      var idx                   = input.indexOf("\"state\"") + 7
-      if (idx < 7) ()
-      else {
-        while (!complete && !outOfInput)
-          try {
-            val c = input(idx)
-            if (!started && c == '\"') {
-              started = true
-              state = Some("")
-              idx += 1
-            } else if (started && c == '\"') {
-              complete = true
-            } else {
-              state = state.map(_ + c)
-              idx += 1
-            }
-          } catch {
-            case _: Throwable => outOfInput = true
-          }
-      }
-      state.map(ProviderState)
-    }
+    private def getState(input: String): Option[ProviderState] =
+      Try {
+        val parser = Json.createParser(new StringReader(input))
+        parser.next()
+        val obj         = parser.getObject
+        val maybeParams = Option(obj.getJsonObject("params"))
+        val _           = maybeParams.map(_.entrySet().asScala.map(kv => kv.getKey -> kv.getValue.toString).toMap)
+        obj.getString("state")
+      }.toOption.map(ProviderState)
 
     @nowarn
-    @cask.post("/pact4s-state-change")
+    @cask.post(endpoint)
     def stateChange(request: cask.Request): Unit =
       getState(request.text()).flatMap(stateChange.lift).getOrElse(())
 
@@ -93,18 +80,22 @@ private[pact4s] object StateChanger {
       initialize()
       val r = new Runnable {
         override def run(): Unit = {
-          val _server = Undertow.builder
+          val server = Undertow.builder
             .addHttpListener(port, host)
             .setHandler(defaultHandler)
             .build
-          server = _server
-          _server.start()
+          stopServer = () => server.stop()
+          server.start()
         }
       }
-      new Thread(r).start()
+      val t = new Thread(r)
+      interruptThread = () => t.interrupt()
+      t.start()
     }
 
-    def shutdown(): Unit =
-      server.stop()
+    def shutdown(): Unit = {
+      stopServer()
+      interruptThread()
+    }
   }
 }

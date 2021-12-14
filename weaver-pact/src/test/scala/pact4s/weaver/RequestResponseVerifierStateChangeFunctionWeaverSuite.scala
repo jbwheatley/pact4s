@@ -7,10 +7,12 @@ import pact4s.MockProviderServer
 import pact4s.provider.{ProviderInfoBuilder, ProviderState}
 import weaver.IOSuite
 
-object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite with PactVerifier[IO] {
-  type Resources = Server
+object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite with PactVerifierWithResources[IO] {
+  override type Resources = Server
 
   val mock = new MockProviderServer(49164)
+
+  override val staticStateChangePort: Int = 64645
 
   override def additionalSharedResource: Resource[IO, Server] = mock.server
 

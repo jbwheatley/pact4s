@@ -47,10 +47,19 @@ import scala.jdk.CollectionConverters._
   *   address of the mock provider server is {protocol}://{host}:{port}{path}
   * @param pactSource
   *   pacts to verify can come either from a file location, or from a pact broker.
-  * @param stateChangeUrl
-  *   full url of the mock provider endpoint that can be used for setting provider state before each pact with state is
-  *   run. state is sent as JSON of the form {"state": "state goes here"}. Can also be set using
-  *   [[ProviderInfoBuilder#withStateChangeEndpoint]] just by providing the path.
+  * @param stateManagement
+  *   Used for the setting of provider state before each interaction with state is run. Can be either:
+  *
+  * (1) the url of a endpoint on the mock provider that can configure internal state. Can be set using a full url with
+  * [[ProviderInfoBuilder#withStateChangeUrl]] or simply by providing the endpoint with
+  * [[ProviderInfoBuilder#withStateChangeEndpoint]]. State is sent as a json of the form {"state": "state name",
+  * "params": {"param1" : "paramValue"}}. Decoders for [[ProviderState]] can be found in the json-modules, or defined by
+  * the user.
+  *
+  * (2) a partial function [[ProviderState => Unit]] provided by [[ProviderInfoBuilder#withStateChangeFunction]] which
+  * will be applied before each interaction is run. This works by using a mock internal server, the host of which can be
+  * configured using [[ProviderInfoBuilder#withStateChangeFunctionConfigOverrides]]
+  *
   * @param verificationSettings
   *   Required if verifying message pacts using the old java-y annotated method search. Not needed if using the response
   *   factory method.
@@ -67,8 +76,7 @@ final case class ProviderInfoBuilder(
     port: Int,
     path: String,
     pactSource: PactSource,
-    stateChangeUrl: Option[String] = None,
-    stateChangeFunc: Option[PartialFunction[ProviderState, Unit]] = None,
+    stateManagement: Option[StateManagement] = None,
     verificationSettings: Option[VerificationSettings] = None,
     requestFilter: ProviderRequest => Option[ProviderRequestFilter] = _ => None
 ) {
@@ -80,25 +88,28 @@ final case class ProviderInfoBuilder(
     this.copy(verificationSettings = Some(settings))
   def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
     this.copy(verificationSettings = settings)
-  def withStateChangeUrl(url: String): ProviderInfoBuilder = {
-    require(
-      stateChangeFunc.isEmpty,
-      "Do not provide a state change url if you have instead defined a state change function."
-    )
-    this.copy(stateChangeUrl = Some(url))
-  }
+
+  def withStateChangeUrl(url: String): ProviderInfoBuilder =
+    this.copy(stateManagement = Some(StateManagement.ProviderUrl(url)))
   def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     withStateChangeUrl(s"$protocol://$host:$port$endpointWithLeadingSlash")
   }
 
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
-    this.copy(stateChangeFunc = Some(stateChange), stateChangeUrl = Some("http://localhost:64646/pact4s-state-change"))
+    this.copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
-    this.copy(
-      stateChangeFunc = Some(PartialFunction.fromFunction(stateChange)),
-      stateChangeUrl = Some("http://localhost:64646/pact4s-state-change")
-    )
+    withStateChangeFunction(PartialFunction.fromFunction(stateChange))
+
+  def withStateChangeFunctionConfigOverrides(
+      overrides: StateManagement.StateManagementFunction => StateManagement.StateManagementFunction
+  ): ProviderInfoBuilder = {
+    val withOverrides = stateManagement.map {
+      case x: StateManagement.ProviderUrl             => x
+      case x: StateManagement.StateManagementFunction => overrides(x)
+    }
+    this.copy(stateManagement = withOverrides)
+  }
 
   @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
@@ -122,7 +133,7 @@ final case class ProviderInfoBuilder(
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
-    stateChangeUrl.foreach(s => p.setStateChangeUrl(new URL(s)))
+    stateManagement.foreach(s => p.setStateChangeUrl(new URL(s.url)))
     p.setRequestFilter {
       // because java
       new Consumer[HttpRequest] {

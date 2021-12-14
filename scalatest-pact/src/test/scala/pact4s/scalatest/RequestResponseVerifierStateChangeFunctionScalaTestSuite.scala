@@ -18,15 +18,20 @@ class RequestResponseVerifierStateChangeFunctionScalaTestSuite extends AnyFlatSp
     .withStateChangeFunction { case ProviderState("bob exists") =>
       mock.stateRef.set(Some("bob")).unsafeRunSync()
     }
+    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))
 
   var cleanUp: IO[Unit] = IO.unit
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     val (_, shutdown) = mock.server.allocated.unsafeRunSync()
     cleanUp = shutdown
   }
 
-  override def afterAll(): Unit = cleanUp.unsafeRunSync()
+  override def afterAll(): Unit = {
+    super.afterAll()
+    cleanUp.unsafeRunSync()
+  }
 
   it should "Verify pacts for provider `Pact4sProvider`" in {
     verifyPacts()

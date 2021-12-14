@@ -1,8 +1,9 @@
 package pact4s.weaver
 
+import cats.effect.IO
 import pact4s.PendingPactVerificationFixture
-import weaver.SimpleIOSuite
+import weaver.IOSuite
 
-object PendingPactVerificationTestSuite extends SimpleIOSuite with PactVerifier with PendingPactVerificationFixture {
+object PendingPactVerificationTestSuite extends IOSuite with PactVerifier[IO] with PendingPactVerificationFixture {
   pureTest("pending pact failure should be skipped")(succeed(verifyPacts()))
 }

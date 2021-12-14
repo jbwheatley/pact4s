@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
+import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.{ProviderInfoBuilder, ProviderVerificationOption, PublishVerificationResults, ResponseBuilder}
 import sourcecode.{File, FileName, Line}
 
@@ -32,9 +33,10 @@ trait PactVerifyResources {
   def provider: ProviderInfoBuilder
 
   private[pact4s] def stateChanger: StateChanger =
-    provider.stateChangeFunc match {
-      case Some(func) => new StateChanger.SimpleServer(func)
-      case None       => StateChanger.NoOpStateChanger
+    provider.stateManagement match {
+      case Some(StateManagementFunction(stateChangeFunc, host, port, endpoint)) =>
+        new StateChanger.SimpleServer(stateChangeFunc, host, port, endpoint)
+      case _ => StateChanger.NoOpStateChanger
     }
 
   def responseFactory: Option[ResponseFactory] = None

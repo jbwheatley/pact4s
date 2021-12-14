@@ -23,7 +23,7 @@ import pact4s.PactVerifyResources
 import sourcecode.{File, FileName, Line}
 import weaver.{AssertionException, CanceledException, MutableFSuite, SourceLocation}
 
-trait PactVerifier[F[_]] extends PactVerifyResources { _: MutableFSuite[F] =>
+private[pact4s] trait WeaverPactVerifier[F[_]] extends MutableFSuite[F] with PactVerifyResources {
   private val F = effect
 
   override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
@@ -44,7 +44,23 @@ trait PactVerifier[F[_]] extends PactVerifyResources { _: MutableFSuite[F] =>
 
 }
 
-trait MessagePactVerifier[F[_]] extends PactVerifier[F] { _: MutableFSuite[F] =>
+trait PactVerifier[F[_]] extends WeaverPactVerifier[F] {
+
+  /** Use [[PactVerifierWithResources]] or [[MessagePactVerifierWithResources]] to add additional resources to your test
+    * suite.
+    */
+  final type Resources = Unit
+  final def additionalSharedResource: Resource[F, Resources] = Resource.unit[F]
+}
+
+trait PactVerifierWithResources[F[_]] extends WeaverPactVerifier[F]
+
+trait MessagePactVerifier[F[_]] extends PactVerifier[F] {
+  def messages: ResponseFactory
+  override def responseFactory: Option[ResponseFactory] = Some(messages)
+}
+
+trait MessagePactVerifierWithResources[F[_]] extends PactVerifierWithResources[F] {
   def messages: ResponseFactory
   override def responseFactory: Option[ResponseFactory] = Some(messages)
 }

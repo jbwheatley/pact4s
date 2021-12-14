@@ -6,7 +6,7 @@ import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.MockProviderServer
 import weaver.IOSuite
 
-object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifier[IO] {
+object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifierWithResources[IO] {
   type Resources = Server
 
   val mock = new MockProviderServer(49163)
