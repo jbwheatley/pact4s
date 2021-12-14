@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val mockitoScala     = "1.16.46"
+  val mockitoScala     = "1.16.49"
   val pactJvm          = "4.3.2"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
