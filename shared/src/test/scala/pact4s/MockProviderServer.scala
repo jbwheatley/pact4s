@@ -4,7 +4,7 @@ import cats.effect.kernel.Ref
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
-import io.circe.{Decoder, Json}
+import io.circe.{Decoder, HCursor, Json, JsonObject}
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.jsonOf
@@ -30,7 +30,20 @@ class MockProviderServer(port: Int) {
       .build
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
-    implicit val decoder: Decoder[ProviderState] = Decoder.forProduct1("state")(ProviderState)
+    // Note: this is a simplified version of the decoder actually provided in circe module because the tests below do not use parameters other than string
+    implicit val decoder: Decoder[ProviderState] = (c: HCursor) =>
+      for {
+        state  <- c.get[String]("state")
+        params <- c.get[Option[JsonObject]]("params")
+        stringParams = params
+          .map(
+            _.toMap
+              .map { case (k, v) => k -> v.asString }
+              .collect { case (k, Some(v)) => k -> v }
+          )
+          .getOrElse(Map.empty)
+      } yield ProviderState(state, stringParams)
+
     jsonOf
   }
 
@@ -66,7 +79,7 @@ class MockProviderServer(port: Int) {
             .getOrElse(Unauthorized(`WWW-Authenticate`(Challenge(AuthScheme.Bearer.toString, "Authorized endpoints."))))
         case req @ POST -> Root / "setup" =>
           req.as[ProviderState].flatMap {
-            case ProviderState("bob exists") =>
+            case ProviderState("bob exists", _) =>
               stateRef.set(Some("bob")) *> Ok()
             case _ => Ok()
           }
