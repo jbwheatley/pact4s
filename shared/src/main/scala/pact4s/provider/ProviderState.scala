@@ -17,7 +17,7 @@
 package pact4s
 package provider
 
-/** entity passed to the mock provider state setup endpoint by pact-jvm before running consumer pacts with state. A
-  * circe.Decoder instance is provided in the pact4s-circe module.
+/** Entity passed to the mock provider state setup endpoint by pact-jvm before running consumer pacts with state.
+  * Decoders are provided in each JSON library module (circe or play-json).
   */
-final case class ProviderState(state: String) extends AnyVal
+final case class ProviderState(state: String, params: Map[String, String] = Map.empty)
