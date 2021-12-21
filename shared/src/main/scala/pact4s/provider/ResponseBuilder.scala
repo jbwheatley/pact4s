@@ -59,7 +59,7 @@ object ResponseBuilder {
     def build: java.util.Map[String, Any] = Map[String, Any](
       "statusCode"  -> statusCode,
       "contentType" -> contentType.orNull,
-      "headers"     -> headers.asJava,
+      "headers"     -> headers.map { case (k, v) => k -> v.asJava }.asJava,
       "data"        -> data.orNull
     ).asJava
 
