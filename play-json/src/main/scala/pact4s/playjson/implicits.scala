@@ -18,9 +18,9 @@ package pact4s.playjson
 
 import au.com.dius.pact.core.model.messaging.Message
 import pact4s.algebras.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder}
-import pact4s.playjson.JsonConversion.jsonToPactDslJsonBody
 import pact4s.provider.ProviderState
-import play.api.libs.json.{Format, Json, Reads, Writes}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.json._
 
 import scala.util.Try
 
@@ -34,5 +34,35 @@ object implicits {
   implicit def messagePactDecoder[A](implicit reads: Reads[A]): MessagePactDecoder[A] = (message: Message) =>
     Try(Json.parse(message.contentsAsString()).as[A]).toEither
 
-  implicit val providerStateFormat: Format[ProviderState] = Json.format[ProviderState]
+  implicit val providerStateWrites: Writes[ProviderState] = Json.writes[ProviderState]
+
+  implicit val providerStateReads: Reads[ProviderState] = {
+
+    def jsonAsString(json: JsValue): Option[String] =
+      json match {
+        case JsNull               => None
+        case JsTrue               => Some("true")
+        case JsFalse              => Some("false")
+        case JsNumber(num)        => Some(num.toString())
+        case JsString(str)        => Some(str)
+        case jsArr: JsArray       => Some(Json.stringify(jsArr))
+        case jsonObject: JsObject => Some(Json.stringify(jsonObject))
+      }
+
+    val state = (JsPath \ "state").read[String]
+    val params = (JsPath \ "params")
+      .readNullable[JsObject]
+      .map(obj =>
+        obj
+          .map(
+            _.value
+              .map { case (k, v) => k -> jsonAsString(v) }
+              .collect { case (k, Some(v)) => k -> v }
+              .toMap
+          )
+          .getOrElse(Map.empty)
+      )
+    (state and params)(ProviderState.apply _)
+  }
+
 }
