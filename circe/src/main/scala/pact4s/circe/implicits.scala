@@ -19,9 +19,9 @@ package pact4s.circe
 import au.com.dius.pact.core.model.messaging.Message
 import cats.implicits.toBifunctorOps
 import io.circe.Decoder.Result
+import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
-import io.circe.{Codec, Decoder, Encoder, HCursor, Json}
 import pact4s.algebras.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBodyEncoder}
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
 import pact4s.provider.ProviderState
@@ -37,7 +37,30 @@ object implicits {
     parse(message.contentsAsString()).leftWiden[Throwable].flatMap(j => decoder.decodeJson(j))
 
   implicit val providerStateCodec: Codec[ProviderState] = new Codec[ProviderState] {
-    def apply(a: ProviderState): Json            = Json.obj("state" -> a.state.asJson)
-    def apply(c: HCursor): Result[ProviderState] = c.get[String]("state").map(ProviderState)
+    def apply(a: ProviderState): Json = Json.obj("state" -> a.state.asJson, "params" -> a.params.asJson)
+
+    def apply(c: HCursor): Result[ProviderState] =
+      for {
+        state  <- c.get[String]("state")
+        params <- c.get[Option[JsonObject]]("params")
+        stringParams = params
+          .map(
+            _.toMap
+              .map { case (k, v) => k -> jsonAsString(v) }
+              .collect { case (k, Some(v)) => k -> v }
+          )
+          .getOrElse(Map.empty)
+      } yield ProviderState(state, stringParams)
+
+    private def jsonAsString(json: Json): Option[String] =
+      json.fold[Option[String]](
+        jsonNull = None,
+        jsonBoolean = bool => Some(bool.toString),
+        jsonNumber = num => Some(num.toString),
+        jsonString = str => Some(str),
+        jsonArray = arr => Some(arr.asJson.noSpaces),
+        jsonObject = obj => Some(obj.asJson.noSpaces)
+      )
+
   }
 }
