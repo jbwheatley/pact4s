@@ -15,7 +15,8 @@ class RequestResponseVerifierStateChangeFunctionScalaTestSuite extends AnyFlatSp
       providerName = "Pact4sProvider",
       fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
     )
-    .withStateChangeFunction { case ProviderState("bob exists") =>
+    .withStateChangeFunction { case ProviderState("bob exists", params) =>
+      val _ = params.getOrElse("foo", fail())
       mock.stateRef.set(Some("bob")).unsafeRunSync()
     }
     .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))

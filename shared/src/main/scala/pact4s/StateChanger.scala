@@ -16,14 +16,11 @@
 
 package pact4s
 
-import cask.main.Main
-import io.undertow.Undertow
-import io.undertow.server.handlers.BlockingHandler
+import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
-import java.io.StringReader
+import java.net.InetSocketAddress
 import javax.json.Json
-import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -39,52 +36,18 @@ private[pact4s] object StateChanger {
   }
 
   class SimpleServer(stateChange: PartialFunction[ProviderState, Unit], host: String, port: Int, endpoint: String)
-      extends cask.Routes
-      with StateChanger {
+      extends StateChanger {
     private var stopServer: () => Unit      = () => ()
     private var interruptThread: () => Unit = () => ()
 
-    locally(endpoint)
-
-    def allRoutes = Seq(this)
-
-    private implicit def log: cask.util.Logger = new cask.util.Logger.Console()
-
-    private def defaultHandler = new BlockingHandler(
-      new Main.DefaultHandler(
-        Main.prepareDispatchTrie(allRoutes),
-        Nil,
-        true,
-        Main.defaultHandleNotFound,
-        Main.defaultHandleMethodNotAllowed,
-        Main.defaultHandleError(_, _, _, debugMode = true)
-      )
-    )
-
-    private def getState(input: String): Option[ProviderState] =
-      Try {
-        val parser = Json.createParser(new StringReader(input))
-        parser.next()
-        val obj         = parser.getObject
-        val maybeParams = Option(obj.getJsonObject("params"))
-        val _           = maybeParams.map(_.entrySet().asScala.map(kv => kv.getKey -> kv.getValue.toString).toMap)
-        obj.getString("state")
-      }.toOption.map(ProviderState)
-
-    @nowarn
-    @cask.post(endpoint)
-    def stateChange(request: cask.Request): Unit =
-      getState(request.text()).flatMap(stateChange.lift).getOrElse(())
-
     def start(): Unit = {
-      initialize()
       val r = new Runnable {
         override def run(): Unit = {
-          val server = Undertow.builder
-            .addHttpListener(port, host)
-            .setHandler(defaultHandler)
-            .build
-          stopServer = () => server.stop()
+          val server          = HttpServer.create(new InetSocketAddress(host, port), 0)
+          val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
+          server.createContext(slashedEndpoint, RootHandler)
+          server.setExecutor(null)
+          stopServer = () => server.stop(0)
           server.start()
         }
       }
@@ -96,6 +59,30 @@ private[pact4s] object StateChanger {
     def shutdown(): Unit = {
       stopServer()
       interruptThread()
+    }
+
+    object RootHandler extends HttpHandler {
+      def handle(t: HttpExchange): Unit = {
+        Try {
+          val parser = Json.createParser(t.getRequestBody)
+          parser.next()
+          val obj         = parser.getObject
+          val maybeParams = Option(obj.getJsonObject("params"))
+          val params: Map[String, String] = maybeParams
+            .map(_.entrySet().asScala.map(kv => kv.getKey -> kv.getValue.toString).toMap)
+            .getOrElse(Map.empty)
+          (obj.getString("state"), params)
+        }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
+        sendResponse(t)
+      }
+
+      private def sendResponse(t: HttpExchange): Unit = {
+        val response = "Ack!"
+        t.sendResponseHeaders(200, response.length().toLong)
+        val os = t.getResponseBody
+        os.write(response.getBytes)
+        os.close()
+      }
     }
   }
 }

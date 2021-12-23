@@ -12,8 +12,6 @@ object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite wit
 
   val mock = new MockProviderServer(49164)
 
-  override val staticStateChangePort: Int = 64645
-
   override def additionalSharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder = mock
@@ -22,9 +20,11 @@ object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite wit
       providerName = "Pact4sProvider",
       fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
     )
-    .withStateChangeFunction { case ProviderState("bob exists") =>
+    .withStateChangeFunction { case ProviderState("bob exists", params) =>
+      val _ = params.getOrElse("foo", fail("params missing value foo"))
       mock.stateRef.set(Some("bob")).unsafeRunSync()
     }
+    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))
 
   pureTest("Verify pacts for provider `Pact4sProvider`") {
     succeed(verifyPacts())
