@@ -137,6 +137,15 @@ Examples:
 - [scalatest](https://github.com/jbwheatley/pact4s/blob/main/scalatest-pact/src/test/scala/pact4s/scalatest/RequestResponsePactForgerScalaTestSuite.scala)
 - [weaver](https://github.com/jbwheatley/pact4s/blob/main/weaver-pact/src/test/scala/pact4s/weaver/RequestResponsePactForgerWeaverSuite.scala)
 
+#### Choosing a port
+
+If your consumer test need that the provider mock server runs on a specific port, you can override `mockProviderConfig` from `RequestResponsePactForger` like:
+
+```scala
+// Mock server will run on port 9003
+override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 9003)
+```
+
 ### Message Pacts
 
 Message pacts use the `MessagePactForger` trait. This trait requires that you provide a `MessagePact`. While the general principles of message forging and verification are the same as with request/response pacts, the guidance here will be a bit more abstract as actual implementations will vary by application and messaging framework. That said, at a high level you will want to generate a message and then feed it to your message handling function, which should expect a concrete class type. You do not want to verify what the message handling function does, only that it can receive the message payload without exception.
