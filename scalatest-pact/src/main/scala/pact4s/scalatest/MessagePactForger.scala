@@ -38,24 +38,25 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
         if (!result.succeeds())
           testFailed = true
         result
-      } finally if (testFailed) {
-        pact4sLogger.info(
-          s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-        )
-      } else {
-        beforeWritePacts() match {
-          case Left(e) =>
-            throw e
-          case Right(_) =>
-            pact4sLogger.info(
-              s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-            )
-            MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
-              case Left(e)  => throw e
-              case Right(_) => ()
-            }
+      } finally
+        if (testFailed) {
+          pact4sLogger.info(
+            s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+          )
+        } else {
+          beforeWritePacts() match {
+            case Left(e) =>
+              throw e
+            case Right(_) =>
+              pact4sLogger.info(
+                s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+              )
+              MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion) match {
+                case Left(e)  => throw e
+                case Right(_) => ()
+              }
+          }
         }
-      }
     }
 
   type Effect[_] = Either[Throwable, _]

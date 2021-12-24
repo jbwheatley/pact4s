@@ -48,23 +48,24 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
         if (!result.succeeds())
           testFailed = true
         result
-      } finally if (testFailed) {
-        pact4sLogger.info(
-          s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-        )
-      } else {
-        beforeWritePacts() match {
-          case Left(e) =>
-            server.stop()
-            throw e
-          case Right(_) =>
-            pact4sLogger.info(
-              s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-            )
-            server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
-            server.stop()
+      } finally
+        if (testFailed) {
+          pact4sLogger.info(
+            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+          )
+        } else {
+          beforeWritePacts() match {
+            case Left(e) =>
+              server.stop()
+              throw e
+            case Right(_) =>
+              pact4sLogger.info(
+                s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+              )
+              server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
+              server.stop()
+          }
         }
-      }
     }
   }
 
