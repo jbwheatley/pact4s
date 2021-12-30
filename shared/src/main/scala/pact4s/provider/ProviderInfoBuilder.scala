@@ -99,7 +99,7 @@ final case class ProviderInfoBuilder(
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
     this.copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
-    withStateChangeFunction(PartialFunction.fromFunction(stateChange))
+    withStateChangeFunction({ case x => stateChange(x) }: PartialFunction[ProviderState, Unit])
 
   def withStateChangeFunctionConfigOverrides(
       overrides: StateManagement.StateManagementFunction => StateManagement.StateManagementFunction
