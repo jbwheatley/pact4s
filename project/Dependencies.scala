@@ -5,7 +5,7 @@ object Dependencies {
   val pactJvm          = "4.1.31"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
-  val logback          = "1.2.9"
+  val logback          = "1.2.10"
   val collectionCompat = "2.6.0"
   val sourcecode       = "0.2.7"
   val _circe           = "0.14.1"
