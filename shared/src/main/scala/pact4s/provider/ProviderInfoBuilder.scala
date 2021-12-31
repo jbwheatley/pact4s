@@ -56,8 +56,8 @@ import scala.jdk.CollectionConverters._
   * "params": {"param1" : "paramValue"}}. Decoders for [[ProviderState]] can be found in the json-modules, or defined by
   * the user.
   *
-  * (2) a partial function [[ProviderState => Unit]] provided by ProviderInfoBuilder#withStateChangeFunction which
-  * will be applied before each interaction is run. This works by using a mock internal server, the host of which can be
+  * (2) a partial function [[ProviderState => Unit]] provided by ProviderInfoBuilder#withStateChangeFunction which will
+  * be applied before each interaction is run. This works by using a mock internal server, the host of which can be
   * configured using [[ProviderInfoBuilder#withStateChangeFunctionConfigOverrides]]
   *
   * @param verificationSettings
