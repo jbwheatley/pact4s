@@ -20,10 +20,10 @@ object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite wit
       providerName = "Pact4sProvider",
       fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
     )
-    .withStateChangeFunction { case ProviderState("bob exists", params) =>
+    .withStateChangeFunction({ case ProviderState("bob exists", params) =>
       val _ = params.getOrElse("foo", fail("params missing value foo"))
       mock.stateRef.set(Some("bob")).unsafeRunSync()
-    }
+    }: PartialFunction[ProviderState, Unit])
     .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))
 
   pureTest("Verify pacts for provider `Pact4sProvider`") {
