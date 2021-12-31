@@ -48,9 +48,10 @@ trait PactVerifyResources {
       timeout: Option[FiniteDuration]
   ): Either[TimeoutException, VerificationResult] = timeout match {
     case Some(timeout) =>
-      try Right(
-        TimeLimiter.callWithTimeout(verify, timeout.toSeconds, TimeUnit.SECONDS)
-      )
+      try
+        Right(
+          TimeLimiter.callWithTimeout(verify, timeout.toSeconds, TimeUnit.SECONDS)
+        )
       catch {
         case e: TimeoutException => Left(e)
       }
