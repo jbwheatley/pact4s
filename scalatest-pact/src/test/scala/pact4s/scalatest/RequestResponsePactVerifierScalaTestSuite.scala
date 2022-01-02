@@ -23,7 +23,8 @@ class RequestResponsePactVerifierScalaTestSuite extends AnyFlatSpec with PactVer
     cleanUp = shutdown
   }
 
-  override def afterAll(): Unit = cleanUp.unsafeRunSync()
+  override def afterAll(): Unit =
+    cleanUp.unsafeRunSync()
 
   it should "Verify pacts for provider `Pact4sProvider`" in {
     verifyPacts()

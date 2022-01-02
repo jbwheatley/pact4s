@@ -37,7 +37,10 @@
       "description": "a request to find a friend",
       "providerStates": [
         {
-          "name": "bob exists"
+          "name": "bob exists",
+          "params": {
+            "foo": "bar"
+          }
         }
       ],
       "request": {
