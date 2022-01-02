@@ -24,7 +24,7 @@ object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite wit
       val _ = params.getOrElse("foo", fail("params missing value foo"))
       mock.stateRef.set(Some("bob")).unsafeRunSync()
     }: PartialFunction[ProviderState, Unit])
-    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))
+    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64640))
 
   pureTest("Verify pacts for provider `Pact4sProvider`") {
     succeed(verifyPacts())
