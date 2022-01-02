@@ -4,13 +4,14 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.MockProviderServer
+import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 
 class RequestResponsePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   val mock = new MockProviderServer(49158)
 
-  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
+  override val provider: ProviderInfoBuilder =
+    mock.brokerProviderInfo("Pact4sProvider")
 
   var cleanUp: IO[Unit] = IO.unit
 
@@ -19,7 +20,8 @@ class RequestResponsePactVerifierBrokerScalaTestSuite extends AnyFlatSpec with P
     cleanUp = shutdown
   }
 
-  override def afterAll(): Unit = cleanUp.unsafeRunSync()
+  override def afterAll(): Unit =
+    cleanUp.unsafeRunSync()
 
   it should "Verify pacts for provider `Pact4sProvider`" in {
     verifyPacts(

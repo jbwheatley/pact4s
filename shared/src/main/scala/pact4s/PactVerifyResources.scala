@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
+import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.{ProviderInfoBuilder, ProviderVerificationOption, PublishVerificationResults, ResponseBuilder}
 import sourcecode.{File, FileName, Line}
 
@@ -30,6 +31,13 @@ trait PactVerifyResources {
   type ResponseFactory = String => ResponseBuilder
 
   def provider: ProviderInfoBuilder
+
+  private[pact4s] lazy val stateChanger: StateChanger =
+    provider.stateManagement match {
+      case Some(StateManagementFunction(stateChangeFunc, host, port, endpoint)) =>
+        new StateChanger.SimpleServer(stateChangeFunc, host, port, endpoint)
+      case _ => StateChanger.NoOpStateChanger
+    }
 
   def responseFactory: Option[ResponseFactory] = None
 
@@ -98,6 +106,7 @@ trait PactVerifyResources {
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
+    stateChanger.start()
     val properties =
       publishVerificationResults
         .fold(providerVerificationOptions)(_ =>
@@ -124,5 +133,6 @@ trait PactVerifyResources {
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
     if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
+    stateChanger.shutdown()
   }
 }
