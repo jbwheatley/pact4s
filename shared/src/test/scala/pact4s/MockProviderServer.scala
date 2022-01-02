@@ -47,7 +47,7 @@ class MockProviderServer(port: Int) {
     jsonOf
   }
 
-  private val stateRef: Ref[IO, Option[String]] = Ref.unsafe(None)
+  private[pact4s] val stateRef: Ref[IO, Option[String]] = Ref.unsafe(None)
 
   private def app: HttpApp[IO] =
     HttpRoutes
