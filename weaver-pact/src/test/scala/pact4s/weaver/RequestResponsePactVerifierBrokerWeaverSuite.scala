@@ -2,16 +2,16 @@ package pact4s.weaver
 
 import cats.effect.{IO, Resource}
 import org.http4s.server.Server
-import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.MockProviderServer
+import pact4s.provider.{ProviderInfoBuilder, PublishVerificationResults}
 import weaver.IOSuite
 
-object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifierWithResources[IO] {
-  type Resources = Server
+object RequestResponsePactVerifierBrokerWeaverSuite extends IOSuite with PactVerifier {
+  type Res = Server
 
   val mock = new MockProviderServer(49163)
 
-  override def additionalSharedResource: Resource[IO, Server] = mock.server
+  override def sharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder = mock.brokerProviderInfo("Pact4sProvider")
 

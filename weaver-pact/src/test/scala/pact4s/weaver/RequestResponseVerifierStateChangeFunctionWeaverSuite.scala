@@ -7,12 +7,12 @@ import pact4s.MockProviderServer
 import pact4s.provider.{ProviderInfoBuilder, ProviderState}
 import weaver.IOSuite
 
-object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite with PactVerifierWithResources[IO] {
-  override type Resources = Server
+object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite with PactVerifier {
+  override type Res = Server
 
   val mock = new MockProviderServer(49170)
 
-  override def additionalSharedResource: Resource[IO, Server] = mock.server
+  override def sharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(

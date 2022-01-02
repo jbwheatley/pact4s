@@ -37,6 +37,7 @@ private[pact4s] object StateChanger {
 
   class SimpleServer(stateChange: PartialFunction[ProviderState, Unit], host: String, port: Int, endpoint: String)
       extends StateChanger {
+    private var isShutdown: Boolean         = true
     private var stopServer: () => Unit      = () => ()
     private var interruptThread: () => Unit = () => ()
 
@@ -48,6 +49,7 @@ private[pact4s] object StateChanger {
           server.createContext(slashedEndpoint, RootHandler)
           server.setExecutor(null)
           stopServer = () => server.stop(0)
+          isShutdown = false
           server.start()
         }
       }
@@ -56,10 +58,12 @@ private[pact4s] object StateChanger {
       t.start()
     }
 
-    def shutdown(): Unit = {
-      stopServer()
-      interruptThread()
-    }
+    def shutdown(): Unit =
+      if (!isShutdown) {
+        stopServer()
+        interruptThread()
+        isShutdown = true
+      }
 
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {

@@ -53,12 +53,6 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
           .unsafeRunSync()
       case None => Right(verify())
     }
-
-  override def beforeAll(): Unit =
-    stateChanger.start()
-
-  override def afterAll(): Unit =
-    stateChanger.shutdown()
 }
 
 trait MessagePactVerifier extends PactVerifier { _: CatsEffectSuite =>

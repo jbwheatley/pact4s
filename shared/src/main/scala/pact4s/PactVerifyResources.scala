@@ -32,7 +32,7 @@ trait PactVerifyResources {
 
   def provider: ProviderInfoBuilder
 
-  private[pact4s] def stateChanger: StateChanger =
+  private[pact4s] lazy val stateChanger: StateChanger =
     provider.stateManagement match {
       case Some(StateManagementFunction(stateChangeFunc, host, port, endpoint)) =>
         new StateChanger.SimpleServer(stateChangeFunc, host, port, endpoint)
@@ -106,6 +106,7 @@ trait PactVerifyResources {
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
+    stateChanger.start()
     val properties =
       publishVerificationResults
         .fold(providerVerificationOptions)(_ =>
@@ -132,5 +133,6 @@ trait PactVerifyResources {
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
     if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
+    stateChanger.shutdown()
   }
 }
