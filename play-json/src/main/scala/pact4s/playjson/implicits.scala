@@ -21,6 +21,7 @@ import pact4s.algebras.{MessagePactDecoder, PactBodyJsonEncoder, PactDslJsonBody
 import pact4s.provider.ProviderState
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json._
+import JsonConversion._
 
 import scala.util.Try
 
