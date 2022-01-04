@@ -68,10 +68,10 @@ private[pact4s] object StateChanger {
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {
         Try {
-          val json = JsonParser.parseStream(t.getRequestBody)
+          val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
           val params: Map[String, String] = maybeParams
-            .map(_.getEntries.asScala.map { case (k, v) => (k, v.asString())}.toMap)
+            .map(_.getEntries.asScala.map { case (k, v) => (k, v.asString()) }.toMap)
             .getOrElse(Map.empty)
           (json.get("state").asString(), params)
         }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
