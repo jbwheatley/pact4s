@@ -21,14 +21,13 @@ import java.io.File
 
 class MockProviderServer(port: Int) {
 
-  def server: Resource[IO, Server] = {
+  def server: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
       .withHttpApp(app)
       .build
-  }
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
     // Note: this is a simplified version of the decoder actually provided in circe module because the tests below do not use parameters other than string
