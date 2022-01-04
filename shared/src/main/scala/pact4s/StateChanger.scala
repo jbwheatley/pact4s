@@ -16,11 +16,11 @@
 
 package pact4s
 
+import au.com.dius.pact.core.support.json.JsonParser
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
 import java.net.InetSocketAddress
-import javax.json.Json
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -68,14 +68,12 @@ private[pact4s] object StateChanger {
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {
         Try {
-          val parser = Json.createParser(t.getRequestBody)
-          parser.next()
-          val obj         = parser.getObject
-          val maybeParams = Option(obj.getJsonObject("params"))
+          val json = JsonParser.parseStream(t.getRequestBody)
+          val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
           val params: Map[String, String] = maybeParams
-            .map(_.entrySet().asScala.map(kv => kv.getKey -> kv.getValue.toString).toMap)
+            .map(_.getEntries.asScala.map { case (k, v) => (k, v.asString())}.toMap)
             .getOrElse(Map.empty)
-          (obj.getString("state"), params)
+          (json.get("state").asString(), params)
         }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
         sendResponse(t)
       }
