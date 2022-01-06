@@ -26,7 +26,7 @@ import org.apache.http.message.BasicHeader
   * reaching the mock server.
   */
 trait ProviderRequestFilter {
-  def filter(request: HttpRequest): Unit
+  protected def filter(request: HttpRequest): Unit
   def andThen(that: ProviderRequestFilter): ProviderRequestFilter = (request: HttpRequest) => {
     this.filter(request)
     that.filter(request)
@@ -37,7 +37,9 @@ object ProviderRequestFilter {
   val NoOpFilter: ProviderRequestFilter = (_: HttpRequest) => ()
 
   sealed abstract class AddHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
-    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) => request.addHeader(name, value) }
+    protected def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) =>
+      request.addHeader(name, value)
+    }
   }
 
   object AddHeaders {
@@ -45,7 +47,7 @@ object ProviderRequestFilter {
   }
 
   sealed abstract class SetHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
-    def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) =>
+    protected def filter(request: HttpRequest): Unit = headers.foreach { case (name, value) =>
       request.setHeader(name, value)
     }
   }
@@ -55,7 +57,7 @@ object ProviderRequestFilter {
   }
 
   sealed abstract class OverwriteHeaders(headers: List[(String, String)]) extends ProviderRequestFilter {
-    def filter(request: HttpRequest): Unit = request.setHeaders(headers.map { case (name, value) =>
+    protected def filter(request: HttpRequest): Unit = request.setHeaders(headers.map { case (name, value) =>
       new BasicHeader(name, value)
     }.toArray)
   }
@@ -65,7 +67,7 @@ object ProviderRequestFilter {
   }
 
   sealed abstract class RemoveHeaders(headerNames: List[String]) extends ProviderRequestFilter {
-    override def filter(request: HttpRequest): Unit = headerNames.foreach(request.removeHeaders)
+    protected def filter(request: HttpRequest): Unit = headerNames.foreach(request.removeHeaders)
   }
 
   object RemoveHeaders {

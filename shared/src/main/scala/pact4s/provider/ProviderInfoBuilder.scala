@@ -111,7 +111,7 @@ final case class ProviderInfoBuilder(
     this.copy(stateManagement = withOverrides)
   }
 
-  @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "")
+  @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "0.0.19")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
     this.copy(requestFilter = request => requestFilter(request).reduceLeftOption(_ andThen _))
 
