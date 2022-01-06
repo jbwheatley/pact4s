@@ -1,19 +1,25 @@
 # pact4s
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.jbwheatley/pact4s-weaver_2.13.svg)](http://search.maven.org/#search%7Cga%7C1%7Cpact4s)
+![Tag](https://img.shields.io/github/v/tag/jbwheatley/pact4s?sort=semver)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 
 Lightweight wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) for commonly used scala testing frameworks. To find out more about consumer-driven contract testing, visit the Pact Foundation website [here](https://docs.pact.io/)! Supported scala versions are 2.12 and 2.13.<sup>1</sup>
 
 `pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
 
+---
+
+<sup>1</sup> _support for scala 3 is currently blocked by https://github.com/lampepfl/dotty/issues/12086, as pact-jvm is written in kotlin_
+
 ## Getting Started
+
+`pact4s` is available through maven-central. 
 
 This library provides support for `munit-cats-effect`, `weaver`, and `scalatest`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
 
 | Branch | Pact Spec | JDK |
 | ------ | ------------- | --- | 
-| [4.2.x](https://github.com/DiUS/pact-jvm/blob/v4.2.x/README.md) | V4* | 11+ |
+| [4.3.x](https://github.com/DiUS/pact-jvm/blob/v4.3.x/README.md) | V4* | 11+ |
 | [4.1.x](https://github.com/DiUS/pact-jvm/blob/v4.1.x/README.md) | V3 | 8-12 |
 
 All the modules in `pact4s` are built against both of these branches to accommodate all jdk versions. To use the java11+ modules, simply add one of the following dependencies to your project: 
@@ -23,14 +29,11 @@ All the modules in `pact4s` are built against both of these branches to accommod
 "io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
 ```
 
-We recommend using these modules if possible, as v4.2.x+ of pact-jvm will see longer continued support. But, if you are unable to use java11+ for your build, add one of the following to your project instead:
-```
-"io.github.jbwheatley" %% "pact4s-munit-cats-effect-java8" % xxx
-"io.github.jbwheatley" %% "pact4s-weaver-java8"            % xxx
-"io.github.jbwheatley" %% "pact4s-scalatest-java8"         % xxx
-```
+We also offer some additional helpers for using JSON encoders directly in your pact definitions. Currently, support is offered for `circe` and `play-json` in the modules `pact4s-circe` and `pact4s-play-json`, respectively. If you would like to see support for your favourite scala JSON library, consider submitting a PR!
 
-We also offer some additional helpers for using JSON encoders directly in your pact definitions. Currently, support is offered for `circe` in the modules `pact4s-circe`/`pact4s-circe-java8`. If you would like to see support for your favourite scala JSON library, consider submitting a PR!
+### Java 8 Support
+
+We recommend using java11+ for your build if possible, as v4.3.x+ of pact-jvm will see longer continued support. But, if you are unable to use java11+ for your build, versions that work with java 8 can be found with the version suffix `-java8`. e.g. instead of using version `0.1.0`, use version `0.1.0-java8`.
 
 **N.B.** If you try and use the non-java8 module versions, and your project is built on java8, you will see an error like this:
 
@@ -38,10 +41,6 @@ We also offer some additional helpers for using JSON encoders directly in your p
 java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
 ```
-
----
-
-<sup>1</sup> support for scala 3 is currently blocked by https://github.com/lampepfl/dotty/issues/12086, as pact-jvm is written in kotlin
 
 ## Writing Pacts
 
