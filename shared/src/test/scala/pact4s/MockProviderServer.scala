@@ -18,6 +18,7 @@ import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
 import pact4s.provider._
 
 import java.io.File
+import java.net.URL
 
 class MockProviderServer(port: Int) {
 
@@ -100,6 +101,7 @@ class MockProviderServer(port: Int) {
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
+      providerUrl = new URL("http://localhost:0/"),
       pactSource = FileSource(Map(consumerName -> new File(fileName)))
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
