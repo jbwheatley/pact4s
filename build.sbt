@@ -43,14 +43,14 @@ val moduleBase =
 lazy val shared =
   (project in file("shared")).settings(commonSettings)
     .settings(
-      name := "pact4s-core-java8",
+      name := "pact4s-core",
       libraryDependencies ++= Dependencies.shared
     )
 
 lazy val circe =
   (project in file("circe")).settings(commonSettings)
     .settings(
-      name := "pact4s-circe-java8",
+      name := "pact4s-circe",
       libraryDependencies ++= Dependencies.circe,
     )
     .dependsOn(shared)
@@ -58,7 +58,7 @@ lazy val circe =
 lazy val playJson =
   (project in file("play-json")).settings(commonSettings)
     .settings(
-      name := "pact4s-play-json-java8",
+      name := "pact4s-play-json",
       libraryDependencies ++= Dependencies.playJson
     )
     .dependsOn(shared)
@@ -66,7 +66,7 @@ lazy val playJson =
 lazy val munit =
   (project in file("munit-cats-effect-pact")).settings(commonSettings)
     .settings(
-      name := "pact4s-munit-cats-effect-java8",
+      name := "pact4s-munit-cats-effect",
       libraryDependencies ++= Dependencies.munit
     )
     .dependsOn(shared % "compile->compile;test->test")
@@ -75,7 +75,7 @@ lazy val munit =
 lazy val scalaTest =
   (project in file("scalatest-pact")).settings(commonSettings)
     .settings(
-      name := "pact4s-scalatest-java8",
+      name := "pact4s-scalatest",
       libraryDependencies ++= Dependencies.scalatest
     )
     .dependsOn(shared % "compile->compile;test->test")
@@ -85,7 +85,7 @@ lazy val weaver =
   (project in file("weaver-pact"))
     .settings(commonSettings)
     .settings(
-      name := "pact4s-weaver-java8",
+      name := "pact4s-weaver",
       libraryDependencies ++= Dependencies.weaver,
       testFrameworks ++= {
         if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
