@@ -27,6 +27,9 @@ import org.apache.hc.core5.http.message.BasicHeader
   */
 trait ProviderRequestFilter {
   protected def filter(request: HttpRequest): Unit
+
+  private[pact4s] def filterImpl(request: HttpRequest): Unit = filter(request)
+
   def andThen(that: ProviderRequestFilter): ProviderRequestFilter = (request: HttpRequest) => {
     this.filter(request)
     that.filter(request)
