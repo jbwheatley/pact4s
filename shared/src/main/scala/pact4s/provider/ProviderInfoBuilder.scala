@@ -124,7 +124,7 @@ final case class ProviderInfoBuilder(
       request.getUri,
       request.getHeaders.toList.map(h => (h.getName, h.getValue))
     )
-    requestFilter(providerRequest).foreach(_.filter(request))
+    requestFilter(providerRequest).foreach(_.filterImpl(request))
   }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
@@ -245,4 +245,14 @@ object ProviderInfoBuilder {
     */
   def apply(name: String, pactSource: PactSource): ProviderInfoBuilder =
     ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
+
+  def apply(name: String, providerUrl: URL, pactSource: PactSource): ProviderInfoBuilder =
+    ProviderInfoBuilder(
+      name,
+      providerUrl.getProtocol,
+      providerUrl.getHost,
+      providerUrl.getPort,
+      providerUrl.getPath,
+      pactSource
+    )
 }
