@@ -77,8 +77,8 @@ trait PactVerifyResources {
         val pending = failed.getPending
         val message =
           s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
-            " [PENDING]"
-          else ""}: '${failed.getDescription}'"
+              " [PENDING]"
+            else ""}: '${failed.getDescription}'"
         if (pending) pendingFailures += message else failures += message
       case Right(_: VerificationResult.Ok) => ()
       case Right(_)                        => ???
