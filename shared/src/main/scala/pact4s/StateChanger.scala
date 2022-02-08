@@ -20,7 +20,7 @@ import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
 import java.net.InetSocketAddress
-import javax.json.Json
+import javax.json.{Json, JsonValue}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -72,8 +72,17 @@ private[pact4s] object StateChanger {
           parser.next()
           val obj         = parser.getObject
           val maybeParams = Option(obj.getJsonObject("params"))
+          // This needs work.
           val params: Map[String, String] = maybeParams
-            .map(_.entrySet().asScala.map(kv => kv.getKey -> kv.getValue.toString).toMap)
+            .map(_.entrySet().asScala.map { kv =>
+              val key   = kv.getKey
+              val value = kv.getValue
+              val fixedValue = value.getValueType match {
+                case JsonValue.ValueType.STRING => value.toString.init.tail
+                case _                          => value.toString
+              }
+              key -> fixedValue
+            }.toMap)
             .getOrElse(Map.empty)
           (obj.getString("state"), params)
         }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
