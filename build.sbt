@@ -107,7 +107,8 @@ lazy val example =
     .settings(
       name := "example",
       libraryDependencies ++= Dependencies.example,
-      publish / skip := true
+      publish / skip := true,
+      Test / skip := true
     )
     .dependsOn(munit % "test", scalaTest % "test")
 
