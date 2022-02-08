@@ -56,4 +56,14 @@ object Dependencies {
     "org.scalameta"     %% "munit"     % _munit % Test
   )
 
+  val example: Seq[ModuleID] = Seq(
+    "org.http4s"    %% "http4s-ember-client" % http4s,
+    "org.http4s"    %% "http4s-dsl"          % http4s,
+    "org.http4s"    %% "http4s-ember-server" % http4s,
+    "org.http4s"    %% "http4s-circe"        % http4s,
+    "io.circe"      %% "circe-core"          % _circe,
+    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test,
+    "org.scalatest" %% "scalatest"           % _scalatest      % Test
+  )
+
 }

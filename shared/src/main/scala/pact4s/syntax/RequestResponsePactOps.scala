@@ -69,17 +69,15 @@ object RequestResponsePactOps {
     def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
 
-    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
-      builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, params.asJava)
   }
 
   class PactDslWithProviderOps(val builder: PactDslWithProvider) extends AnyVal {
-    def `given`(state: String, params: Map[String, Object]): PactDslWithState =
-      builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, params.asJava)
   }
 
   class PactDslWithStateOps(val builder: PactDslWithState) extends AnyVal {
-    def `given`(stateDesc: String, params: Map[String, Object]): PactDslWithState =
+    def `given`(stateDesc: String, params: Map[String, Any]): PactDslWithState =
       builder.`given`(stateDesc, params.asJava)
   }
 }

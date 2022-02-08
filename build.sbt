@@ -96,6 +96,16 @@ lazy val weaver =
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
+lazy val example =
+  (project in file("example"))
+    .settings(commonSettings)
+    .settings(
+      name := "example",
+      libraryDependencies ++= Dependencies.example,
+      publish / skip := true
+    )
+    .dependsOn(munit % "test", scalaTest % "test")
+
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)
   .enablePlugins(AutomateHeaderPlugin)
@@ -105,7 +115,8 @@ lazy val pact4s = (project in file("."))
     weaver,
     shared,
     circe,
-    playJson
+    playJson,
+    example
   )
 
 addCommandAlias(
