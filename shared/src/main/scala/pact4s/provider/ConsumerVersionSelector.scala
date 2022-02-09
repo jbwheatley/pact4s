@@ -18,10 +18,11 @@ package pact4s
 package provider
 
 import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
+import au.com.dius.pact.core.support.json.JsonValue
 
 /** @see
   *   https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors/ and
-  *   https://github.com/pact-foundation/pact_broker/issues/307 Gets converted into a
+  *   https://github.com/pact-foundation/pact_broker/issues/307. Gets converted into a
   *   au.com.dius.pact.core.pactbroker.ConsumerVersionSelector under the hood.
   *
   * @param tag
@@ -38,17 +39,42 @@ import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelec
   *   multiple consumers, one of which is a deployed service, and one of which is a mobile consumer. The deployed
   *   service only needs the latest production pact verified, where as the mobile consumer may want all the production
   *   pacts verified.
+  * @param additionalSelectors
+  *   see
+  *   https://github.com/pact-foundation/pact_broker/blob/master/lib/pact_broker/doc/views/provider-pacts-for-verification.markdown
+  *   for a list of available selectors that can be set. This list is subject to change and so we leave it to the user
+  *   add any other selectors they require here rather than having them as strongly-typed fields.
   */
 final case class ConsumerVersionSelector(
     tag: Option[String] = None,
     latest: Boolean = true,
     fallbackTag: Option[String] = None,
-    consumer: Option[String] = None
+    consumer: Option[String] = None,
+    additionalSelectors: Map[String, Any] = Map.empty
 ) {
   def withTag(tag: String): ConsumerVersionSelector           = this.copy(tag = Some(tag))
   def withFallbackTag(tag: String): ConsumerVersionSelector   = this.copy(fallbackTag = Some(tag))
   def withConsumer(consumer: String): ConsumerVersionSelector = this.copy(consumer = Some(consumer))
 
-  private[pact4s] def toPactJVMSelector: PactJVMSelector =
+  private def toPactJVMSelector: PactJVMSelector =
     new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
+
+  /*
+  May need improvement if selectors with array values are allowed, but at the time of writing only Boolean and String are expected.
+   */
+  private[pact4s] def toJson: JsonValue = {
+    val json = toPactJVMSelector.toJson.asObject()
+    additionalSelectors.foreach { case (k, v) =>
+      v match {
+        case bool: Boolean =>
+          bool match {
+            case true  => json.add(k, JsonValue.True.INSTANCE)
+            case false => json.add(k, JsonValue.False.INSTANCE)
+          }
+        case _ =>
+          json.add(k, new JsonValue.StringValue(v.toString))
+      }
+    }
+    json
+  }
 }
