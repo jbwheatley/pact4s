@@ -50,27 +50,37 @@ final case class ConsumerVersionSelector(
     latest: Boolean = true,
     fallbackTag: Option[String] = None,
     consumer: Option[String] = None,
+    branch: Option[String] = None,
+    mainBranch: Option[Boolean],
+    matchingBranch: Option[Boolean],
     additionalSelectors: Map[String, Any] = Map.empty
 ) {
-  def withTag(tag: String): ConsumerVersionSelector           = this.copy(tag = Some(tag))
-  def withFallbackTag(tag: String): ConsumerVersionSelector   = this.copy(fallbackTag = Some(tag))
-  def withConsumer(consumer: String): ConsumerVersionSelector = this.copy(consumer = Some(consumer))
+  def withTag(tag: String): ConsumerVersionSelector                = this.copy(tag = Some(tag))
+  def withFallbackTag(tag: String): ConsumerVersionSelector        = this.copy(fallbackTag = Some(tag))
+  def withConsumer(consumer: String): ConsumerVersionSelector      = this.copy(consumer = Some(consumer))
+  def withBranch(branch: String): ConsumerVersionSelector          = this.copy(branch = Some(branch))
+  def withMainBranch(mainBranch: Boolean): ConsumerVersionSelector = this.copy(mainBranch = Some(mainBranch))
+  def withMatchingBranch(matchingBranch: Boolean): ConsumerVersionSelector =
+    this.copy(matchingBranch = Some(matchingBranch))
+  def withAdditionalSelectors(selectors: (String, Any)*): ConsumerVersionSelector =
+    this.copy(additionalSelectors = Map.from(selectors))
 
   private def toPactJVMSelector: PactJVMSelector =
     new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
 
+  private def boolToJson(b: Boolean): JsonValue = if (b) JsonValue.True.INSTANCE else JsonValue.False.INSTANCE
   /*
   May need improvement if selectors with array values are allowed, but at the time of writing only Boolean and String are expected.
    */
   private[pact4s] def toJson: JsonValue = {
     val json = toPactJVMSelector.toJson.asObject()
+    branch.foreach(b => json.add("branch", new JsonValue.StringValue(b)))
+    mainBranch.foreach(b => json.add("mainBranch", boolToJson(b)))
+    matchingBranch.foreach(b => json.add("matchingBranch", boolToJson(b)))
     additionalSelectors.foreach { case (k, v) =>
       v match {
         case bool: Boolean =>
-          bool match {
-            case true  => json.add(k, JsonValue.True.INSTANCE)
-            case false => json.add(k, JsonValue.False.INSTANCE)
-          }
+          json.add(k, boolToJson(bool))
         case _ =>
           json.add(k, new JsonValue.StringValue(v.toString))
       }
