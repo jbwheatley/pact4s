@@ -103,7 +103,7 @@ lazy val example =
       name := "example",
       libraryDependencies ++= Dependencies.example,
       publish / skip := true,
-      Test / skip := true
+      Test / skip    := true
     )
     .dependsOn(munit % "test", scalaTest % "test")
 
