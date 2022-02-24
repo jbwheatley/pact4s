@@ -28,10 +28,12 @@ object PublishVerificationResults {
   def apply(providerVersion: String, providerTags: List[String]): PublishVerificationResults =
     PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags), None)
 
-  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, None, None)
+  def apply(providerVersion: String): PublishVerificationResults =
+    PublishVerificationResults(providerVersion, None, None)
 
   def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
     PublishVerificationResults(providerVersion, Some(providerTags), None)
 
-  def apply(providerVersion: String, providerBranch: Branch) = PublishVerificationResults(providerVersion, None, Some(providerBranch))
+  def apply(providerVersion: String, providerBranch: Branch): PublishVerificationResults =
+    PublishVerificationResults(providerVersion, None, Some(providerBranch))
 }
