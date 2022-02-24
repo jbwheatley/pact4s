@@ -126,6 +126,7 @@ trait PactVerifyResources {
     verifier.setProviderTags(() =>
       publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
     )
+    verifier.setProviderBranch(() => publishVerificationResults.flatMap(_.providerBranch).map(_.branch).getOrElse(""))
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
 

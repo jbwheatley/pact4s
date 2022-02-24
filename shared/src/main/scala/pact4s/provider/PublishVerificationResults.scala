@@ -19,16 +19,19 @@ package provider
 
 final case class PublishVerificationResults(
     providerVersion: String,
-    providerTags: Option[ProviderTags]
+    providerTags: Option[ProviderTags],
+    providerBranch: Option[Branch]
 )
 
 object PublishVerificationResults {
   @deprecated("use ProviderTags(..) or ProviderTags.fromList(..) rather than List[String]", "0.0.19")
   def apply(providerVersion: String, providerTags: List[String]): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags))
+    PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags), None)
 
-  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, None)
+  def apply(providerVersion: String): PublishVerificationResults = PublishVerificationResults(providerVersion, None, None)
 
   def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, Some(providerTags))
+    PublishVerificationResults(providerVersion, Some(providerTags), None)
+
+  def apply(providerVersion: String, providerBranch: Branch) = PublishVerificationResults(providerVersion, None, Some(providerBranch))
 }
