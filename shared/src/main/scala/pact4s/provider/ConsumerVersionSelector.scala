@@ -51,8 +51,8 @@ final case class ConsumerVersionSelector(
     fallbackTag: Option[String] = None,
     consumer: Option[String] = None,
     branch: Option[String] = None,
-    mainBranch: Option[Boolean],
-    matchingBranch: Option[Boolean],
+    mainBranch: Option[Boolean] = None,
+    matchingBranch: Option[Boolean] = None,
     additionalSelectors: Map[String, Any] = Map.empty
 ) {
   def withTag(tag: String): ConsumerVersionSelector                = this.copy(tag = Some(tag))
@@ -63,7 +63,7 @@ final case class ConsumerVersionSelector(
   def withMatchingBranch(matchingBranch: Boolean): ConsumerVersionSelector =
     this.copy(matchingBranch = Some(matchingBranch))
   def withAdditionalSelectors(selectors: (String, Any)*): ConsumerVersionSelector =
-    this.copy(additionalSelectors = Map.from(selectors))
+    this.copy(additionalSelectors = selectors.toMap)
 
   private def toPactJVMSelector: PactJVMSelector =
     new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
@@ -75,8 +75,8 @@ final case class ConsumerVersionSelector(
   private[pact4s] def toJson: JsonValue = {
     val json = toPactJVMSelector.toJson.asObject()
     branch.foreach(b => json.add("branch", new JsonValue.StringValue(b)))
-    mainBranch.foreach(b => json.add("mainBranch", boolToJson(b)))
-    matchingBranch.foreach(b => json.add("matchingBranch", boolToJson(b)))
+    mainBranch.foreach(b => json.add("main_branch", boolToJson(b)))
+    matchingBranch.foreach(b => json.add("matching_branch", boolToJson(b)))
     additionalSelectors.foreach { case (k, v) =>
       v match {
         case bool: Boolean =>

@@ -1,6 +1,6 @@
 package pact4s
 
-import cats.effect.kernel.Ref
+import cats.effect.kernel.{Deferred, Ref}
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
@@ -20,7 +20,9 @@ import pact4s.provider._
 import java.io.File
 import java.net.URL
 
-class MockProviderServer(port: Int) {
+class MockProviderServer(port: Int, hasFeatureX: Boolean = false) {
+
+  val featureXState: Deferred[IO, Boolean] = Deferred.unsafe
 
   def server: Resource[IO, Server] =
     EmberServerBuilder
@@ -84,6 +86,9 @@ class MockProviderServer(port: Int) {
               stateRef.set(Some("bob")) *> Ok()
             case _ => Ok()
           }
+        case GET -> Root / "feature-x" if hasFeatureX =>
+          featureXState.complete(true) *>
+            NoContent()
       }
       .orNotFound
 
@@ -110,7 +115,8 @@ class MockProviderServer(port: Int) {
 
   def brokerProviderInfo(
       providerName: String,
-      verificationSettings: Option[VerificationSettings] = None
+      verificationSettings: Option[VerificationSettings] = None,
+      consumerVersionSelector: ConsumerVersionSelector = ConsumerVersionSelector()
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
@@ -118,7 +124,7 @@ class MockProviderServer(port: Int) {
         brokerUrl = "https://test.pact.dius.com.au"
       ).withPendingPactsEnabled(ProviderTags("SNAPSHOT"))
         .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withSelectors(ConsumerVersionSelector())
+        .withSelectors(consumerVersionSelector)
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
