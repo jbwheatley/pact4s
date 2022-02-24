@@ -1,24 +1,25 @@
-package pact4s.scalatest
+package pact4s.scalatest.requestresponse
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.{RequestResponseInteraction, RequestResponsePact}
 import cats.effect.IO
-import org.http4s.ember.client.EmberClientBuilder
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import cats.effect.unsafe.implicits.global
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
-import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
-import org.typelevel.ci.CIString
-import pact4s.circe.implicits._
 import org.http4s.circe._
 import org.http4s.client.Client
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
+import org.http4s._
 import org.scalatest.Assertion
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.typelevel.ci.CIString
+import pact4s.circe.implicits._
+import pact4s.scalatest.RequestResponsePactForger
 
-class RequestResponsePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with RequestResponsePactForger {
+class PactForgerSuite extends AnyFlatSpec with Matchers with RequestResponsePactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./scalatest-pact/target/pacts"
   )

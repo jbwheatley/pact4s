@@ -1,4 +1,4 @@
-package pact4s.scalatest.issue19
+package pact4s.scalatest.message.issue19
 
 import au.com.dius.pact.provider.{MessageAndMetadata, PactVerifyProvider}
 import io.circe.Json
@@ -23,7 +23,7 @@ class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterA
     consumerName = "Pact4sMessageConsumer",
     providerName = "Pact4sMessageProvider",
     fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
-    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.scalatest.issue19")))
+    verificationSettings = Some(AnnotatedMethodVerificationSettings(packagesToScan = List("pact4s.scalatest.message.issue19")))
   )
 
   @PactVerifyProvider("A message to say goodbye")
