@@ -9,15 +9,16 @@ import pact4s.MockProviderServer
 import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.scalatest.PactVerifier
 
-class PactVerifierBrokerSuite
-    extends AnyFlatSpec
-    with PactVerifier
-    with BeforeAndAfterAll
-    with Matchers {
-  val mock = new MockProviderServer(49158)
+import scala.concurrent.duration._
+
+class PactVerifierBrokerMatchingBranchSuite extends AnyFlatSpec
+  with PactVerifier
+  with BeforeAndAfterAll
+  with Matchers {
+  val mock = new MockProviderServer(49300, hasFeatureX = true)
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMainBranch(true))
+    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true))
 
   var cleanUp: IO[Unit] = IO.unit
 
@@ -29,17 +30,15 @@ class PactVerifierBrokerSuite
   override def afterAll(): Unit =
     cleanUp.unsafeRunSync()
 
-  it should "Verify pacts for provider `Pact4sProvider`, scalatest" in {
+  it should "Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, scalatest" in {
     verifyPacts(
       publishVerificationResults = Some(
         PublishVerificationResults(
           providerVersion = "SNAPSHOT",
-          providerBranch = Branch.MAIN
+          providerBranch = Branch("feat/x")
         )
       )
     )
-    mock.featureXState.tryGet.unsafeRunSync() shouldBe None
+    mock.featureXState.get.unsafeRunTimed(10.seconds) shouldBe Some(true)
   }
 }
-
-
