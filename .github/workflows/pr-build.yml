@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
         with:
-          java-version: adoptium@17
+          java-version: temurin@17
       - run: sbt commitCheck
         env:
           TEST_WEAVER: false
