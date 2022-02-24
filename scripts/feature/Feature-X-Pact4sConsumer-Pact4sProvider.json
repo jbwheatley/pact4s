@@ -53,6 +53,16 @@
         },
         "status": 200
       }
+    },
+    {
+      "description": "a request to test feature x",
+      "request": {
+        "method": "GET",
+        "path": "/feature-x"
+      },
+      "response": {
+        "status": 204
+      }
     }
   ],
   "metadata": {
