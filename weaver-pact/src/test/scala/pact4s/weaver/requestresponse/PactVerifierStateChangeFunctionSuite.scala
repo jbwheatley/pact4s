@@ -1,13 +1,14 @@
-package pact4s.weaver
+package pact4s.weaver.requestresponse
 
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import org.http4s.server.Server
 import pact4s.MockProviderServer
 import pact4s.provider.{ProviderInfoBuilder, ProviderState}
+import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
-object RequestResponseVerifierStateChangeFunctionWeaverSuite extends IOSuite with PactVerifier {
+object PactVerifierStateChangeFunctionSuite extends IOSuite with PactVerifier {
   override type Res = Server
 
   val mock = new MockProviderServer(49170)

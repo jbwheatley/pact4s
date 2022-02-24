@@ -1,21 +1,22 @@
-package pact4s.weaver
+package pact4s.weaver.requestresponse
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.{IO, Resource}
-import cats.implicits.catsSyntaxApplicativeId
+import cats.syntax.all._
 import io.circe.Json
-import io.circe.syntax.EncoderOps
-import org.http4s.circe.jsonEncoder
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
-import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
+import org.http4s._
+import org.http4s.circe._
 import org.typelevel.ci.CIString
-import weaver.IOSuite
+import pact4s.weaver.RequestResponsePactForger
+import io.circe.syntax.EncoderOps
 import pact4s.circe.implicits._
+import weaver.IOSuite
 
-object RequestResponsePactForgerWeaverSuite extends IOSuite with RequestResponsePactForger[IO] {
+object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./weaver-pact/target/pacts"
   )
