@@ -7,17 +7,17 @@ import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, Pu
 import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
-object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
+object PactVerifierBrokerMatchingBranchSuite extends IOSuite with PactVerifier {
   type Res = Server
 
-  val mock = new MockProviderServer(49163)
+  val mock = new MockProviderServer(49273, hasFeatureX = true)
 
   override def sharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMainBranch(true))
+    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true))
 
-  test("Verify pacts for provider `Pact4sProvider`, weaver") {
+  test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, weaver") {
     for {
       a <- IO(
         succeed(
@@ -25,14 +25,13 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
             publishVerificationResults = Some(
               PublishVerificationResults(
                 providerVersion = "SNAPSHOT",
-                providerBranch = Branch.MAIN
+                providerBranch = Branch("feat/x")
               )
             )
           )
         )
       )
       x <- mock.featureXState.tryGet
-    } yield a && assert(x.isEmpty)
+    } yield a && assert(x.contains(true))
   }
 }
-

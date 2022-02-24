@@ -6,11 +6,11 @@ import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
 import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, PublishVerificationResults}
 
-class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
-  val mock = new MockProviderServer(49154)
+class PactVerifierBrokerMatchingBranchSuite extends CatsEffectSuite with PactVerifier {
+  val mock = new MockProviderServer(49264, hasFeatureX = true)
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMainBranch(true))
+    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true))
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
     ResourceSuiteLocalFixture(
@@ -19,18 +19,16 @@ class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
     )
   )
 
-  test("Verify pacts for provider `Pact4sProvider`, munit") {
+  test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, munit") {
     IO(
       verifyPacts(
         publishVerificationResults = Some(
           PublishVerificationResults(
             providerVersion = "SNAPSHOT",
-            providerBranch = Branch.MAIN
+            providerBranch = Branch("feat/x")
           )
         )
       )
-    ) *> mock.featureXState.tryGet.assertEquals(None)
+    ) *> mock.featureXState.tryGet.assertEquals(Some(true))
   }
 }
-
-
