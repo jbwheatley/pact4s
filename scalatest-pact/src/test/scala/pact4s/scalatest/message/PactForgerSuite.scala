@@ -1,4 +1,4 @@
-package pact4s.scalatest
+package pact4s.scalatest.message
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
@@ -8,8 +8,9 @@ import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pact4s.circe.implicits._
+import pact4s.scalatest.MessagePactForger
 
-class MessagePactForgerScalaTestSuite extends AnyFlatSpec with Matchers with MessagePactForger {
+class PactForgerSuite extends AnyFlatSpec with Matchers with MessagePactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./scalatest-pact/target/pacts"
   )

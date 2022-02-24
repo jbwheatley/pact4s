@@ -1,11 +1,12 @@
-package pact4s.weaver
+package pact4s.weaver.message
 
 import pact4s.MockProviderServer
 import pact4s.messages.MessagesProvider
 import pact4s.provider.ProviderInfoBuilder
+import pact4s.weaver.MessagePactVerifier
 import weaver.SimpleIOSuite
 
-object MessagePactVerifierWeaverTestSuite extends SimpleIOSuite with MessagePactVerifier {
+object PactVerifierFileSuite extends SimpleIOSuite with MessagePactVerifier {
   val mock = new MockProviderServer(49162)
 
   def messages: ResponseFactory = MessagesProvider.messages

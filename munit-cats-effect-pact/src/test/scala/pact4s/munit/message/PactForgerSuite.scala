@@ -1,4 +1,4 @@
-package pact4s.weaver
+package pact4s.munit.message
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.MessagePact
@@ -6,11 +6,11 @@ import cats.effect.IO
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import pact4s.circe.implicits._
-import weaver.IOSuite
+import pact4s.munit.MessagePactForger
 
-object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactForger[IO] {
+class PactForgerSuite extends MessagePactForger {
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./weaver-pact/target/pacts"
+    "./munit-cats-effect-pact/target/pacts"
   )
 
   val pact: MessagePact = Pact4sMessagePactBuilder()
@@ -27,28 +27,26 @@ object MessagePactForgerWeaverTestSuite extends IOSuite with SimpleMessagePactFo
     .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
     .toMessagePact
 
-  test("weaver message pact test") { messages =>
-    IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))
-      .map(s => expect(s == "harry")) *>
-      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).map(s => expect(s == "there"))
+  test("munit message pact test") {
+    IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello"))).assertEquals("harry") *>
+      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).assertEquals("there")
   }
 
-  test("another weaver message pact test") { messages =>
-    IO.fromEither(messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye"))).map(s => expect(s == "harry"))
+  test("another munit message pact test") {
+    IO.fromEither(messages(1).as[Json].flatMap(_.hcursor.get[String]("goodbye"))).assertEquals("harry")
   }
 
-  test("send a message with a nested array in its body") { messages =>
-    IO.fromEither(messages(2).as[Json].flatMap(_.hcursor.get[List[Int]]("array")))
-      .map(list => expect(list == List(1, 2, 3)))
+  test("send a message with a nested array in its body") {
+    IO.fromEither(messages(2).as[Json].flatMap(_.hcursor.get[List[Int]]("array"))).assertEquals(List(1, 2, 3))
   }
 
-  test("send a message with a json array as its content") { messages =>
+  test("send a message with a json array as its content") {
     val res = for {
       json <- messages(3).as[Json]
       acur = json.hcursor.downArray
       int  <- acur.get[Int]("a")
       bool <- acur.right.get[Boolean]("b")
     } yield (int, bool)
-    IO.fromEither(res).map(tup => expect(tup == ((1, true))))
+    IO.fromEither(res).assertEquals((1, true))
   }
 }

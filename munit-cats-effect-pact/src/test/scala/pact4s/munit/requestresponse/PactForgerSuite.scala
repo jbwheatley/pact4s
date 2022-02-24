@@ -1,4 +1,4 @@
-package pact4s.munit
+package pact4s.munit.requestresponse
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
@@ -7,13 +7,14 @@ import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import org.http4s.circe.jsonEncoder
-import org.http4s.{Header, Headers, MediaType, Method, Request, Uri}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
+import org.http4s._
 import org.typelevel.ci.CIString
 import pact4s.circe.implicits._
+import pact4s.munit.RequestResponsePactForger
 
-class RequestResponsePactForgerMUnitSuite extends RequestResponsePactForger {
+class PactForgerSuite extends RequestResponsePactForger {
 
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./munit-cats-effect-pact/target/pacts"
