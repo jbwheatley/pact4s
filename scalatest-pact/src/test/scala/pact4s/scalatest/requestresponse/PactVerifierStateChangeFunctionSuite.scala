@@ -8,10 +8,7 @@ import pact4s.MockProviderServer
 import pact4s.provider.{ProviderInfoBuilder, ProviderState}
 import pact4s.scalatest.PactVerifier
 
-class PactVerifierStateChangeFunctionSuite
-    extends AnyFlatSpec
-    with PactVerifier
-    with BeforeAndAfterAll {
+class PactVerifierStateChangeFunctionSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   val mock = new MockProviderServer(49171)
 
   override val provider: ProviderInfoBuilder = mock
