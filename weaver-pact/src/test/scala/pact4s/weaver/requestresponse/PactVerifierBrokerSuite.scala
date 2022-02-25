@@ -35,4 +35,3 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
     } yield a && assert(x.isEmpty)
   }
 }
-
