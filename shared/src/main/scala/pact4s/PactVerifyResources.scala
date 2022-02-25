@@ -130,10 +130,11 @@ trait PactVerifyResources {
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
 
+    stateChanger.shutdown()
+
     val failedMessages  = failures.toList
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
     if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
-    stateChanger.shutdown()
   }
 }

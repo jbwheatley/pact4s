@@ -34,7 +34,8 @@ val commonSettings = Seq(
   resolvers ++= Seq(
     Resolver.mavenLocal,
     Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  )
+  ),
+  Test / parallelExecution := false
 )
 
 val moduleBase =
@@ -52,6 +53,7 @@ lazy val circe =
     .settings(
       name := "pact4s-circe",
       libraryDependencies ++= Dependencies.circe,
+      Test / parallelExecution := true
     )
     .dependsOn(shared)
 
@@ -59,7 +61,8 @@ lazy val playJson =
   (project in file("play-json")).settings(commonSettings)
     .settings(
       name := "pact4s-play-json",
-      libraryDependencies ++= Dependencies.playJson
+      libraryDependencies ++= Dependencies.playJson,
+      Test / parallelExecution := true
     )
     .dependsOn(shared)
 
@@ -126,6 +129,15 @@ addCommandAlias(
     "scalafmtCheck",
     "headerCheck",
     "+compile:doc",
+    "project munit",
+    "+test",
+    "project weaver",
+    "+test",
+    "project scalaTest",
+    "+test",
+    "project circe",
+    "+test",
+    "project playJson",
     "+test"
   )
     .mkString(";", ";", "")

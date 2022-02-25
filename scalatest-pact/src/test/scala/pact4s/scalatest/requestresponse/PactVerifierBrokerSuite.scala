@@ -9,11 +9,7 @@ import pact4s.MockProviderServer
 import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.scalatest.PactVerifier
 
-class PactVerifierBrokerSuite
-    extends AnyFlatSpec
-    with PactVerifier
-    with BeforeAndAfterAll
-    with Matchers {
+class PactVerifierBrokerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll with Matchers {
   val mock = new MockProviderServer(49158)
 
   override val provider: ProviderInfoBuilder =
@@ -41,5 +37,3 @@ class PactVerifierBrokerSuite
     mock.featureXState.tryGet.unsafeRunSync() shouldBe None
   }
 }
-
-
