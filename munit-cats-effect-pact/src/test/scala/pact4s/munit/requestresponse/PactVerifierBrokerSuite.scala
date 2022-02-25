@@ -32,5 +32,3 @@ class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
     ) *> mock.featureXState.tryGet.assertEquals(None)
   }
 }
-
-

@@ -10,12 +10,15 @@ import weaver.IOSuite
 object PactVerifierBrokerMatchingBranchSuite extends IOSuite with PactVerifier {
   type Res = Server
 
-  val mock = new MockProviderServer(49273, hasFeatureX = true)
+  val mock = new MockProviderServer(49274, hasFeatureX = true)
 
   override def sharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true))
+    mock.brokerProviderInfo(
+      "Pact4sProvider",
+      consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true)
+    )
 
   test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, weaver") {
     for {
@@ -31,7 +34,7 @@ object PactVerifierBrokerMatchingBranchSuite extends IOSuite with PactVerifier {
           )
         )
       )
-      x <- mock.featureXState.tryGet
-    } yield a && assert(x.contains(true))
+      x <- mock.featureXState.get
+    } yield a && assert(x)
   }
 }

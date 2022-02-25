@@ -11,11 +11,7 @@ import pact4s.scalatest.PactVerifier
 
 import scala.concurrent.duration._
 
-class PactVerifierBrokerFeatureBranchSuite
-    extends AnyFlatSpec
-    with PactVerifier
-    with BeforeAndAfterAll
-    with Matchers {
+class PactVerifierBrokerFeatureBranchSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll with Matchers {
   val mock = new MockProviderServer(49200, hasFeatureX = true)
 
   override val provider: ProviderInfoBuilder =
