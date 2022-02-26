@@ -1,0 +1,79 @@
+{
+  "consumer": {
+    "name": "Pact4sConsumer"
+  },
+  "interactions": [
+    {
+      "description": "a request to say Goodbye",
+      "request": {
+        "method": "GET",
+        "path": "/goodbye"
+      },
+      "response": {
+        "status": 204
+      }
+    },
+    {
+      "description": "a request to say Hello",
+      "request": {
+        "body": {
+          "name": "harry"
+        },
+        "headers": {
+          "Content-Type": "application/json",
+          "other-header": "howdy"
+        },
+        "method": "POST",
+        "path": "/hello"
+      },
+      "response": {
+        "body": {
+          "hello": "harry"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to find a friend",
+      "providerStates": [
+        {
+          "name": "bob exists",
+          "params": {
+            "foo": "bar"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/anyone-there"
+      },
+      "response": {
+        "body": {
+          "found": "bob"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to test feature x",
+      "request": {
+        "method": "GET",
+        "path": "/feature-x"
+      },
+      "response": {
+        "status": 204
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "Pact4sProvider"
+  }
+}

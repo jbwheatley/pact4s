@@ -77,8 +77,8 @@ trait PactVerifyResources {
         val pending = failed.getPending
         val message =
           s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
-            " [PENDING]"
-          else ""}: '${failed.getDescription}'"
+              " [PENDING]"
+            else ""}: '${failed.getDescription}'"
         if (pending) pendingFailures += message else failures += message
       case Right(_: VerificationResult.Ok) => ()
       case Right(_)                        => ???
@@ -126,13 +126,15 @@ trait PactVerifyResources {
     verifier.setProviderTags(() =>
       publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
     )
+    verifier.setProviderBranch(() => publishVerificationResults.flatMap(_.providerBranch).map(_.branch).getOrElse(""))
 
     providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
+
+    stateChanger.shutdown()
 
     val failedMessages  = failures.toList
     val pendingMessages = pendingFailures.toList
     if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
     if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
-    stateChanger.shutdown()
   }
 }

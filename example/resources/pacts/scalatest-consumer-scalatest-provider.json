@@ -1,0 +1,123 @@
+{
+  "consumer": {
+    "name": "scalatest-consumer"
+  },
+  "interactions": [
+    {
+      "description": "Request to fetch resource with wrong auth",
+      "request": {
+        "headers": {
+          "Authorization": "Basic dXNlcjp3cm9uZw=="
+        },
+        "method": "GET",
+        "path": "/resource/testID"
+      },
+      "response": {
+        "status": 401
+      }
+    },
+    {
+      "description": "Request to create new resource",
+      "providerStates": [
+        {
+          "name": "resource does not exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "id": "newID",
+          "value": 234
+        },
+        "headers": {
+          "Authorization": "Basic dXNlcjpwYXNz"
+        },
+        "method": "POST",
+        "path": "/resource"
+      },
+      "response": {
+        "status": 204
+      }
+    },
+    {
+      "description": "Request to fetch missing resource",
+      "providerStates": [
+        {
+          "name": "resource does not exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Basic dXNlcjpwYXNz"
+        },
+        "method": "GET",
+        "path": "/resource/missingID"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "Request to create resource that already exists",
+      "providerStates": [
+        {
+          "name": "resource exists",
+          "params": {
+            "id": "conflict",
+            "value": 234
+          }
+        }
+      ],
+      "request": {
+        "body": {
+          "id": "conflict",
+          "value": 234
+        },
+        "headers": {
+          "Authorization": "Basic dXNlcjpwYXNz"
+        },
+        "method": "POST",
+        "path": "/resource"
+      },
+      "response": {
+        "status": 409
+      }
+    },
+    {
+      "description": "Request to fetch extant resource",
+      "providerStates": [
+        {
+          "name": "resource exists",
+          "params": {
+            "id": "testID",
+            "value": 123
+          }
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Basic dXNlcjpwYXNz"
+        },
+        "method": "GET",
+        "path": "/resource/testID"
+      },
+      "response": {
+        "body": {
+          "id": "testID",
+          "value": 123
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.3.4"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "scalatest-provider"
+  }
+}

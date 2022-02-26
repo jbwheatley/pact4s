@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
         with:
-          java-version: adoptium@17
+          java-version: temurin@17
       - uses: olafurpg/setup-gpg@v3
       - run: sbt ci-release
         env:
