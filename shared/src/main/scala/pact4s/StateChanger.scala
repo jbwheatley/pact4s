@@ -63,14 +63,8 @@ private[pact4s] object StateChanger {
           val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
           val params: Map[String, String] = maybeParams
-            .map(_.getEntries.asScala.map { kv =>
-              val key   = kv._1
-              val value = kv._2
-              val fixedValue =
-                if (value.isString) value.toString.init.tail
-                else value.toString
-
-              key -> fixedValue
+            .map(_.getEntries.asScala.map { case (k, v) =>
+              k -> v.toString
             }.toMap)
             .getOrElse(Map.empty)
           (json.get("state").asString(), params)
