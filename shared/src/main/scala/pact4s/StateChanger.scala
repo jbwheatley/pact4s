@@ -37,31 +37,22 @@ private[pact4s] object StateChanger {
 
   class SimpleServer(stateChange: PartialFunction[ProviderState, Unit], host: String, port: Int, endpoint: String)
       extends StateChanger {
-    private var isShutdown: Boolean         = true
-    private var stopServer: () => Unit      = () => ()
-    private var interruptThread: () => Unit = () => ()
+    private var isShutdown: Boolean    = true
+    private var stopServer: () => Unit = () => ()
 
     def start(): Unit = {
-      val r = new Runnable {
-        override def run(): Unit = {
-          val server          = HttpServer.create(new InetSocketAddress(host, port), 0)
-          val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
-          server.createContext(slashedEndpoint, RootHandler)
-          server.setExecutor(null)
-          stopServer = () => server.stop(0)
-          isShutdown = false
-          server.start()
-        }
-      }
-      val t = new Thread(r)
-      interruptThread = () => t.interrupt()
-      t.start()
+      val server          = HttpServer.create(new InetSocketAddress(host, port), 0)
+      val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
+      server.createContext(slashedEndpoint, RootHandler)
+      server.setExecutor(null)
+      stopServer = () => server.stop(0)
+      isShutdown = false
+      server.start()
     }
 
     def shutdown(): Unit =
       if (!isShutdown) {
         stopServer()
-        interruptThread()
         isShutdown = true
       }
 
@@ -71,11 +62,14 @@ private[pact4s] object StateChanger {
           val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
           val params: Map[String, String] = maybeParams
-            .map(_.getEntries.asScala.map { case (k, v) => (k, v.asString()) }.toMap)
+            .map(_.getEntries.asScala.map { case (k, v) =>
+              k -> v.toString
+            }.toMap)
             .getOrElse(Map.empty)
           (json.get("state").asString(), params)
         }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
         sendResponse(t)
+
       }
 
       private def sendResponse(t: HttpExchange): Unit = {

@@ -3,7 +3,7 @@ import sbt.Keys.{resolvers, testFrameworks}
 import scala.util.Try
 
 val scala212       = "2.12.15"
-val scala213       = "2.13.7"
+val scala213       = "2.13.8"
 val scala2Versions = Seq(scala212, scala213)
 val scala3         = "3.0.0-RC2"
 
@@ -34,7 +34,8 @@ val commonSettings = Seq(
   resolvers ++= Seq(
     Resolver.mavenLocal,
     Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  )
+  ),
+  Test / parallelExecution := false
 )
 
 val moduleBase =
@@ -52,6 +53,7 @@ lazy val circe =
     .settings(
       name := "pact4s-circe",
       libraryDependencies ++= Dependencies.circe,
+      Test / parallelExecution := true
     )
     .dependsOn(shared)
 
@@ -59,7 +61,8 @@ lazy val playJson =
   (project in file("play-json")).settings(commonSettings)
     .settings(
       name := "pact4s-play-json",
-      libraryDependencies ++= Dependencies.playJson
+      libraryDependencies ++= Dependencies.playJson,
+      Test / parallelExecution := true
     )
     .dependsOn(shared)
 
@@ -96,6 +99,17 @@ lazy val weaver =
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
+lazy val example =
+  (project in file("example"))
+    .settings(commonSettings)
+    .settings(
+      name := "example",
+      libraryDependencies ++= Dependencies.example,
+      publish / skip := true,
+      Test / skip    := true
+    )
+    .dependsOn(munit % "test", scalaTest % "test")
+
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)
   .enablePlugins(AutomateHeaderPlugin)
@@ -105,7 +119,8 @@ lazy val pact4s = (project in file("."))
     weaver,
     shared,
     circe,
-    playJson
+    playJson,
+    example
   )
 
 addCommandAlias(
@@ -114,6 +129,15 @@ addCommandAlias(
     "scalafmtCheck",
     "headerCheck",
     "+compile:doc",
+    "project munit",
+    "+test",
+    "project weaver",
+    "+test",
+    "project scalaTest",
+    "+test",
+    "project circe",
+    "+test",
+    "project playJson",
     "+test"
   )
     .mkString(";", ";", "")
