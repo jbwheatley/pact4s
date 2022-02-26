@@ -132,9 +132,8 @@ def verify(interaction: RequestResponseInteraction): Result = interaction.getDes
 ```
 
 Examples:
-- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/munit-cats-effect-pact/src/test/scala/pact4s/munit/RequestResponsePactForgerMUnitSuite.scala)
-- [scalatest](https://github.com/jbwheatley/pact4s/blob/main/scalatest-pact/src/test/scala/pact4s/scalatest/RequestResponsePactForgerScalaTestSuite.scala)
-- [weaver](https://github.com/jbwheatley/pact4s/blob/main/weaver-pact/src/test/scala/pact4s/weaver/RequestResponsePactForgerWeaverSuite.scala)
+- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
+- [scalatest](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
 
 #### Choosing a port
 
