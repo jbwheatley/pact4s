@@ -58,7 +58,6 @@ private[pact4s] object StateChanger {
 
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {
-
         Try {
           val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())

@@ -187,7 +187,7 @@ final case class ProviderInfoBuilder(
           insecureTLS,
           pactJvmAuth.orNull
         )
-        val pactJvmSelectorsJsonString = jsonArray(selectors.map(_.toJson).asJava).toString
+        val pactJvmSelectorsJsonString = jsonArray(selectors.map(_.toJson).asJava).serialise()
         System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
         providerInfo.hasPactsFromPactBrokerWithSelectors(
           brokerUrl,
