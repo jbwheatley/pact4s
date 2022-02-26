@@ -2,16 +2,16 @@ import sbt._
 
 object Dependencies {
   val mockitoScala     = "1.16.49"
-  val pactJvm          = "4.1.31"
+  val pactJvm          = "4.1.34"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
   val logback          = "1.2.10"
   val collectionCompat = "2.6.0"
-  val sourcecode       = "0.2.7"
+  val sourcecode       = "0.2.8"
   val _circe           = "0.14.1"
   val _playJson        = "2.9.2"
-  val _weaver          = "0.7.9"
-  val _scalatest       = "3.2.10"
+  val _weaver          = "0.7.10"
+  val _scalatest       = "3.2.11"
   val _munit           = "0.7.29"
   val munitCatsEffect  = "1.0.7"
 
@@ -54,6 +54,16 @@ object Dependencies {
   val playJson: Seq[ModuleID] = Seq(
     "com.typesafe.play" %% "play-json" % _playJson,
     "org.scalameta"     %% "munit"     % _munit % Test
+  )
+
+  val example: Seq[ModuleID] = Seq(
+    "org.http4s"    %% "http4s-ember-client" % http4s,
+    "org.http4s"    %% "http4s-dsl"          % http4s,
+    "org.http4s"    %% "http4s-ember-server" % http4s,
+    "org.http4s"    %% "http4s-circe"        % http4s,
+    "io.circe"      %% "circe-core"          % _circe,
+    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test,
+    "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
 
 }

@@ -1,6 +1,7 @@
 package pact4s
 
-import cats.effect.kernel.Ref
+import cats.data.Kleisli
+import cats.effect.kernel.{Deferred, Ref}
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
@@ -16,17 +17,21 @@ import org.http4s.server.Server
 import pact4s.provider.Authentication.BasicAuth
 import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
 import pact4s.provider._
+import sourcecode.{File => SCFile}
 
 import java.io.File
+import java.net.URL
 
-class MockProviderServer(port: Int) {
+class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file: SCFile) {
+
+  val featureXState: Deferred[IO, Boolean] = Deferred.unsafe
 
   def server: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
-      .withHttpApp(app)
+      .withHttpApp(middleware(app))
       .build
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
@@ -48,6 +53,20 @@ class MockProviderServer(port: Int) {
   }
 
   private[pact4s] val stateRef: Ref[IO, Option[String]] = Ref.unsafe(None)
+
+  private def middleware: HttpApp[IO] => HttpApp[IO] = { app =>
+    Kleisli { (req: Request[IO]) =>
+      app(req).timed.flatMap { case (time, resp) =>
+        IO.println(
+          Console.BLUE +
+            s"[PACT4S TEST INFO] Request to mock provider server with port $port in test suite ${file.value.split("/").takeRight(3).mkString("/")}" +
+            s"\n[PACT4S TEST INFO] ${req.toString()}\n[PACT4S TEST INFO] ${resp
+                .toString()}\n[PACT4S TEST INFO] Duration: ${time.toMillis} millis" +
+            Console.WHITE
+        ).as(resp)
+      }
+    }
+  }
 
   private def app: HttpApp[IO] =
     HttpRoutes
@@ -83,6 +102,9 @@ class MockProviderServer(port: Int) {
               stateRef.set(Some("bob")) *> Ok()
             case _ => Ok()
           }
+        case GET -> Root / "feature-x" if hasFeatureX =>
+          featureXState.complete(true) *>
+            NoContent()
       }
       .orNotFound
 
@@ -100,6 +122,7 @@ class MockProviderServer(port: Int) {
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
+      providerUrl = new URL("http://localhost:0/"),
       pactSource = FileSource(Map(consumerName -> new File(fileName)))
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
@@ -108,7 +131,8 @@ class MockProviderServer(port: Int) {
 
   def brokerProviderInfo(
       providerName: String,
-      verificationSettings: Option[VerificationSettings] = None
+      verificationSettings: Option[VerificationSettings] = None,
+      consumerVersionSelector: ConsumerVersionSelector = ConsumerVersionSelector()
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
@@ -116,7 +140,7 @@ class MockProviderServer(port: Int) {
         brokerUrl = "https://test.pact.dius.com.au"
       ).withPendingPactsEnabled(ProviderTags("SNAPSHOT"))
         .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withSelectors(ConsumerVersionSelector())
+        .withSelectors(consumerVersionSelector)
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")

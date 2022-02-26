@@ -19,11 +19,13 @@ package provider
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
 import au.com.dius.pact.core.support.Auth
+import au.com.dius.pact.core.support.JsonKt.jsonArray
 import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderInfo}
 import org.apache.http.HttpRequest
 import pact4s.provider.Authentication.{BasicAuth, TokenAuth}
 import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
+import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 
 import java.net.{URI, URL}
 import java.time.format.DateTimeFormatter
@@ -111,7 +113,7 @@ final case class ProviderInfoBuilder(
     this.copy(stateManagement = withOverrides)
   }
 
-  @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "")
+  @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "0.0.19")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
     this.copy(requestFilter = request => requestFilter(request).reduceLeftOption(_ andThen _))
 
@@ -125,7 +127,7 @@ final case class ProviderInfoBuilder(
       new URI(requestLine.getUri),
       request.getAllHeaders.toList.map(h => (h.getName, h.getValue))
     )
-    requestFilter(providerRequest).foreach(_.filter(request))
+    requestFilter(providerRequest).foreach(_.filterImpl(request))
   }
 
   private[pact4s] def toProviderInfo: ProviderInfo = {
@@ -185,9 +187,11 @@ final case class ProviderInfoBuilder(
           insecureTLS,
           pactJvmAuth.orNull
         )
+        val pactJvmSelectorsJsonString = jsonArray(selectors.map(_.toJson).asJava).serialise()
+        System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
         providerInfo.hasPactsFromPactBrokerWithSelectors(
           brokerUrl,
-          selectors.map(_.toPactJVMSelector).asJava,
+          List.empty[PactJVMSelector].asJava,
           brokerOptions
         )
         auth.foreach(configureConsumers(providerInfo))
@@ -246,4 +250,14 @@ object ProviderInfoBuilder {
     */
   def apply(name: String, pactSource: PactSource): ProviderInfoBuilder =
     ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
+
+  def apply(name: String, providerUrl: URL, pactSource: PactSource): ProviderInfoBuilder =
+    ProviderInfoBuilder(
+      name,
+      providerUrl.getProtocol,
+      providerUrl.getHost,
+      providerUrl.getPort,
+      providerUrl.getPath,
+      pactSource
+    )
 }
