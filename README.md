@@ -7,6 +7,25 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 
 `pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
 
+- [pact4s](#pact4s)
+  * [Getting Started](#getting-started)
+    + [Java 8 Support](#java-8-support)
+  * [Writing Pacts](#writing-pacts)
+    + [Pact Builder DSL](#pact-builder-dsl)
+      - [Using JSON bodies](#using-json-bodies)
+    + [Request/Response Pacts](#requestresponse-pacts)
+      - [Choosing a port](#choosing-a-port)
+    + [Message Pacts](#message-pacts)
+    + [Mixed Pacts](#mixed-pacts)
+  * [Publishing Pacts](#publishing-pacts)
+  * [Verifying Pacts](#verifying-pacts)
+    + [Pact Broker](#pact-broker)
+    + [Request/Response Pact Verification](#requestresponse-pact-verification)
+      - [Request Filtering](#request-filtering)
+    + [Message Pact Verification](#message-pact-verification)
+    + [Provider state](#provider-state)
+  * [Contributing](#contributing)
+
 ---
 
 <sup>1</sup> _support for scala 3 is currently blocked by https://github.com/lampepfl/dotty/issues/12086, as pact-jvm is written in kotlin_
