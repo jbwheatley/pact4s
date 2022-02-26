@@ -21,7 +21,6 @@ import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
 import java.net.InetSocketAddress
-import javax.json.{Json, JsonValue}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -59,26 +58,23 @@ private[pact4s] object StateChanger {
 
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {
-        Try {
-          val parser = Json.createParser(t.getRequestBody)
-          parser.next()
-          val obj         = parser.getObject
-          val maybeParams = Option(obj.getJsonObject("params"))
-          // This needs work.
-          val params: Map[String, String] = maybeParams
-            .map(_.entrySet().asScala.map { kv =>
-              val key   = kv.getKey
-              val value = kv.getValue
-              val fixedValue = value.getValueType match {
-                case JsonValue.ValueType.STRING => value.toString.init.tail
-                case _                          => value.toString
-              }
+
+          Try {
+            val json        = JsonParser.parseStream(t.getRequestBody)
+            val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
+            val params: Map[String, String] = maybeParams
+              .map(_.getEntries.asScala.map { kv =>
+                val key   = kv._1
+                val value = kv._2
+                val fixedValue = if (value.isString) value.toString.init.tail
+                else value.toString
+
               key -> fixedValue
-            }.toMap)
-            .getOrElse(Map.empty)
-          (json.get("state").asString(), params)
-        }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
-        sendResponse(t)
+              }.toMap).getOrElse(Map.empty)
+            (json.get("state").asString(), params)
+          }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
+          sendResponse(t)
+
       }
 
       private def sendResponse(t: HttpExchange): Unit = {
