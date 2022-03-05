@@ -15,19 +15,22 @@
  */
 
 package pact4s.scalatest
-import org.scalactic.source.Position
 import org.scalatest.{Assertions, Suite}
 import pact4s.PactVerifyResources
 import sourcecode.{File, FileName, Line}
 
-trait PactVerifier extends Assertions with PactVerifyResources { _: Suite =>
+trait PactVerifier extends Assertions with PactVerifyResources { self: Suite =>
   override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
-    cancel(message)(Position(fileName.value, file.value, line.value))
-  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
-    fail(message)(Position(fileName.value, file.value, line.value))
+    cancel(message)
+
+  override private[pact4s] def failure(
+      message: String
+  )(implicit fileName: FileName, file: File, line: Line): Nothing =
+    fail(message)
+
 }
 
-trait MessagePactVerifier extends PactVerifier { _: Suite =>
+trait MessagePactVerifier extends PactVerifier { self: Suite =>
   def messages: ResponseFactory
   override def responseFactory: Option[ResponseFactory] = Some(messages)
 }

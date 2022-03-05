@@ -18,6 +18,7 @@ package pact4s
 package provider
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
+import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 import au.com.dius.pact.core.support.Auth
 import au.com.dius.pact.core.support.JsonKt.jsonArray
 import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderInfo}
@@ -25,7 +26,6 @@ import org.apache.hc.core5.http.HttpRequest
 import pact4s.provider.Authentication.{BasicAuth, TokenAuth}
 import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
-import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 
 import java.net.URL
 import java.time.format.DateTimeFormatter

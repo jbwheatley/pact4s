@@ -75,7 +75,7 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
     case _                                  => F.unit
   }
 
-  type Effect[_] = F[_]
+  type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
