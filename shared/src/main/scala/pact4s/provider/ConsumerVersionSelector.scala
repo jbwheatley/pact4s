@@ -45,25 +45,45 @@ import au.com.dius.pact.core.support.json.JsonValue
   *   for a list of available selectors that can be set. This list is subject to change and so we leave it to the user
   *   add any other selectors they require here rather than having them as strongly-typed fields.
   */
-final case class ConsumerVersionSelector(
-    tag: Option[String] = None,
-    latest: Boolean = true,
-    fallbackTag: Option[String] = None,
-    consumer: Option[String] = None,
-    branch: Option[String] = None,
-    mainBranch: Option[Boolean] = None,
-    matchingBranch: Option[Boolean] = None,
-    additionalSelectors: Map[String, Any] = Map.empty
+final class ConsumerVersionSelector private (
+    val tag: Option[String] = None,
+    val latest: Boolean = true,
+    val fallbackTag: Option[String] = None,
+    val consumer: Option[String] = None,
+    val branch: Option[String] = None,
+    val mainBranch: Option[Boolean] = None,
+    val matchingBranch: Option[Boolean] = None,
+    val additionalSelectors: Map[String, Any] = Map.empty
 ) {
-  def withTag(tag: String): ConsumerVersionSelector                = this.copy(tag = Some(tag))
-  def withFallbackTag(tag: String): ConsumerVersionSelector        = this.copy(fallbackTag = Some(tag))
-  def withConsumer(consumer: String): ConsumerVersionSelector      = this.copy(consumer = Some(consumer))
-  def withBranch(branch: String): ConsumerVersionSelector          = this.copy(branch = Some(branch))
-  def withMainBranch(mainBranch: Boolean): ConsumerVersionSelector = this.copy(mainBranch = Some(mainBranch))
+  private def copy(
+      tag: Option[String] = tag,
+      latest: Boolean = latest,
+      fallbackTag: Option[String] = fallbackTag,
+      consumer: Option[String] = consumer,
+      branch: Option[String] = branch,
+      mainBranch: Option[Boolean] = mainBranch,
+      matchingBranch: Option[Boolean] = matchingBranch,
+      additionalSelectors: Map[String, Any] = additionalSelectors
+  ) = new ConsumerVersionSelector(
+    tag,
+    latest,
+    fallbackTag,
+    consumer,
+    branch,
+    mainBranch,
+    matchingBranch,
+    additionalSelectors
+  )
+
+  def withTag(tag: String): ConsumerVersionSelector                = copy(tag = Some(tag))
+  def withFallbackTag(tag: String): ConsumerVersionSelector        = copy(fallbackTag = Some(tag))
+  def withConsumer(consumer: String): ConsumerVersionSelector      = copy(consumer = Some(consumer))
+  def withBranch(branch: String): ConsumerVersionSelector          = copy(branch = Some(branch))
+  def withMainBranch(mainBranch: Boolean): ConsumerVersionSelector = copy(mainBranch = Some(mainBranch))
   def withMatchingBranch(matchingBranch: Boolean): ConsumerVersionSelector =
-    this.copy(matchingBranch = Some(matchingBranch))
+    copy(matchingBranch = Some(matchingBranch))
   def withAdditionalSelectors(selectors: (String, Any)*): ConsumerVersionSelector =
-    this.copy(additionalSelectors = selectors.toMap)
+    copy(additionalSelectors = selectors.toMap)
 
   private def toPactJVMSelector: PactJVMSelector =
     new PactJVMSelector(tag.orNull, latest, consumer.orNull, fallbackTag.orNull)
@@ -72,7 +92,7 @@ final case class ConsumerVersionSelector(
   /*
   May need improvement if selectors with array values are allowed, but at the time of writing only Boolean and String are expected.
    */
-  private[pact4s] def toJson: JsonValue = {
+  private[provider] def toJson: JsonValue = {
     val json = toPactJVMSelector.toJson.asObject()
     branch.foreach(b => json.add("branch", new JsonValue.StringValue(b)))
     mainBranch.foreach(b => json.add("main_branch", boolToJson(b)))
@@ -87,4 +107,8 @@ final case class ConsumerVersionSelector(
     }
     json
   }
+}
+
+object ConsumerVersionSelector {
+  def apply(): ConsumerVersionSelector = new ConsumerVersionSelector()
 }

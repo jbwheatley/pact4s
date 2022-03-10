@@ -71,35 +71,57 @@ import scala.jdk.CollectionConverters._
   * @see
   *   https://docs.pact.io/faq/#how-do-i-test-oauth-or-other-security-headers
   */
-final case class ProviderInfoBuilder(
+final class ProviderInfoBuilder private (
     name: String,
     protocol: String,
     host: String,
     port: Int,
     path: String,
     pactSource: PactSource,
-    stateManagement: Option[StateManagement] = None,
+    private val stateManagement: Option[StateManagement] = None,
     verificationSettings: Option[VerificationSettings] = None,
     requestFilter: ProviderRequest => Option[ProviderRequestFilter] = _ => None
 ) {
-  def withProtocol(protocol: String): ProviderInfoBuilder = this.copy(protocol = protocol)
-  def withHost(host: String): ProviderInfoBuilder         = this.copy(host = host)
-  def withPort(port: Int): ProviderInfoBuilder            = this.copy(port = port)
-  def withPath(path: String): ProviderInfoBuilder         = this.copy(path = path)
+  private def copy(
+      name: String = name,
+      protocol: String = protocol,
+      host: String = host,
+      port: Int = port,
+      path: String = path,
+      pactSource: PactSource = pactSource,
+      stateManagement: Option[StateManagement] = stateManagement,
+      verificationSettings: Option[VerificationSettings] = verificationSettings,
+      requestFilter: ProviderRequest => Option[ProviderRequestFilter] = requestFilter
+  ) = new ProviderInfoBuilder(
+    name,
+    protocol,
+    host,
+    port,
+    path,
+    pactSource,
+    stateManagement,
+    verificationSettings,
+    requestFilter
+  )
+
+  def withProtocol(protocol: String): ProviderInfoBuilder = copy(protocol = protocol)
+  def withHost(host: String): ProviderInfoBuilder         = copy(host = host)
+  def withPort(port: Int): ProviderInfoBuilder            = copy(port = port)
+  def withPath(path: String): ProviderInfoBuilder         = copy(path = path)
   def withVerificationSettings(settings: VerificationSettings): ProviderInfoBuilder =
-    this.copy(verificationSettings = Some(settings))
+    copy(verificationSettings = Some(settings))
   def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
-    this.copy(verificationSettings = settings)
+    copy(verificationSettings = settings)
 
   def withStateChangeUrl(url: String): ProviderInfoBuilder =
-    this.copy(stateManagement = Some(StateManagement.ProviderUrl(url)))
+    copy(stateManagement = Some(StateManagement.ProviderUrl(url)))
   def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
     val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     withStateChangeUrl(s"$protocol://$host:$port$endpointWithLeadingSlash")
   }
 
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
-    this.copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
+    copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
     withStateChangeFunction({ case x => stateChange(x) }: PartialFunction[ProviderState, Unit])
 
@@ -110,15 +132,15 @@ final case class ProviderInfoBuilder(
       case x: StateManagement.ProviderUrl             => x
       case x: StateManagement.StateManagementFunction => overrides(x)
     }
-    this.copy(stateManagement = withOverrides)
+    copy(stateManagement = withOverrides)
   }
 
   @deprecated("use withRequestFiltering instead, where request filters are composed with .andThen", "0.0.19")
   def withRequestFilter(requestFilter: ProviderRequest => List[ProviderRequestFilter]): ProviderInfoBuilder =
-    this.copy(requestFilter = request => requestFilter(request).reduceLeftOption(_ andThen _))
+    copy(requestFilter = request => requestFilter(request).reduceLeftOption(_ andThen _))
 
   def withRequestFiltering(requestFilter: ProviderRequest => ProviderRequestFilter): ProviderInfoBuilder =
-    this.copy(requestFilter = request => Some(requestFilter(request)))
+    copy(requestFilter = request => Some(requestFilter(request)))
 
   private def pactJvmRequestFilter: HttpRequest => Unit = { request =>
     val providerRequest = ProviderRequest(
@@ -129,7 +151,7 @@ final case class ProviderInfoBuilder(
     requestFilter(providerRequest).foreach(_.filterImpl(request))
   }
 
-  private[pact4s] def toProviderInfo: ProviderInfo = {
+  private[pact4s] def build: ProviderInfo = {
     val p = new ProviderInfo(name, protocol, host, port, path)
     verificationSettings.foreach { case AnnotatedMethodVerificationSettings(packagesToScan) =>
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
@@ -145,8 +167,8 @@ final case class ProviderInfoBuilder(
     }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
-      case FileSource(consumers) =>
-        consumers.foreach { case (consumer, file) =>
+      case f: FileSource =>
+        f.consumers.foreach { case (consumer, file) =>
           p.hasPactWith(
             consumer,
             { consumer =>
@@ -165,49 +187,36 @@ final case class ProviderInfoBuilder(
       pactSource: PactBroker
   ): ProviderInfo =
     pactSource match {
-      case p @ PactBrokerWithSelectors(
-            brokerUrl,
-            insecureTLS,
-            auth,
-            enablePending,
-            includeWipPactsSince,
-            providerTags,
-            selectors
-          ) =>
+      case p: PactBrokerWithSelectors =>
         p.validate()
-        val pactJvmAuth: Option[Auth] = auth.map {
+        val pactJvmAuth: Option[Auth] = p.auth.map {
           case TokenAuth(token)      => new Auth.BearerAuthentication(token)
           case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
         }
         val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
-          enablePending,
-          providerTags.map(_.toList).getOrElse(Nil).asJava,
-          includeWipPactsSince.since.map(instantToDateString).orNull,
-          insecureTLS,
+          p.enablePending,
+          p.providerTags.map(_.toList).getOrElse(Nil).asJava,
+          p.includeWipPactsSince.since.map(instantToDateString).orNull,
+          p.insecureTLS,
           pactJvmAuth.orNull
         )
-        val pactJvmSelectorsJsonString = jsonArray(selectors.map(_.toJson).asJava).toString
+        val pactJvmSelectorsJsonString = jsonArray(p.selectors.map(_.toJson).asJava).toString
         System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
         providerInfo.hasPactsFromPactBrokerWithSelectors(
-          brokerUrl,
+          p.brokerUrl,
           List.empty[PactJVMSelector].asJava,
           brokerOptions
         )
-        auth.foreach(configureConsumers(providerInfo))
+        p.auth.foreach(addAuthToConsumers(providerInfo))
         providerInfo
-      case PactBrokerWithTags(brokerUrl, insecureTLS, auth, tags) =>
+      case p: PactBrokerWithTags =>
         applyBrokerSourceToProvider(
           providerInfo,
-          PactBrokerWithSelectors(
-            brokerUrl
-          )
-            .withOptionalAuth(auth)
-            .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
-            .withInsecureTLS(insecureTLS)
+          p.toPactBrokerWithSelectors
         )
     }
 
-  private def configureConsumers(providerInfo: ProviderInfo)(auth: Authentication): Unit = {
+  private def addAuthToConsumers(providerInfo: ProviderInfo)(auth: Authentication): Unit = {
     val authAsStringList = auth match {
       case TokenAuth(token)      => "Bearer" :: token :: Nil
       case BasicAuth(user, pass) => "Basic" :: user :: pass :: Nil
@@ -248,10 +257,10 @@ object ProviderInfoBuilder {
     * }}}
     */
   def apply(name: String, pactSource: PactSource): ProviderInfoBuilder =
-    ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
+    new ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
 
   def apply(name: String, providerUrl: URL, pactSource: PactSource): ProviderInfoBuilder =
-    ProviderInfoBuilder(
+    new ProviderInfoBuilder(
       name,
       providerUrl.getProtocol,
       providerUrl.getHost,

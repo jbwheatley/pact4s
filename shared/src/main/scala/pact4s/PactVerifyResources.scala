@@ -32,10 +32,10 @@ trait PactVerifyResources {
 
   def provider: ProviderInfoBuilder
 
-  private[pact4s] lazy val stateChanger: StateChanger =
+  private lazy val stateChanger: StateChanger =
     provider.stateManagement match {
-      case Some(StateManagementFunction(stateChangeFunc, host, port, endpoint)) =>
-        new StateChanger.SimpleServer(stateChangeFunc, host, port, endpoint)
+      case Some(s: StateManagementFunction) =>
+        new StateChanger.SimpleServer(s.stateChangeFunc, s.host, s.port, s.endpoint)
       case _ => StateChanger.NoOpStateChanger
     }
 
@@ -44,7 +44,7 @@ trait PactVerifyResources {
   private val failures: ListBuffer[String]        = new ListBuffer[String]()
   private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
 
-  private[pact4s] lazy val providerInfo = provider.toProviderInfo
+  private[pact4s] lazy val providerInfo = provider.build
 
   private[pact4s] val verifier = new ProviderVerifier()
 
@@ -66,7 +66,7 @@ trait PactVerifyResources {
     case None => Right(verify())
   }
 
-  private[pact4s] def verifySingleConsumer(
+  private def verifySingleConsumer(
       consumer: IConsumerInfo,
       timeout: Option[FiniteDuration]
   ): Unit =
