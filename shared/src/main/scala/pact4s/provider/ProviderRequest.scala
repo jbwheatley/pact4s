@@ -20,7 +20,7 @@ package provider
 import java.net.URI
 
 /** A simplified interface for managing the requests sent by pact-jvm to the mock provider service. Used in conjunction
-  * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.requestFilter]]
+  * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.withRequestFiltering]]
   */
 final class ProviderRequest private (val method: String, val uri: URI, val headers: List[(String, String)]) {
   def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)

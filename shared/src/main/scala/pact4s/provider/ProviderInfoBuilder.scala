@@ -79,10 +79,10 @@ final class ProviderInfoBuilder private (
     host: String,
     port: Int,
     path: String,
-    pactSource: PactSource,
+    val pactSource: PactSource,
     private[pact4s] val stateManagement: Option[StateManagement],
     verificationSettings: Option[VerificationSettings],
-    requestFilter: ProviderRequest => Option[ProviderRequestFilter]
+    val requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
   private def copy(
       name: String = name,
@@ -274,13 +274,6 @@ object ProviderInfoBuilder {
     )
 
   /** Auxiliary constructor that provides some common defaults for the the mock provider address
-    *
-    * @param name
-    *   [[ProviderInfoBuilder.name]]
-    * @param pactSource
-    *   [[ProviderInfoBuilder.pactSource]]
-    * @return
-    *   [[ProviderInfoBuilder]]
     *
     * Example usage:
     * {{{

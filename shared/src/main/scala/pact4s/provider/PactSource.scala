@@ -26,7 +26,7 @@ sealed trait PactSource
 object PactSource {
 
   /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts
-    * can also be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
+    * can also be directly loaded from files by using this pactSource in [[ProviderInfoBuilder]]
     *
     * @param consumers
     *   A map of consumer names to the file where the pacts are written.
