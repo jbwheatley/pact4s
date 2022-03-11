@@ -20,9 +20,9 @@ package provider
 import java.net.URI
 
 /** A simplified interface for managing the requests sent by pact-jvm to the mock provider service. Used in conjunction
-  * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.requestFilter]]
+  * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.withRequestFiltering]]
   */
-final case class ProviderRequest private[provider] (method: String, uri: URI, headers: List[(String, String)]) {
+final class ProviderRequest private (val method: String, val uri: URI, val headers: List[(String, String)]) {
   def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)
   def getHeaders(name: String): List[(String, String)] = headers.filter(_._1 == name)
   def getFirstHeader(name: String): Option[(String, String)] = headers.collectFirst {
@@ -31,4 +31,9 @@ final case class ProviderRequest private[provider] (method: String, uri: URI, he
   def getLastHeader(name: String): Option[(String, String)] = headers.reverse.collectFirst {
     case (n, value) if n == name => (n, value)
   }
+}
+
+object ProviderRequest {
+  private[provider] def apply(method: String, uri: URI, headers: List[(String, String)]): ProviderRequest =
+    new ProviderRequest(method, uri, headers)
 }
