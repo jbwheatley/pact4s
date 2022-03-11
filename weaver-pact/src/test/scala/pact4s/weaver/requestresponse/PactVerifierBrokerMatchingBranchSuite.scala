@@ -17,7 +17,7 @@ object PactVerifierBrokerMatchingBranchSuite extends IOSuite with PactVerifier {
   override val provider: ProviderInfoBuilder =
     mock.brokerProviderInfo(
       "Pact4sProvider",
-      consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true)
+      consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch
     )
 
   test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, weaver") {
