@@ -27,11 +27,15 @@ object PactSource {
 
   /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts
     * can also be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
+    *
+    * @param consumers
+    *   A map of consumer names to the file where the pacts are written.
     */
   final class FileSource private (val consumers: Map[String, File]) extends PactSource
 
   object FileSource {
-    def apply(consumer: Map[String, File]): FileSource = new FileSource(consumer)
+    def apply(consumer: Map[String, File]): FileSource           = new FileSource(consumer)
+    def apply(consumer: (String, File), others: (String, File)*) = new FileSource(others.toMap + consumer)
   }
 
   sealed trait PactBroker extends PactSource {
@@ -50,9 +54,9 @@ object PactSource {
     */
   final class PactBrokerWithTags private (
       val brokerUrl: String,
-      val insecureTLS: Boolean = false,
-      val auth: Option[Authentication] = None,
-      val tags: List[String] = Nil
+      val insecureTLS: Boolean,
+      val auth: Option[Authentication],
+      val tags: List[String]
   ) extends PactBroker {
     private def copy(
         brokerUrl: String = brokerUrl,
@@ -76,7 +80,9 @@ object PactSource {
   }
 
   object PactBrokerWithTags {
-    def apply(brokerUrl: String): PactBrokerWithTags = new PactBrokerWithTags(brokerUrl)
+    @deprecated("Use PactBrokerWithSelectors instead.", "0.3.0")
+    def apply(brokerUrl: String): PactBrokerWithTags =
+      new PactBrokerWithTags(brokerUrl, insecureTLS = false, auth = None, tags = Nil)
   }
 
   /** @param brokerUrl

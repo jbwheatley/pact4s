@@ -37,6 +37,8 @@ import scala.jdk.CollectionConverters._
 /** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to
   * au.com.dius.pact.provider.ProviderInfo during verification.
   *
+  * Use the apply methods in the companion object to construct.
+  *
   * @param name
   *   the name of the provider
   * @param protocol
@@ -78,9 +80,9 @@ final class ProviderInfoBuilder private (
     port: Int,
     path: String,
     pactSource: PactSource,
-    private val stateManagement: Option[StateManagement] = None,
-    verificationSettings: Option[VerificationSettings] = None,
-    requestFilter: ProviderRequest => Option[ProviderRequestFilter] = _ => None
+    private[pact4s] val stateManagement: Option[StateManagement],
+    verificationSettings: Option[VerificationSettings],
+    requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
   private def copy(
       name: String = name,
@@ -237,6 +239,39 @@ final class ProviderInfoBuilder private (
 }
 
 object ProviderInfoBuilder {
+  def apply(
+      name: String,
+      protocol: String,
+      host: String,
+      port: Int,
+      path: String,
+      pactSource: PactSource
+  ): ProviderInfoBuilder = new ProviderInfoBuilder(
+    name,
+    protocol,
+    host,
+    port,
+    path,
+    pactSource,
+    stateManagement = None,
+    verificationSettings = None,
+    requestFilter = _ => None
+  )
+
+  /** Create a ProviderInfoBuilder by providing a [[java.net.URL]] rather than specifying the URL components separately
+    */
+  def apply(name: String, providerUrl: URL, pactSource: PactSource): ProviderInfoBuilder =
+    new ProviderInfoBuilder(
+      name,
+      providerUrl.getProtocol,
+      providerUrl.getHost,
+      providerUrl.getPort,
+      providerUrl.getPath,
+      pactSource,
+      stateManagement = None,
+      verificationSettings = None,
+      requestFilter = _ => None
+    )
 
   /** Auxiliary constructor that provides some common defaults for the the mock provider address
     *
@@ -251,21 +286,21 @@ object ProviderInfoBuilder {
     * {{{
     *   ProviderInfoBuilder(
     *       name = "Provider Service",
-    *       pactSource = FileSource("Consumer Service", new File("./pacts/pact.json"))
+    *       pactSource = FileSource("Consumer Service" -> new File("./pacts/pact.json"))
     *     ).withPort(80)
     *     .withStateChangeEndpoint("setup")
     * }}}
     */
   def apply(name: String, pactSource: PactSource): ProviderInfoBuilder =
-    new ProviderInfoBuilder(name, "http", "localhost", 0, "/", pactSource)
-
-  def apply(name: String, providerUrl: URL, pactSource: PactSource): ProviderInfoBuilder =
     new ProviderInfoBuilder(
       name,
-      providerUrl.getProtocol,
-      providerUrl.getHost,
-      providerUrl.getPort,
-      providerUrl.getPath,
-      pactSource
+      "http",
+      "localhost",
+      0,
+      "/",
+      pactSource,
+      stateManagement = None,
+      verificationSettings = None,
+      requestFilter = _ => None
     )
 }

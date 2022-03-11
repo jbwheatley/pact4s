@@ -17,7 +17,7 @@ class PactVerifierBrokerMatchingBranchSuite extends AnyFlatSpec with PactVerifie
   override val provider: ProviderInfoBuilder =
     mock.brokerProviderInfo(
       "Pact4sProvider",
-      consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch(true)
+      consumerVersionSelector = ConsumerVersionSelector().withMatchingBranch
     )
 
   var cleanUp: IO[Unit] = IO.unit
