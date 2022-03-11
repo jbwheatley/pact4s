@@ -24,15 +24,15 @@ import java.nio.charset.Charset
 import scala.jdk.CollectionConverters._
 
 sealed trait ResponseBuilder {
-  def build: AnyRef
+  private[pact4s] def build: AnyRef
 }
 
 object ResponseBuilder {
-  final case class MessageAndMetadataBuilder(
+  final class MessageAndMetadataBuilder private (
       message: Array[Byte],
       metadata: Map[String, Any]
   ) extends ResponseBuilder {
-    def build: MessageAndMetadata = new MessageAndMetadata(message, metadata.asJava)
+    private[pact4s] def build: MessageAndMetadata = new MessageAndMetadata(message, metadata.asJava)
   }
 
   object MessageAndMetadataBuilder {
@@ -50,28 +50,37 @@ object ResponseBuilder {
     def apply[A: PactBodyJsonEncoder](message: A): MessageAndMetadataBuilder = apply(message, Map.empty[String, Any])
   }
 
-  final case class ProviderResponseBuilder(
+  final class ProviderResponseBuilder private (
       statusCode: Int,
       contentType: Option[String],
       headers: Map[String, List[String]],
       data: Option[String]
   ) extends ResponseBuilder {
-    def build: java.util.Map[String, Any] = Map[String, Any](
+    private[pact4s] def build: java.util.Map[String, Any] = Map[String, Any](
       "statusCode"  -> statusCode,
       "contentType" -> contentType.orNull,
       "headers"     -> headers.map { case (k, v) => k -> v.asJava }.asJava,
       "data"        -> data.orNull
     ).asJava
 
-    def withContentType(contentType: String): ProviderResponseBuilder =
-      this.copy(contentType = Some(contentType))
+    private def copy(
+        statusCode: Int = statusCode,
+        contentType: Option[String] = contentType,
+        headers: Map[String, List[String]] = headers,
+        data: Option[String] = data
+    ): ProviderResponseBuilder = new ProviderResponseBuilder(statusCode, contentType, headers, data)
 
-    def withHeaders(headers: Map[String, List[String]]): ProviderResponseBuilder = this.copy(headers = headers)
+    def withContentType(contentType: String): ProviderResponseBuilder =
+      copy(contentType = Some(contentType))
+
+    def withHeaders(headers: Map[String, List[String]]): ProviderResponseBuilder = copy(headers = headers)
+
+    def withData(data: String): ProviderResponseBuilder = copy(data = Some(data))
   }
 
   object ProviderResponseBuilder {
     def apply(statusCode: Int): ProviderResponseBuilder =
-      ProviderResponseBuilder(
+      new ProviderResponseBuilder(
         statusCode,
         contentType = Some("application/json"),
         headers = Map.empty[String, List[String]],
@@ -79,7 +88,7 @@ object ResponseBuilder {
       )
 
     def apply(statusCode: Int, data: String): ProviderResponseBuilder =
-      ProviderResponseBuilder(
+      new ProviderResponseBuilder(
         statusCode,
         contentType = Some("application/json"),
         headers = Map.empty[String, List[String]],
@@ -87,7 +96,7 @@ object ResponseBuilder {
       )
 
     def apply[A: PactBodyJsonEncoder](statusCode: Int, data: A): ProviderResponseBuilder =
-      ProviderResponseBuilder(
+      new ProviderResponseBuilder(
         statusCode,
         contentType = Some("application/json"),
         headers = Map.empty[String, List[String]],
