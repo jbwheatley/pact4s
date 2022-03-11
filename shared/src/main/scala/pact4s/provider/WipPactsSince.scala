@@ -19,21 +19,21 @@ package provider
 
 import java.time.{Instant, LocalDate, OffsetDateTime, ZoneOffset}
 
-sealed abstract case class WipPactsSince(since: Option[Instant])
+final class WipPactsSince private (val since: Option[Instant])
 
 object WipPactsSince {
-  val never: WipPactsSince = new WipPactsSince(None) {}
+  val never: WipPactsSince = new WipPactsSince(None)
 
   def localDate(since: LocalDate): WipPactsSince = maybeLocalDate(Some(since))
   def maybeLocalDate(since: Option[LocalDate]): WipPactsSince = new WipPactsSince(
     since.map(_.atStartOfDay().toInstant(ZoneOffset.UTC))
-  ) {}
+  )
 
   def instant(since: Instant): WipPactsSince              = maybeInstant(Some(since))
-  def maybeInstant(since: Option[Instant]): WipPactsSince = new WipPactsSince(since) {}
+  def maybeInstant(since: Option[Instant]): WipPactsSince = new WipPactsSince(since)
 
   def offsetDateTime(since: OffsetDateTime): WipPactsSince = maybeOffsetDateTime(Some(since))
   def maybeOffsetDateTime(since: Option[OffsetDateTime]): WipPactsSince = new WipPactsSince(
     since.map(_.toInstant)
-  ) {}
+  )
 }

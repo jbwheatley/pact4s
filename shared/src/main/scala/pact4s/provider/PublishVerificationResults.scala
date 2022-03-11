@@ -17,23 +17,23 @@
 package pact4s
 package provider
 
-final case class PublishVerificationResults(
-    providerVersion: String,
-    providerTags: Option[ProviderTags],
-    providerBranch: Option[Branch]
+final class PublishVerificationResults private (
+    val providerVersion: String,
+    val providerTags: Option[ProviderTags],
+    val providerBranch: Option[Branch]
 )
 
 object PublishVerificationResults {
   @deprecated("use ProviderTags(..) or ProviderTags.fromList(..) rather than List[String]", "0.0.19")
   def apply(providerVersion: String, providerTags: List[String]): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags), None)
+    new PublishVerificationResults(providerVersion, ProviderTags.fromList(providerTags), None)
 
   def apply(providerVersion: String): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, None, None)
+    new PublishVerificationResults(providerVersion, None, None)
 
   def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, Some(providerTags), None)
+    new PublishVerificationResults(providerVersion, Some(providerTags), None)
 
   def apply(providerVersion: String, providerBranch: Branch): PublishVerificationResults =
-    PublishVerificationResults(providerVersion, None, Some(providerBranch))
+    new PublishVerificationResults(providerVersion, None, Some(providerBranch))
 }

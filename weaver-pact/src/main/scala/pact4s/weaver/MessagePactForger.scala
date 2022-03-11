@@ -62,7 +62,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
     }
   }
 
-  type Effect[_] = F[_]
+  type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
