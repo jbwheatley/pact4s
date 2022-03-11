@@ -26,13 +26,22 @@ sealed trait PactSource
 object PactSource {
 
   /** It isn't necessary to use a pact broker to manage consumer pacts (though it is strongly recommended). The pacts
-    * can also be directly loaded from files by using this pactSource as [[ProviderInfoBuilder.pactSource]]
+    * can also be directly loaded from files by using this pactSource in [[ProviderInfoBuilder]]
+    *
+    * @param consumers
+    *   A map of consumer names to the file where the pacts are written.
     */
-  final case class FileSource(consumers: Map[String, File]) extends PactSource
+  final class FileSource private (val consumers: Map[String, File]) extends PactSource
+
+  object FileSource {
+    def apply(consumer: Map[String, File]): FileSource           = new FileSource(consumer)
+    def apply(consumer: (String, File), others: (String, File)*) = new FileSource(others.toMap + consumer)
+  }
 
   sealed trait PactBroker extends PactSource {
     def brokerUrl: String
     def auth: Option[Authentication]
+    def insecureTLS: Boolean
   }
 
   /** @param brokerUrl
@@ -43,16 +52,37 @@ object PactSource {
     *   fetches all the latest pacts from the pact-broker for the provider with the given tags, all ignoring tags if
     *   [[tags]] is empty.
     */
-  final case class PactBrokerWithTags(
-      brokerUrl: String,
-      insecureTLS: Boolean = false,
-      auth: Option[Authentication] = None,
-      tags: List[String] = Nil
+  final class PactBrokerWithTags private (
+      val brokerUrl: String,
+      val insecureTLS: Boolean,
+      val auth: Option[Authentication],
+      val tags: List[String]
   ) extends PactBroker {
-    def withAuth(auth: Authentication): PactBrokerWithTags = this.copy(auth = Some(auth))
-    def withoutAuth: PactBrokerWithTags                    = this.copy(auth = None)
-    def withTags(tags: List[String]): PactBrokerWithTags   = this.copy(tags = tags)
-    def withTags(tags: String*): PactBrokerWithTags        = this.copy(tags = tags.toList)
+    private def copy(
+        brokerUrl: String = brokerUrl,
+        insecureTLS: Boolean = false,
+        auth: Option[Authentication] = None,
+        tags: List[String] = Nil
+    ) = new PactBrokerWithTags(brokerUrl, insecureTLS, auth, tags)
+
+    def withAuth(auth: Authentication): PactBrokerWithTags        = copy(auth = Some(auth))
+    def withoutAuth: PactBrokerWithTags                           = copy(auth = None)
+    def withTags(tags: List[String]): PactBrokerWithTags          = copy(tags = tags)
+    def withTags(tags: String*): PactBrokerWithTags               = copy(tags = tags.toList)
+    def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithTags = copy(insecureTLS = insecureTLS)
+
+    private[pact4s] def toPactBrokerWithSelectors: PactBrokerWithSelectors = PactBrokerWithSelectors(
+      brokerUrl
+    )
+      .withOptionalAuth(auth)
+      .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+      .withInsecureTLS(insecureTLS)
+  }
+
+  object PactBrokerWithTags {
+    @deprecated("Use PactBrokerWithSelectors instead.", "0.3.0")
+    def apply(brokerUrl: String): PactBrokerWithTags =
+      new PactBrokerWithTags(brokerUrl, insecureTLS = false, auth = None, tags = Nil)
   }
 
   /** @param brokerUrl
@@ -94,14 +124,14 @@ object PactSource {
     *     .withSelectors(ConsumerVersionSelector())
     * }}}
     */
-  sealed abstract case class PactBrokerWithSelectors(
-      brokerUrl: String,
-      insecureTLS: Boolean = false,
-      auth: Option[Authentication] = None,
-      enablePending: Boolean = false,
-      includeWipPactsSince: WipPactsSince = WipPactsSince.never,
-      providerTags: Option[ProviderTags] = None,
-      selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
+  final class PactBrokerWithSelectors private (
+      val brokerUrl: String,
+      val insecureTLS: Boolean,
+      val auth: Option[Authentication],
+      val enablePending: Boolean,
+      val includeWipPactsSince: WipPactsSince,
+      val providerTags: Option[ProviderTags],
+      val selectors: List[ConsumerVersionSelector]
   ) extends PactBroker {
     private def copy(
         brokerUrl: String = brokerUrl,
@@ -120,11 +150,11 @@ object PactSource {
         includeWipPactsSince,
         providerTags,
         selectors
-      ) {}
+      )
 
     private[pact4s] def withOptionalAuth(auth: Option[Authentication]): PactBrokerWithSelectors = copy(auth = auth)
 
-    def withAuth(auth: Authentication): PactBrokerWithSelectors = copy(auth = Some(auth))
+    def withAuth(auth: Authentication): PactBrokerWithSelectors = withOptionalAuth(Some(auth))
 
     def withPendingPactsEnabled(providerTags: ProviderTags): PactBrokerWithSelectors =
       copy(enablePending = true, providerTags = Some(providerTags))
@@ -179,7 +209,15 @@ object PactSource {
     def apply(
         brokerUrl: String
     ): PactBrokerWithSelectors =
-      new PactBrokerWithSelectors(brokerUrl = brokerUrl) {}
+      new PactBrokerWithSelectors(
+        brokerUrl = brokerUrl,
+        insecureTLS = false,
+        auth = None,
+        enablePending = false,
+        includeWipPactsSince = WipPactsSince.never,
+        providerTags = None,
+        selectors = List(ConsumerVersionSelector())
+      )
 
     @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
     def apply(
@@ -201,7 +239,7 @@ object PactSource {
           .getOrElse(WipPactsSince.never),
         providerTags = tags,
         selectors = selectors
-      ) {}
+      )
     }
   }
 }
