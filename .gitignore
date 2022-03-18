@@ -3,6 +3,7 @@
 **/target/
 
 .bsp
+.java-version
 
 # IDE
 .idea
