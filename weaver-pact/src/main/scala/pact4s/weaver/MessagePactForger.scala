@@ -17,10 +17,10 @@
 package pact4s.weaver
 
 import au.com.dius.pact.core.model.messaging.Message
-import cats.effect.{Ref, Resource}
+import cats.effect.Resource
 import cats.implicits._
-import pact4s.{MessagePactForgerResources, MessagePactWriter}
-import weaver.MutableFSuite
+import pact4s.MessagePactForgerResources
+import weaver.{MutableFSuite, TestOutcome}
 
 import scala.jdk.CollectionConverters._
 
@@ -40,28 +40,29 @@ trait MessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
 }
 
 trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePactForgerResources {
-  private val F                           = effect
-  private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)
+  private val F = effect
+
+  @volatile private var testFailed: Boolean = false
 
   private[weaver] def messagesResource: Resource[F, List[Message]] = Resource.make[F, List[Message]] {
     validatePactVersion(pactSpecVersion).liftTo[F].as {
       pact.getMessages.asScala.toList
     }
   } { _ =>
-    testFailed.get.flatMap {
-      case true =>
-        pact4sLogger.info(
-          s"Not writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+    if (testFailed) {
+      F.delay(
+        pact4sLogger.error(
+          notWritingPactMessage(pact)
         )
-        F.unit
-      case false =>
-        beforeWritePacts().as(
-          pact4sLogger.info(
-            s"Writing message pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-          )
-        ) >>
-          F.fromEither(MessagePactWriter.writeMessagePactToFile(pact, pactTestExecutionContext, pactSpecVersion))
+      )
+    } else {
+      beforeWritePacts() >> writeMessagePactToFile().liftTo[F]
     }
+  }
+
+  override def spec(args: List[String]): fs2.Stream[F, TestOutcome] = super.spec(args).evalTap {
+    case outcome if outcome.status.isFailed => F.delay { testFailed = true }
+    case _                                  => F.unit
   }
 
   type Effect[A] = F[A]
