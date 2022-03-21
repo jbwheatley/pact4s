@@ -52,7 +52,7 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
           _ <- F.delay(server.start())
           _ <- F.delay(server.waitForServer())
         } yield server
-      }.onError(_ => F.delay(server.stop()))
+      }.onError { case _ => F.delay(server.stop()) }
     } { s =>
       F.delay(s.stop()) >> {
         if (testFailed) {
