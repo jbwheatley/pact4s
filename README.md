@@ -24,6 +24,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Request Filtering](#request-filtering)
     + [Message Pact Verification](#message-pact-verification)
     + [Provider state](#provider-state)
+  * [Logging](#logging)
   * [Contributing](#contributing)
 
 ---
@@ -316,6 +317,31 @@ val provider: ProviderInfoBuilder =
 ```
 
 This will cause a request to be sent to the setup url prior to verification of each interaction that requires provider state. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+
+## Logging 
+
+- For consumer tests (forging pacts), you can enable additional logging from `pact-jvm` with the logger `au.com.dius.pact.consumer`.
+- For provider tests (verifying pacts), you can enable additional logging from `pact-jvm` with the logger `au.com.dius.pact.provider`.
+- Additional logging from `pact4s` is given by the logger `io.github.jbwheatley.pact4s.Pact4sLogger`. 
+
+Here is an example `logback.xml` if you are using logback: 
+
+```
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d [%thread] %-5level  %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="io.github.jbwheatley.pact4s.Pact4sLogger" level="INFO" />
+    <logger name="au.com.dius.pact.consumer" level="DEBUG"/>
+    <logger name="au.com.dius.pact.provider" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
+```
 
 ---
 
