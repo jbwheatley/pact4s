@@ -63,7 +63,7 @@ java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has
 
 ## Writing Pacts
 
-The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each.
+The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each, or the examples module.
 
 ### Pact Builder DSL
 
@@ -121,6 +121,11 @@ Request/response pacts use the `RequestResponsePactForger` trait. This trait req
 
 An example `RequestResponsePactForger` implementation is shown below.
 ```scala
+
+override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
+    "./my-sub-project/target/pacts" //this is where the pact file gets written to. It defaults to ./target/pacts (relative to the project base)
+)
+
 val pact: RequestResponsePact =
   ConsumerPactBuilder
     .consumer("Consumer")
@@ -149,6 +154,8 @@ def verify(interaction: RequestResponseInteraction): Result = interaction.getDes
     throw NoSuchElementException(s"Missing verification for interaction: '$description'.")
 }
 ```
+
+Upon completion of this test suite (and if all tests have passed) the pact will be written to the file defined in `pactTestExecutionContext`. **N.B.** The pact file will not be written unless the mock server has received a request for every interaction that you have defined in your pact. 
 
 Examples:
 - [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
