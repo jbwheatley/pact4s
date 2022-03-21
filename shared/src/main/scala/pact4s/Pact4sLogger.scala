@@ -16,8 +16,12 @@
 
 package pact4s
 
+import au.com.dius.pact.core.model.Pact
 import org.log4s.Logger
 
 trait Pact4sLogger {
   private[pact4s] val pact4sLogger: Logger = org.log4s.getLogger("Pact4s-Logger")
+
+  private[pact4s] def notWritingPactMessage(pact: Pact[_]): String =
+    s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
 }

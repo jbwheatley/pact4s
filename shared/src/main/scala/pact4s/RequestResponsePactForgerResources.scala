@@ -16,15 +16,32 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt}
+import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt, PactVerificationResult}
 import au.com.dius.pact.consumer.model.MockProviderConfig
-import au.com.dius.pact.core.model.RequestResponsePact
+import au.com.dius.pact.core.model.{RequestResponseInteraction, RequestResponsePact}
 import pact4s.syntax.RequestResponsePactOps
+
+import scala.jdk.CollectionConverters._
 
 trait RequestResponsePactForgerResources
     extends BasePactForgerResources[RequestResponsePact]
     with RequestResponsePactOps {
   val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
+  def interactions: List[RequestResponseInteraction] =
+    // This seems to be the only reliable way to access RequestResponseInteraction across JDK versions
+    pact.getInteractions.asScala.toList.collect { case interaction: RequestResponseInteraction => interaction }
+
   private[pact4s] def createServer: BaseMockServer = MockHttpServerKt.mockServer(pact, mockProviderConfig)
+
+  private[pact4s] def verifyResultAndWritePactFiles(server: BaseMockServer): Either[Throwable, Unit] = {
+    val result: PactVerificationResult =
+      server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
+    result match {
+      case _: PactVerificationResult.Ok    => Right(())
+      case e: PactVerificationResult.Error => Left(e.getError)
+      case other                           => Left(new Error(s"Execution failed due to:\n ${other.getDescription}"))
+    }
+  }
+
 }
