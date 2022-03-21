@@ -17,17 +17,10 @@
 package pact4s.scalatest
 
 import au.com.dius.pact.consumer.BaseMockServer
-import au.com.dius.pact.core.model.RequestResponseInteraction
-import org.scalatest.{Args, CompositeStatus, Status, Suite, SuiteMixin}
+import org.scalatest._
 import pact4s.RequestResponsePactForgerResources
 
-import scala.jdk.CollectionConverters._
-
 trait RequestResponsePactForger extends RequestResponsePactForgerResources with SuiteMixin { self: Suite =>
-
-  def interactions: List[RequestResponseInteraction] =
-    // This seems to be the only reliable way to access RequestResponseInteraction across JDK versions
-    pact.getInteractions.asScala.toList.collect { case interaction: RequestResponseInteraction => interaction }
 
   def mockServer: BaseMockServer = allocatedServer.get
 
@@ -47,24 +40,25 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
         if (!result.succeeds())
           testFailed = true
         result
-      } finally
+      } catch {
+        case e: Throwable =>
+          server.stop()
+          throw e
+      } finally {
+        server.stop()
         if (testFailed) {
-          pact4sLogger.info(
-            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
+          pact4sLogger.error(
+            notWritingPactMessage(pact)
           )
         } else {
-          beforeWritePacts() match {
-            case Left(e) =>
-              server.stop()
-              throw e
-            case Right(_) =>
-              pact4sLogger.info(
-                s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
-              )
-              server.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion)
-              server.stop()
+          beforeWritePacts().flatMap { _ =>
+            verifyResultAndWritePactFiles(server)
+          } match {
+            case Left(e)  => throw e
+            case Right(_) => ()
           }
         }
+      }
     }
   }
 

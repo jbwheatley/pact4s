@@ -16,10 +16,18 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.messaging.MessagePact
 import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.MessagePact
 import pact4s.syntax.MessagePactOps
+
+import scala.util.control.NonFatal
 
 trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] with MessagePactOps {
   val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
+
+  def writeMessagePactToFile(): Either[Throwable, Unit] =
+    try Right(pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion))
+    catch {
+      case NonFatal(err) => Left(err)
+    }
 }

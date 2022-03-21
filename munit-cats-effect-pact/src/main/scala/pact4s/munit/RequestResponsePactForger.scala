@@ -41,25 +41,25 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
   private def serverResource: Resource[IO, BaseMockServer] = {
     val server = createServer
     Resource.make[IO, BaseMockServer] {
-      for {
-        _ <- IO.delay(server.start())
-        _ <- IO.delay(server.waitForServer())
-      } yield server
+      {
+        for {
+          _ <- IO(server.start())
+          _ <- IO(server.waitForServer())
+        } yield server
+      }.onError(_ => IO(server.stop()))
     } { s =>
-      if (testFailed) {
-        pact4sLogger.info(
-          s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-        )
-        IO.unit
-      } else {
-        beforeWritePacts().as(
-          pact4sLogger.info(
-            s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+      IO(s.stop()) >> {
+        if (testFailed) {
+          IO(
+            pact4sLogger.error(
+              notWritingPactMessage(pact)
+            )
           )
-        ) >>
-          IO.delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
-            .void
-      }.guarantee(IO.delay(s.stop()))
+        } else {
+          beforeWritePacts() >>
+            IO.fromEither(verifyResultAndWritePactFiles(s))
+        }
+      }
     }
   }
 
