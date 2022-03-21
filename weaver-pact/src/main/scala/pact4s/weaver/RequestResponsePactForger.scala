@@ -17,9 +17,8 @@
 package pact4s.weaver
 
 import au.com.dius.pact.consumer.BaseMockServer
-import cats.effect.{Ref, Resource}
+import cats.effect.Resource
 import cats.implicits._
-import cats.effect.implicits._
 import pact4s.RequestResponsePactForgerResources
 import weaver.{MutableFSuite, TestOutcome}
 
@@ -29,6 +28,7 @@ trait SimpleRequestResponsePactForger[F[_]] extends WeaverRequestResponsePactFor
 }
 
 trait RequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBase[F] {
+
   type Resources
   override type Res = (Resources, BaseMockServer)
 
@@ -41,41 +41,39 @@ trait RequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBas
 trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with RequestResponsePactForgerResources {
   private val F = effect
 
-  private val testFailed: Ref[F, Boolean] = Ref.unsafe(false)
+  @volatile private var testFailed: Boolean = false
 
-  private[weaver] def serverResource: Resource[F, BaseMockServer] = Resource.make[F, BaseMockServer] {
+  private[weaver] def serverResource: Resource[F, BaseMockServer] = {
     val server = createServer
-    for {
-      _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[F]
-      _ <- F.delay(server.start())
-      _ <- F.delay(server.waitForServer())
-    } yield server
-  } { s =>
-    testFailed.get
-      .flatMap {
-        case true =>
-          pact4sLogger.info(
-            s"Not writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to file because tests failed."
-          )
-          F.unit
-        case false =>
-          beforeWritePacts().as(
-            pact4sLogger.info(
-              s"Writing pacts for consumer ${pact.getConsumer} and provider ${pact.getProvider} to ${pactTestExecutionContext.getPactFolder}"
+    Resource.make[F, BaseMockServer] {
+      {
+        for {
+          _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[F]
+          _ <- F.delay(server.start())
+          _ <- F.delay(server.waitForServer())
+        } yield server
+      }.onError(_ => F.delay(server.stop()))
+    } { s =>
+      F.delay(s.stop()) >> {
+        if (testFailed) {
+          F.delay(
+            pact4sLogger.error(
+              notWritingPactMessage(pact)
             )
-          ) >> F
-            .delay(s.verifyResultAndWritePact(null, pactTestExecutionContext, pact, mockProviderConfig.getPactVersion))
-            .void
+          )
+        } else {
+          beforeWritePacts() >> verifyResultAndWritePactFiles(s).liftTo[F]
+        }
       }
-      .guarantee(F.delay(s.stop()))
+    }
   }
 
   override def spec(args: List[String]): fs2.Stream[F, TestOutcome] = super.spec(args).evalTap {
-    case outcome if outcome.status.isFailed => testFailed.update(_ => true)
+    case outcome if outcome.status.isFailed => F.delay { testFailed = true }
     case _                                  => F.unit
   }
 
-  type Effect[_] = F[_]
+  type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
