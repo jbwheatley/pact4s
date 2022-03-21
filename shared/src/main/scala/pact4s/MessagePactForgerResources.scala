@@ -16,10 +16,15 @@
 
 package pact4s
 
-import au.com.dius.pact.core.model.messaging.MessagePact
 import au.com.dius.pact.core.model.PactSpecVersion
+import au.com.dius.pact.core.model.messaging.MessagePact
 import pact4s.syntax.MessagePactOps
 
 trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] with MessagePactOps {
   val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
+
+  def writeMessagePactToFile(): Either[Throwable, Unit] = {
+    val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion).component2()
+    if (write == null) Right(()) else Left(write)
+  }
 }
