@@ -6,7 +6,7 @@ object Dependencies {
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
   val logback          = "1.2.11"
-  val collectionCompat = "2.6.0"
+  val collectionCompat = "2.7.0"
   val sourcecode       = "0.2.8"
   val _circe           = "0.14.1"
   val _playJson        = "2.9.2"
