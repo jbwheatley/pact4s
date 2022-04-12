@@ -132,6 +132,17 @@ lazy val pact4s = (project in file("."))
     example
   )
 
+lazy val deletePactFiles = taskKey[Unit]("deletes pact files created during tests.")
+
+deletePactFiles := {
+  import scala.reflect.io.Directory
+  import java.io.File
+  List(scalaTest.base.base, munit.base.base, weaver.base.base).foreach { project =>
+    new Directory(new File(s"./$project/target/pacts")).deleteRecursively()
+    ()
+  }
+}
+
 addCommandAlias(
   "commitCheck",
   List(
@@ -139,6 +150,7 @@ addCommandAlias(
     "scalafmtCheck",
     "headerCheck",
     "+compile:doc",
+    "deletePactFiles",
     "project munit",
     "+test",
     "project weaver",
@@ -149,6 +161,29 @@ addCommandAlias(
     "+test",
     "project playJson",
     "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+//Same as above but no cross building
+addCommandAlias(
+  "quickCommitCheck",
+  List(
+    "clean",
+    "scalafmtCheck",
+    "headerCheck",
+    "compile:doc",
+    "deletePactFiles",
+    "project munit",
+    "test",
+    "project weaver",
+    "test",
+    "project scalaTest",
+    "test",
+    "project circe",
+    "test",
+    "project playJson",
+    "test"
   )
     .mkString(";", ";", "")
 )

@@ -24,6 +24,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Request Filtering](#request-filtering)
     + [Message Pact Verification](#message-pact-verification)
     + [Provider state](#provider-state)
+  * [Logging](#logging)
   * [Contributing](#contributing)
 
 ---
@@ -63,7 +64,7 @@ java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has
 
 ## Writing Pacts
 
-The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each.
+The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each, or the examples module.
 
 ### Pact Builder DSL
 
@@ -121,6 +122,11 @@ Request/response pacts use the `RequestResponsePactForger` trait. This trait req
 
 An example `RequestResponsePactForger` implementation is shown below.
 ```scala
+
+override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
+    "./my-sub-project/target/pacts" //this is where the pact file gets written to. It defaults to ./target/pacts (relative to the project base)
+)
+
 val pact: RequestResponsePact =
   ConsumerPactBuilder
     .consumer("Consumer")
@@ -149,6 +155,8 @@ def verify(interaction: RequestResponseInteraction): Result = interaction.getDes
     throw NoSuchElementException(s"Missing verification for interaction: '$description'.")
 }
 ```
+
+Upon completion of this test suite (and if all tests have passed) the pact will be written to the file defined in `pactTestExecutionContext`. **N.B.** The pact file will not be written unless the mock server has received a request for every interaction that you have defined in your pact. 
 
 Examples:
 - [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
@@ -309,6 +317,31 @@ val provider: ProviderInfoBuilder =
 ```
 
 This will cause a request to be sent to the setup url prior to verification of each interaction that requires provider state. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+
+## Logging 
+
+- For consumer tests (forging pacts), you can enable additional logging from `pact-jvm` with the logger `au.com.dius.pact.consumer`.
+- For provider tests (verifying pacts), you can enable additional logging from `pact-jvm` with the logger `au.com.dius.pact.provider`.
+- Additional logging from `pact4s` is given by the logger `io.github.jbwheatley.pact4s.Pact4sLogger`. 
+
+Here is an example `logback.xml` if you are using logback: 
+
+```
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d [%thread] %-5level  %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="io.github.jbwheatley.pact4s.Pact4sLogger" level="INFO" />
+    <logger name="au.com.dius.pact.consumer" level="DEBUG"/>
+    <logger name="au.com.dius.pact.provider" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
+```
 
 ---
 

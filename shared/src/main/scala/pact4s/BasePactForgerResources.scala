@@ -42,8 +42,7 @@ trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
 
   private[pact4s] type Effect[_]
 
-  /** This effect runs after the consumer pact tests are run, but before they get written to a file. An example use is
-    * to check that all the defined pacts have a corresponding test.
+  /** This effect runs after the consumer pact tests are run, but before they get written to a file.
     */
   def beforeWritePacts(): Effect[Unit]
 }
