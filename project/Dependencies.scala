@@ -11,7 +11,7 @@ object Dependencies {
   val _circe           = "0.14.1"
   val _playJson        = "2.9.2"
   val _weaver          = "0.7.11"
-  val _scalatest       = "3.2.11"
+  val _scalatest       = "3.2.12"
   val _munit           = "0.7.29"
   val munitCatsEffect  = "1.0.7"
 
