@@ -25,7 +25,7 @@ import scala.jdk.CollectionConverters._
 trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
   def pact: Pact
 
-  val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext
+  val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
   private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = {
     val errors: List[String] = pact.validateForVersion(version).asScala.toList
