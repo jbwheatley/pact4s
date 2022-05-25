@@ -1,17 +1,17 @@
 import sbt._
 
 object Dependencies {
-  val mockitoScala     = "1.16.49"
+  val mockitoScala     = "1.17.5"
   val pactJvm          = "4.1.34"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
   val logback          = "1.2.11"
-  val collectionCompat = "2.6.0"
+  val collectionCompat = "2.7.0"
   val sourcecode       = "0.2.8"
-  val _circe           = "0.14.1"
+  val _circe           = "0.14.2"
   val _playJson        = "2.9.2"
-  val _weaver          = "0.7.10"
-  val _scalatest       = "3.2.11"
+  val _weaver          = "0.7.11"
+  val _scalatest       = "3.2.12"
   val _munit           = "0.7.29"
   val munitCatsEffect  = "1.0.7"
 
