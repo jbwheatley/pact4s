@@ -41,7 +41,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
   // else we leave it as is to be rejected.
   def requestFilter: ProviderRequest => ProviderRequestFilter = req =>
     req.getFirstHeader("Authorization") match {
-      case Some((_, value)) =>
+      case Some(_, value) =>
         Authorization
           .parse(value)
           .map {
