@@ -51,7 +51,7 @@ trait MessagePactOps {
   implicit def toMessageOps(message: Message): MessageOps = new MessageOps(message)
 
   sealed class Pact4sMessagePactBuilder() {
-    def consumer(consumer: String): MessagePactBuilder = new MessagePactBuilder.consumer(consumer)
+    def consumer(consumer: String): MessagePactBuilder = new MessagePactBuilder().consumer(consumer)
   }
 
   object Pact4sMessagePactBuilder {
