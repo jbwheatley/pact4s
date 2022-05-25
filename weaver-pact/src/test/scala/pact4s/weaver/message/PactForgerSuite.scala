@@ -31,7 +31,7 @@ object PactForgerSuite extends IOSuite with SimpleMessagePactForger[IO] {
   test("weaver message pact test") { messages =>
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))
       .map(s => expect(s == "harry")) *>
-      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).map(s => expect(s == "there"))
+      IO.fromOption(messages.head.metadata.get("hi"))(new Exception).map(s => expect(s == "there"))
   }
 
   test("another weaver message pact test") { messages =>

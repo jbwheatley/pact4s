@@ -29,7 +29,7 @@ class PactForgerSuite extends MessagePactForger {
 
   test("munit message pact test") {
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello"))).assertEquals("harry") *>
-      IO.fromOption(messages.head.metadata.get("hi"))(new Exception()).assertEquals("there")
+      IO.fromOption(messages.head.metadata.get("hi"))(new Exception).assertEquals("there")
   }
 
   test("another munit message pact test") {

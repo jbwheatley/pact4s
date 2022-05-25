@@ -41,12 +41,12 @@ trait PactVerifyResources {
 
   def responseFactory: Option[ResponseFactory] = None
 
-  private val failures: ListBuffer[String]        = new ListBuffer[String]()
-  private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
+  private val failures: ListBuffer[String]        = new ListBuffer[String]
+  private val pendingFailures: ListBuffer[String] = new ListBuffer[String]
 
   private[pact4s] lazy val providerInfo = provider.build
 
-  private[pact4s] val verifier = new ProviderVerifier()
+  private[pact4s] val verifier = new ProviderVerifier
 
   private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
@@ -87,7 +87,7 @@ trait PactVerifyResources {
     }
 
   private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult =
-    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
+    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object], providerInfo, consumer, null)
 
   private def resolveProperty(properties: Map[String, String], name: String): Option[String] =
     properties.get(name).orElse(Option(System.getProperty(name)))
