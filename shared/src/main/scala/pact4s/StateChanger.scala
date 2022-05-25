@@ -58,6 +58,7 @@ private[pact4s] object StateChanger {
 
     object RootHandler extends HttpHandler {
       def handle(t: HttpExchange): Unit = {
+        var responseBody = ""
         Try {
           val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
@@ -67,13 +68,18 @@ private[pact4s] object StateChanger {
             }.toMap)
             .getOrElse(Map.empty)
           (json.get("state").asString(), params)
+          // should return the params in the response body to be used with the generators
+          responseBody = "{" + params.map { case (k, v) => s""""$k": "$v"""" }.mkString(",") + "}"
+          (json.get("state").asString(), params)
         }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
-        sendResponse(t)
+        sendResponse(t, responseBody)
 
+        sendResponse(t, responseBody)
       }
 
-      private def sendResponse(t: HttpExchange): Unit = {
-        val response = "Ack!"
+      private def sendResponse(t: HttpExchange, body: String): Unit = {
+        val response = body
+        t.getResponseHeaders.set("Content-Type", "application/json")
         t.sendResponseHeaders(200, response.length().toLong)
         val os = t.getResponseBody
         os.write(response.getBytes)
