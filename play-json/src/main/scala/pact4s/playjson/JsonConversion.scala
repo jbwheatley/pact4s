@@ -29,7 +29,7 @@ private[playjson] object JsonConversion {
       case JsNumber(num)        => builder.numberValue(fieldName, num)
       case JsString(str)        => builder.stringValue(fieldName, str)
       case JsArray(array)       => addArrayToJsonBody(builder, fieldName, array.toSeq)
-      case jsonObject: JsObject => builder.`object`(fieldName, addJsonObjToBuilder(new PactDslJsonBody, jsonObject))
+      case jsonObject: JsObject => builder.`object`(fieldName, addJsonObjToBuilder(new PactDslJsonBody(), jsonObject))
     }
 
   private def addJsonObjToBuilder(builder: PactDslJsonBody, jsonObj: JsObject): PactDslJsonBody =
@@ -61,7 +61,7 @@ private[playjson] object JsonConversion {
       case JsTrue            => PactDslJsonRootValue.booleanType(true)
       case JsNumber(num)     => PactDslJsonRootValue.numberType(num)
       case JsString(str)     => PactDslJsonRootValue.stringType(str)
-      case JsArray(arr)      => addArrayValuesToArray(new PactDslJsonArray, arr.toSeq)
-      case jsonObj: JsObject => addJsonObjToBuilder(new PactDslJsonBody, jsonObj)
+      case JsArray(arr)      => addArrayValuesToArray(new PactDslJsonArray(), arr.toSeq)
+      case jsonObj: JsObject => addJsonObjToBuilder(new PactDslJsonBody(), jsonObj)
     }
 }

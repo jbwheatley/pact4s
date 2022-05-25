@@ -32,7 +32,7 @@ private[circe] object JsonConversion {
           .numberValue(fieldName, jsonNumberToNumber(num)),
       jsonString = str => builder.stringValue(fieldName, str),
       jsonArray = array => addArrayToJsonBody(builder, fieldName, array),
-      jsonObject = jsonObject => builder.`object`(fieldName, addJsonObjToBuilder(new PactDslJsonBody, jsonObject))
+      jsonObject = jsonObject => builder.`object`(fieldName, addJsonObjToBuilder(new PactDslJsonBody(), jsonObject))
     )
 
   private def addJsonObjToBuilder(builder: PactDslJsonBody, jsonObj: JsonObject): PactDslJsonBody =
@@ -62,7 +62,7 @@ private[circe] object JsonConversion {
       jsonBoolean = bool => PactDslJsonRootValue.booleanType(bool),
       jsonNumber = num => PactDslJsonRootValue.numberType(jsonNumberToNumber(num)),
       jsonString = str => PactDslJsonRootValue.stringType(str),
-      jsonArray = jArr => addArrayValuesToArray(new PactDslJsonArray, jArr),
-      jsonObject = jObj => addJsonObjToBuilder(new PactDslJsonBody, jObj)
+      jsonArray = jArr => addArrayValuesToArray(new PactDslJsonArray(), jArr),
+      jsonObject = jObj => addJsonObjToBuilder(new PactDslJsonBody(), jObj)
     )
 }

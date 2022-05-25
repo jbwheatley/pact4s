@@ -63,7 +63,7 @@ object implicits {
           )
           .getOrElse(Map.empty)
       )
-    state and params (ProviderState.apply _)
+    (state and params)(ProviderState.apply _)
   }
 
 }
