@@ -137,7 +137,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
     ProviderInfoBuilder(
       name = providerName,
       pactSource = PactBrokerWithSelectors(
-        brokerUrl = "https://test.pact.dius.com.au"
+        brokerUrl = "https://test.pactflow.io"
       ).withPendingPactsEnabled(ProviderTags("SNAPSHOT"))
         .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withSelectors(consumerVersionSelector)
