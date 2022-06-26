@@ -2,10 +2,11 @@ import sbt.Keys.{resolvers, testFrameworks}
 
 import scala.util.Try
 
-val scala212       = "2.12.16"
-val scala213       = "2.13.8"
-val scala2Versions = Seq(scala212, scala213)
-val scala3         = "3.0.0-RC2"
+val scala212         = "2.12.16"
+val scala213         = "2.13.8"
+val scala2Versions   = Seq(scala212, scala213)
+val scala3           = "3.1.3"
+val allScalaVersions = Seq(scala212, scala213, scala3)
 
 sonatypeCredentialHost := Sonatype.sonatype01
 
@@ -24,7 +25,7 @@ inThisBuild(
     startYear          := Some(2021),
     licenses           := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scalaVersion       := scala213,
-    crossScalaVersions := scala2Versions
+    crossScalaVersions := allScalaVersions
   )
 )
 
@@ -46,7 +47,10 @@ lazy val shared =
     .settings(commonSettings)
     .settings(
       name := "pact4s-core",
-      libraryDependencies ++= Dependencies.shared
+      libraryDependencies ++= Dependencies.shared,
+      scalacOptions ++= {
+        if (scalaVersion.value.startsWith("3")) Seq("-Wconf:cat=deprecation:i") else Nil
+      }
     )
 
 lazy val circe =

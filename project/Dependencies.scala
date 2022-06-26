@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val mockitoScala     = "1.16.55"
+  val mockito          = "4.3.1"
   val pactJvm          = "4.3.9"
   val http4s           = "1.0.0-M30"
   val log4s            = "1.10.0"
@@ -28,7 +28,7 @@ object Dependencies {
       "org.http4s"             %% "http4s-ember-server"     % http4s          % Test,
       "org.http4s"             %% "http4s-circe"            % http4s          % Test,
       "io.circe"               %% "circe-core"              % _circe          % Test,
-      "org.mockito"            %% "mockito-scala"           % mockitoScala    % Test,
+      "org.mockito"             % "mockito-core"            % mockito         % Test,
       "org.typelevel"          %% "munit-cats-effect-3"     % munitCatsEffect % Test
     )
 
@@ -52,8 +52,8 @@ object Dependencies {
   )
 
   val playJson: Seq[ModuleID] = Seq(
-    "com.typesafe.play" %% "play-json" % _playJson,
-    "org.scalameta"     %% "munit"     % _munit % Test
+    ("com.typesafe.play" %% "play-json" % _playJson).cross(CrossVersion.for3Use2_13),
+    "org.scalameta"      %% "munit"     % _munit % Test
   )
 
   val example: Seq[ModuleID] = Seq(
