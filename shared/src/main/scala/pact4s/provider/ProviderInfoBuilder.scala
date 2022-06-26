@@ -199,6 +199,7 @@ final class ProviderInfoBuilder private (
         val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
           p.enablePending,
           p.providerTags.map(_.toList).getOrElse(Nil).asJava,
+          null,
           p.includeWipPactsSince.since.map(instantToDateString).orNull,
           p.insecureTLS,
           pactJvmAuth.orNull
