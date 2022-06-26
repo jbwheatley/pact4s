@@ -41,7 +41,7 @@ class PactForgerSuite extends AnyFlatSpec with Matchers with RequestResponsePact
       .method("GET")
       .willRespondWith()
       .status(204)
-      .given("bob exists")
+      .`given`("bob exists")
       .uponReceiving("a request to find a friend")
       .path("/anyone-there")
       .method("GET")
