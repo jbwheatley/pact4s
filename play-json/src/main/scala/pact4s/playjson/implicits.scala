@@ -35,7 +35,11 @@ object implicits {
   implicit def messagePactDecoder[A](implicit reads: Reads[A]): MessagePactDecoder[A] = (message: Message) =>
     Try(Json.parse(message.contentsAsString()).as[A]).toEither
 
-  implicit val providerStateWrites: Writes[ProviderState] = Json.writes[ProviderState]
+  implicit val providerStateWrites: Writes[ProviderState] = Writes { state =>
+    JsObject(
+      Map("state" -> JsString(state.state), "params" -> JsObject(state.params.map { case (k, v) => (k, JsString(v)) }))
+    )
+  }
 
   implicit val providerStateReads: Reads[ProviderState] = {
 
