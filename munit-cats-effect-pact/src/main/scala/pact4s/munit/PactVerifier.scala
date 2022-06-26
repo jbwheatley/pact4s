@@ -55,7 +55,7 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
     }
 }
 
-trait MessagePactVerifier extends PactVerifier { _: CatsEffectSuite =>
+trait MessagePactVerifier extends PactVerifier { self: CatsEffectSuite =>
   def messages: ResponseFactory
   override def responseFactory: Option[ResponseFactory] = Some(messages)
 }
