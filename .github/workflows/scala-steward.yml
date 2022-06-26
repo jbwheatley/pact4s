@@ -16,3 +16,4 @@ jobs:
         with:
           github-token: ${{ secrets.REPO_GITHUB_TOKEN }}
           branches: main,java8
+          author-email: 19939655+jbwheatley@users.noreply.github.com
