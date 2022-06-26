@@ -2,7 +2,7 @@ import sbt.Keys.{resolvers, testFrameworks}
 
 import scala.util.Try
 
-val scala212       = "2.12.15"
+val scala212       = "2.12.16"
 val scala213       = "2.13.8"
 val scala2Versions = Seq(scala212, scala213)
 val scala3         = "3.0.0-RC2"
