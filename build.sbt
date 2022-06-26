@@ -2,7 +2,7 @@ import sbt.Keys.{resolvers, testFrameworks}
 
 import scala.util.Try
 
-val scala212       = "2.12.15"
+val scala212       = "2.12.16"
 val scala213       = "2.13.8"
 val scala2Versions = Seq(scala212, scala213)
 val scala3         = "3.0.0-RC2"
@@ -21,9 +21,9 @@ inThisBuild(
         url("https://github.com/jbwheatley")
       )
     ),
-    startYear    := Some(2021),
-    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-    scalaVersion := scala213,
+    startYear          := Some(2021),
+    licenses           := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    scalaVersion       := scala213,
     crossScalaVersions := scala2Versions
   )
 )
@@ -42,14 +42,16 @@ val moduleBase =
   Def.setting((Compile / scalaSource).value.getParentFile.getParentFile.getParentFile)
 
 lazy val shared =
-  (project in file("shared")).settings(commonSettings)
+  (project in file("shared"))
+    .settings(commonSettings)
     .settings(
       name := "pact4s-core",
       libraryDependencies ++= Dependencies.shared
     )
 
 lazy val circe =
-  (project in file("circe")).settings(commonSettings)
+  (project in file("circe"))
+    .settings(commonSettings)
     .settings(
       name := "pact4s-circe",
       libraryDependencies ++= Dependencies.circe,
@@ -58,7 +60,8 @@ lazy val circe =
     .dependsOn(shared)
 
 lazy val playJson =
-  (project in file("play-json")).settings(commonSettings)
+  (project in file("play-json"))
+    .settings(commonSettings)
     .settings(
       name := "pact4s-play-json",
       libraryDependencies ++= Dependencies.playJson,
@@ -67,7 +70,8 @@ lazy val playJson =
     .dependsOn(shared)
 
 lazy val munit =
-  (project in file("munit-cats-effect-pact")).settings(commonSettings)
+  (project in file("munit-cats-effect-pact"))
+    .settings(commonSettings)
     .settings(
       name := "pact4s-munit-cats-effect",
       libraryDependencies ++= Dependencies.munit
@@ -76,7 +80,8 @@ lazy val munit =
     .dependsOn(circe % "test->test")
 
 lazy val scalaTest =
-  (project in file("scalatest-pact")).settings(commonSettings)
+  (project in file("scalatest-pact"))
+    .settings(commonSettings)
     .settings(
       name := "pact4s-scalatest",
       libraryDependencies ++= Dependencies.scalatest
