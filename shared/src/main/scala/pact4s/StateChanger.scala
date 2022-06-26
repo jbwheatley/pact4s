@@ -66,15 +66,19 @@ private[pact4s] object StateChanger {
           val maybeParams = Option(obj.getJsonObject("params"))
           // This needs work.
           val params: Map[String, String] = maybeParams
-            .map(_.entrySet().asScala.map { kv =>
-              val key   = kv.getKey
-              val value = kv.getValue
-              val fixedValue = value.getValueType match {
-                case JsonValue.ValueType.STRING => value.toString.init.tail
-                case _                          => value.toString
-              }
-              key -> fixedValue
-            }.toMap)
+            .map(
+              _.entrySet().asScala
+                .map { kv =>
+                  val key   = kv.getKey
+                  val value = kv.getValue
+                  val fixedValue = value.getValueType match {
+                    case JsonValue.ValueType.STRING => value.toString.init.tail
+                    case _                          => value.toString
+                  }
+                  key -> fixedValue
+                }
+                .toMap
+            )
             .getOrElse(Map.empty)
           // should return the params in the response body to be used with the generators
           responseBody = "{" + params.map { case (k, v) => s""""$k": "$v"""" }.mkString(",") + "}"
