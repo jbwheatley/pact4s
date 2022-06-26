@@ -63,9 +63,13 @@ private[pact4s] object StateChanger {
           val json        = JsonParser.parseStream(t.getRequestBody)
           val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
           val params: Map[String, String] = maybeParams
-            .map(_.getEntries.asScala.map { case (k, v) =>
-              k -> v.toString
-            }.toMap)
+            .map(
+              _.getEntries.asScala
+                .map { case (k, v) =>
+                  k -> v.toString
+                }
+                .toMap
+            )
             .getOrElse(Map.empty)
           (json.get("state").asString(), params)
           // should return the params in the response body to be used with the generators
