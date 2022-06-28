@@ -75,8 +75,8 @@ Pacts are constructed using the pact-jvm DSL, but with additional helpers for ea
 If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided.
 
 Instances of `pact4s.PactBodyEncoder` are provided for:
-- any type that has a `circe.Encoder` by adding the additional dependency: ```io.github.jbwheatley %% pact4s-circe % xxx```
-- any type that has a `play.api.libs.json.Writes` by adding the additional dependency: ```io.github.jbwheatley %% pact4s-play-json % xxx```
+- any type that has a `circe.Encoder` by adding the additional dependency: ```"io.github.jbwheatley" %% "pact4s-circe" % xxx```
+- any type that has a `play.api.libs.json.Writes` by adding the additional dependency: ```"io.github.jbwheatley" %% "pact4s-play-json" % xxx```
 
 This allows the following when using the import `pact4s.circe.implicits._`:
 ```scala
