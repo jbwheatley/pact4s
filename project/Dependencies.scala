@@ -1,18 +1,31 @@
 import sbt._
 
 object Dependencies {
+
   val mockito          = "4.6.1"
-  val pactJvm          = "4.3.9"
+
+  val pactJvm          = "4.3.10"
+  
   val http4s           = "1.0.0-M30"
+  
   val log4s            = "1.10.0"
+  
   val logback          = "1.2.11"
+  
   val collectionCompat = "2.7.0"
+  
   val sourcecode       = "0.2.8"
+  
   val _circe           = "0.14.2"
+  
   val _playJson        = "2.9.2"
-  val _weaver          = "0.7.12"
+  
+  val _weaver          = "0.7.13"
+  
   val _scalatest       = "3.2.12"
+  
   val _munit           = "0.7.29"
+  
   val munitCatsEffect  = "1.0.7"
 
   val shared: Seq[ModuleID] =
