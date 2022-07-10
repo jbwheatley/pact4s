@@ -11,7 +11,7 @@ object Dependencies {
 
   val logback = "1.2.11"
 
-  val collectionCompat = "2.7.0"
+  val collectionCompat = "2.8.0"
 
   val sourcecode = "0.2.8"
 
