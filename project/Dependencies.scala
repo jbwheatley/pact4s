@@ -14,7 +14,7 @@ object Dependencies {
 
   val collectionCompat = "2.7.0"
 
-  val sourcecode = "0.2.8"
+  val sourcecode = "0.3.0"
 
   val _circe = "0.14.2"
 
