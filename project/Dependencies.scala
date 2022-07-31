@@ -19,7 +19,7 @@ object Dependencies {
 
   val _playJson = "2.9.2"
 
-  val _weaver = "0.7.13"
+  val _weaver = "0.7.14"
 
   val _scalatest = "3.2.12"
 
