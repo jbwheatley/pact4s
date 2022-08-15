@@ -21,5 +21,3 @@ jobs:
         with:
           java-version: temurin@17
       - run: sbt commitCheck
-        env:
-          TEST_WEAVER: false
