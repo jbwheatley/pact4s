@@ -21,6 +21,7 @@ import sourcecode.{File => SCFile}
 
 import java.io.File
 import java.net.URL
+import scala.concurrent.duration.DurationInt
 
 class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file: SCFile) {
 
@@ -32,6 +33,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
       .withHttpApp(middleware(app))
+      .withShutdownTimeout(1.seconds)
       .build
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {

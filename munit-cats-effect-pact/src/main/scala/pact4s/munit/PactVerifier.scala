@@ -40,9 +40,9 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
       verify: () => VerificationResult,
       timeout: Option[FiniteDuration]
   ): Either[TimeoutException, VerificationResult] =
-    timeout match {
+    (timeout match {
       case Some(timeout) =>
-        IO.delay(verify())
+        IO(verify())
           .timeout(timeout)
           .attempt
           .flatMap[Either[TimeoutException, VerificationResult]] {
@@ -50,9 +50,8 @@ trait PactVerifier extends PactVerifyResources with Pact4sLogger { self: CatsEff
             case Left(ex)                   => IO.raiseError(ex)
             case Right(value)               => IO(Right(value))
           }
-          .unsafeRunSync()
-      case None => Right(verify())
-    }
+      case None => IO(Right(verify()))
+    }).unsafeRunSync()
 }
 
 trait MessagePactVerifier extends PactVerifier { self: CatsEffectSuite =>

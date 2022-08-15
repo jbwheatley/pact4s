@@ -1,5 +1,6 @@
 package pact4s.munit.requestresponse
 
+import cats.effect.IO
 import munit.CatsEffectSuite
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
@@ -22,6 +23,6 @@ class PactVerifierFileSuite extends CatsEffectSuite with PactVerifier {
   )
 
   test("Verify pacts for provider `Pact4sProvider`") {
-    verifyPacts()
+    IO(verifyPacts())
   }
 }
