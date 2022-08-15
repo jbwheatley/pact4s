@@ -97,11 +97,7 @@ lazy val weaver =
     .settings(
       name := "pact4s-weaver",
       libraryDependencies ++= Dependencies.weaver,
-      testFrameworks ++= {
-        if (Try(System.getenv("TEST_WEAVER").toBoolean).getOrElse(true))
-          Seq(new TestFramework("weaver.framework.CatsEffect"))
-        else Nil
-      }
+      testFrameworks += new TestFramework("weaver.framework.CatsEffect")
     )
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
