@@ -3,7 +3,7 @@ package pact4s.weaver.requestresponse
 import cats.effect.{IO, Resource}
 import org.http4s.server.Server
 import pact4s.MockProviderServer
-import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
 import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
@@ -22,12 +22,7 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
       a <- IO(
         succeed(
           verifyPacts(
-            publishVerificationResults = Some(
-              PublishVerificationResults(
-                providerVersion = "SNAPSHOT",
-                providerBranch = Branch.MAIN
-              )
-            )
+            Some(Branch.MAIN)
           )
         )
       )

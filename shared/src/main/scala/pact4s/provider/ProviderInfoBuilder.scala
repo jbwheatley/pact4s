@@ -156,7 +156,7 @@ final class ProviderInfoBuilder private (
   }
 
   private[pact4s] def build(
-      providerBranch: Option[String],
+      providerBranch: Option[Branch],
       responseFactory: Option[String => ResponseBuilder]
   ): Either[Throwable, ProviderInfo] = {
     val p = new ProviderInfo(name, protocol, host, port, path)
@@ -193,7 +193,7 @@ final class ProviderInfoBuilder private (
   private def applyBrokerSourceToProvider(
       providerInfo: ProviderInfo,
       pactSource: PactBroker,
-      providerBranch: Option[String]
+      providerBranch: Option[Branch]
   ): Either[Throwable, ProviderInfo] =
     pactSource match {
       case p: PactBrokerWithSelectors =>
@@ -207,7 +207,7 @@ final class ProviderInfoBuilder private (
             val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
               p.enablePending,
               p.providerTags.map(_.toList).getOrElse(Nil).asJava,
-              providerBranch.orNull,
+              providerBranch.map(_.branch).orNull,
               p.includeWipPactsSince.since.map(instantToDateString).orNull,
               p.insecureTLS,
               pactJvmAuth.orNull
