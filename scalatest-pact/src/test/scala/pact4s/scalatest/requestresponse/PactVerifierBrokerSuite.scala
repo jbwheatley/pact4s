@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pact4s.MockProviderServer
-import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
 import pact4s.scalatest.PactVerifier
 
 class PactVerifierBrokerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll with Matchers {
@@ -27,12 +27,7 @@ class PactVerifierBrokerSuite extends AnyFlatSpec with PactVerifier with BeforeA
 
   it should "Verify pacts for provider `Pact4sProvider`, scalatest" in {
     verifyPacts(
-      publishVerificationResults = Some(
-        PublishVerificationResults(
-          providerVersion = "SNAPSHOT",
-          providerBranch = Branch.MAIN
-        )
-      )
+      Some(Branch.MAIN)
     )
     mock.featureXState.tryGet.unsafeRunSync() shouldBe None
   }
