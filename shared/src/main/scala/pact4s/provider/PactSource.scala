@@ -19,6 +19,7 @@ package provider
 
 import java.io.File
 import java.time.{Instant, LocalDate, OffsetDateTime}
+import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
 
 sealed trait PactSource
@@ -75,7 +76,7 @@ object PactSource {
       brokerUrl
     )
       .withOptionalAuth(auth)
-      .withSelectors(tags.map(tag => ConsumerVersionSelector().withTag(tag)))
+      .withConsumerVersionSelectors(tags.foldLeft(ConsumerVersionSelectors())(_.tag(_)))
       .withInsecureTLS(insecureTLS)
   }
 
@@ -112,7 +113,11 @@ object PactSource {
     *   set to false.
     *
     * @param selectors
-    *   specifies which consumer pacts should be chosen for verification
+    *   specifies which consumer pacts should be chosen for verification. Deprecated in favour of
+    *   consumerVersionSelectors.
+    *
+    * @param consumerVersionSelectors
+    *   specifies which consumer pacts should be chosen for verification.
     *
     * Example:
     * {{{
@@ -121,7 +126,7 @@ object PactSource {
     *   ).withPendingPactsEnabled(ProviderTags("MAIN"))
     *     .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
     *     .withWipPactsSince(WipPactsSince.instant(Instant.EPOCH))
-    *     .withSelectors(ConsumerVersionSelector())
+    *     .withConsumerVersionSelectors(ConsumerVersionSelectors.mainBranch)
     * }}}
     */
   final class PactBrokerWithSelectors private (
@@ -131,7 +136,9 @@ object PactSource {
       val enablePending: Boolean,
       val includeWipPactsSince: WipPactsSince,
       val providerTags: Option[ProviderTags],
-      val selectors: List[ConsumerVersionSelector]
+      @nowarn
+      val selectors: List[ConsumerVersionSelector],
+      val consumerVersionSelectors: ConsumerVersionSelectors
   ) extends PactBroker {
     private def copy(
         brokerUrl: String = brokerUrl,
@@ -140,7 +147,7 @@ object PactSource {
         enablePending: Boolean = enablePending,
         includeWipPactsSince: WipPactsSince = includeWipPactsSince,
         providerTags: Option[ProviderTags] = providerTags,
-        selectors: List[ConsumerVersionSelector] = selectors
+        consumerVersionSelectors: ConsumerVersionSelectors = consumerVersionSelectors
     ): PactBrokerWithSelectors =
       new PactBrokerWithSelectors(
         brokerUrl,
@@ -149,7 +156,8 @@ object PactSource {
         enablePending,
         includeWipPactsSince,
         providerTags,
-        selectors
+        selectors,
+        consumerVersionSelectors
       )
 
     private[pact4s] def withOptionalAuth(auth: Option[Authentication]): PactBrokerWithSelectors = copy(auth = auth)
@@ -188,21 +196,34 @@ object PactSource {
     def withOptionalProviderTags(providerTags: Option[ProviderTags]): PactBrokerWithSelectors =
       copy(providerTags = providerTags)
 
+    @deprecated("Apply selectors to source using `withConsumerVersionSelectors` instead", "0.5.0")
     def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
-      copy(selectors = selectors)
+      withSelectors(selectors: _*)
 
+    @deprecated("Apply selectors to source using `withConsumerVersionSelectors` instead", "0.5.0")
     def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
-      copy(selectors = selectors.toList)
+      new PactBrokerWithSelectors(
+        brokerUrl,
+        insecureTLS,
+        auth,
+        enablePending,
+        includeWipPactsSince,
+        providerTags,
+        selectors.toList,
+        consumerVersionSelectors
+      )
+
+    def withConsumerVersionSelectors(selectors: ConsumerVersionSelectors): PactBrokerWithSelectors =
+      copy(consumerVersionSelectors = selectors)
 
     def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithSelectors = copy(insecureTLS = insecureTLS)
 
-    private[pact4s] def validate(): Unit = {
-      require(!(enablePending && providerTags.isEmpty), "Provider tags must be provided if pending pacts are enabled")
-      require(
-        !(includeWipPactsSince.since.isDefined && providerTags.isEmpty),
-        "Provider tags must be provided if WIP pacts are enabled"
-      )
-    }
+    private[pact4s] def validate(): Either[Throwable, Unit] =
+      if (enablePending && providerTags.isEmpty)
+        Left(new IllegalArgumentException("Provider tags must be provided if pending pacts are enabled"))
+      else if (includeWipPactsSince.since.isDefined && providerTags.isEmpty)
+        Left(new IllegalArgumentException("Provider tags must be provided if WIP pacts are enabled"))
+      else Right(())
   }
 
   object PactBrokerWithSelectors {
@@ -216,7 +237,8 @@ object PactSource {
         enablePending = false,
         includeWipPactsSince = WipPactsSince.never,
         providerTags = None,
-        selectors = List(ConsumerVersionSelector())
+        selectors = Nil,
+        consumerVersionSelectors = ConsumerVersionSelectors()
       )
 
     @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
@@ -226,6 +248,7 @@ object PactSource {
         enablePending: Boolean = false,
         includeWipPactsSince: Option[FiniteDuration] = None,
         providerTags: List[String] = Nil,
+        @nowarn
         selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
     ): PactBrokerWithSelectors = {
       val tags = ProviderTags.fromList(providerTags)
@@ -238,7 +261,8 @@ object PactSource {
           .map(d => WipPactsSince.instant(Instant.ofEpochSecond(d.toSeconds)))
           .getOrElse(WipPactsSince.never),
         providerTags = tags,
-        selectors = selectors
+        selectors = selectors,
+        consumerVersionSelectors = ConsumerVersionSelectors()
       )
     }
   }
