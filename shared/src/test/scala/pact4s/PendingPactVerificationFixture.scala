@@ -13,9 +13,7 @@ import scala.jdk.CollectionConverters._
   */
 trait PendingPactVerificationFixture { this: PactVerifyResources =>
   val mocks = new Mocks()
-  override private[pact4s] val verifier: ProviderVerifier =
-    mocks.providerVerifier
-  override private[pact4s] lazy val providerInfo = {
+  val providerInfo = {
     val providerInfo: ProviderInfo = mocks.providerInfo
     val consumer: IConsumerInfo    = mocks.consumerInfo
     when(providerInfo.getName).thenReturn("PendingPactProvider")
@@ -24,11 +22,18 @@ trait PendingPactVerificationFixture { this: PactVerifyResources =>
     providerInfo
   }
 
-  lazy val provider: ProviderInfoBuilder =
-    ProviderInfoBuilder("", mocks.pactSource)
+  lazy val provider: ProviderInfoBuilder = {
+    val builder: ProviderInfoBuilder = mocks.providerInfoBuilder
+    when(builder.build(None, None)).thenReturn(Right(providerInfo))
+    builder
+  }
 
-  override private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult = {
-    val _                               = consumer
+  override private[pact4s] def runVerification(
+      verifier: ProviderVerifier,
+      providerInfo: ProviderInfo,
+      consumer: IConsumerInfo
+  ): VerificationResult = {
+    val _                               = (consumer, providerInfo, verifier)
     val description: String             = "description"
     val verificationDescription: String = "verificationDescription"
     val failures: util.Map[String, util.List[VerificationFailureType]] =
