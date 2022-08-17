@@ -16,7 +16,8 @@ docker run --rm \
   publish \
   ${SCRIPT_DIR} \
   --consumer-app-version fake-git-sha-for-demo-$(date +%s) \
-  --branch main
+  --branch main \
+  --tag pact4s-test
 
 docker run --rm \
  -w "${SCRIPT_DIR}/feature" \
@@ -28,4 +29,5 @@ docker run --rm \
   publish \
   "${SCRIPT_DIR}/feature" \
   --consumer-app-version fake-git-sha-for-demo-$(date +%s) \
-  --branch feat/x
+  --branch feat/x \
+  --tag pact4s-test
