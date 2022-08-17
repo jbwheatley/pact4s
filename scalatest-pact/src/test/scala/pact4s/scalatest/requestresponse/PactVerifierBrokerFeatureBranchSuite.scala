@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pact4s.MockProviderServer
-import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
 import pact4s.scalatest.PactVerifier
 
 import scala.concurrent.duration._
@@ -15,7 +15,7 @@ class PactVerifierBrokerFeatureBranchSuite extends AnyFlatSpec with PactVerifier
   val mock = new MockProviderServer(49200, hasFeatureX = true)
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withBranch("feat/x"))
+    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelectors.branch("feat/x"))
 
   var cleanUp: IO[Unit] = IO.unit
 
