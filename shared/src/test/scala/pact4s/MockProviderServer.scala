@@ -134,7 +134,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
   def brokerProviderInfo(
       providerName: String,
       verificationSettings: Option[VerificationSettings] = None,
-      consumerVersionSelector: ConsumerVersionSelector = ConsumerVersionSelector()
+      consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test")
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
@@ -142,7 +142,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
         brokerUrl = "https://test.pactflow.io"
       ).withPendingPactsEnabled(ProviderTags("SNAPSHOT"))
         .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withSelectors(consumerVersionSelector)
+        .withConsumerVersionSelectors(consumerVersionSelector)
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
       .withStateChangeEndpoint("setup")
