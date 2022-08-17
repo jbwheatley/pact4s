@@ -33,6 +33,7 @@ import java.time.{Instant, ZoneOffset}
 import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 /** Interface for defining the provider that consumer pacts are verified against. Internally gets converted to
   * au.com.dius.pact.provider.ProviderInfo during verification.
@@ -153,8 +154,12 @@ final class ProviderInfoBuilder private (
     requestFilter(providerRequest).foreach(_.filterImpl(request))
   }
 
-  private[pact4s] def build: ProviderInfo = {
+  private[pact4s] def build(
+      providerBranch: Option[String],
+      responseFactory: Option[String => ResponseBuilder]
+  ): Either[Throwable, ProviderInfo] = {
     val p = new ProviderInfo(name, protocol, host, port, path)
+    responseFactory.foreach(_ => p.setVerificationType(PactVerification.RESPONSE_FACTORY))
     verificationSettings.foreach { case AnnotatedMethodVerificationSettings(packagesToScan) =>
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
@@ -168,7 +173,7 @@ final class ProviderInfoBuilder private (
       }
     }
     pactSource match {
-      case broker: PactBroker => applyBrokerSourceToProvider(p, broker)
+      case broker: PactBroker => applyBrokerSourceToProvider(p, broker, providerBranch)
       case f: FileSource =>
         f.consumers.foreach { case (consumer, file) =>
           p.hasPactWith(
@@ -179,57 +184,62 @@ final class ProviderInfoBuilder private (
             }
           )
         }
-        p
+        Right(p)
     }
   }
 
   @tailrec
   private def applyBrokerSourceToProvider(
       providerInfo: ProviderInfo,
-      pactSource: PactBroker
-  ): ProviderInfo =
+      pactSource: PactBroker,
+      providerBranch: Option[String]
+  ): Either[Throwable, ProviderInfo] =
     pactSource match {
       case p: PactBrokerWithSelectors =>
-        p.validate()
-        val pactJvmAuth: Option[Auth] = p.auth.map {
-          case TokenAuth(token)      => new Auth.BearerAuthentication(token)
-          case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
+        p.validate() match {
+          case Left(value) => Left(value)
+          case Right(_) =>
+            val pactJvmAuth: Auth = p.auth match {
+              case None                        => Auth.None.INSTANCE
+              case Some(TokenAuth(token))      => new Auth.BearerAuthentication(token)
+              case Some(BasicAuth(user, pass)) => new Auth.BasicAuthentication(user, pass)
+            }
+            val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
+              p.enablePending,
+              p.providerTags.map(_.toList).getOrElse(Nil).asJava,
+              providerBranch.orNull,
+              p.includeWipPactsSince.since.map(instantToDateString).orNull,
+              p.insecureTLS,
+              pactJvmAuth
+            )
+            val applySelectors = if (p.consumerVersionSelectors.isEmpty && p.selectors.nonEmpty) {
+              val pactJvmSelectorsJsonString = jsonArray(p.selectors.map(_.toJson).asJava).toString
+              System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
+              Try(
+                providerInfo.hasPactsFromPactBrokerWithSelectors(
+                  p.brokerUrl,
+                  List.empty[PactJVMSelector].asJava,
+                  brokerOptions
+                )
+              )
+            } else {
+              Try(
+                providerInfo.hasPactsFromPactBrokerWithSelectorsV2(
+                  p.brokerUrl,
+                  p.consumerVersionSelectors.asJava,
+                  brokerOptions
+                )
+              )
+            }
+            applySelectors.toEither.map(_ => providerInfo)
         }
-        val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
-          p.enablePending,
-          p.providerTags.map(_.toList).getOrElse(Nil).asJava,
-          null,
-          p.includeWipPactsSince.since.map(instantToDateString).orNull,
-          p.insecureTLS,
-          pactJvmAuth.orNull
-        )
-        val pactJvmSelectorsJsonString = jsonArray(p.selectors.map(_.toJson).asJava).toString
-        System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
-        providerInfo.hasPactsFromPactBrokerWithSelectors(
-          p.brokerUrl,
-          List.empty[PactJVMSelector].asJava,
-          brokerOptions
-        )
-        p.auth.foreach(addAuthToConsumers(providerInfo))
-        providerInfo
       case p: PactBrokerWithTags =>
         applyBrokerSourceToProvider(
           providerInfo,
-          p.toPactBrokerWithSelectors
+          p.toPactBrokerWithSelectors,
+          providerBranch
         )
     }
-
-  private def addAuthToConsumers(providerInfo: ProviderInfo)(auth: Authentication): Unit = {
-    val authAsStringList = auth match {
-      case TokenAuth(token)      => "Bearer" :: token :: Nil
-      case BasicAuth(user, pass) => "Basic" :: user :: pass :: Nil
-    }
-    val consumers = providerInfo.getConsumers.asScala
-    providerInfo.setConsumers(consumers.map { c =>
-      c.setPactFileAuthentication(authAsStringList.asJava)
-      c
-    }.asJava)
-  }
 
   private def instantToDateString(instant: Instant): String =
     instant

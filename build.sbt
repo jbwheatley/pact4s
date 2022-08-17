@@ -48,9 +48,7 @@ lazy val shared =
     .settings(
       name := "pact4s-core",
       libraryDependencies ++= Dependencies.shared,
-      scalacOptions ++= {
-        if (scalaVersion.value.startsWith("3")) Seq("-Wconf:cat=deprecation:i") else Nil
-      }
+      scalacOptions += "-Wconf:cat=deprecation:i"
     )
 
 lazy val circe =
@@ -146,6 +144,7 @@ addCommandAlias(
     "scalafmtCheck",
     "headerCheck",
     "+compile:doc",
+    "+test:compile",
     "deletePactFiles",
     "project munit",
     "+test",
@@ -156,7 +155,8 @@ addCommandAlias(
     "project circe",
     "+test",
     "project playJson",
-    "+test"
+    "+test",
+    "project /"
   )
     .mkString(";", ";", "")
 )
@@ -169,6 +169,7 @@ addCommandAlias(
     "scalafmtCheck",
     "headerCheck",
     "compile:doc",
+    "test:compile",
     "deletePactFiles",
     "project munit",
     "test",
@@ -179,7 +180,8 @@ addCommandAlias(
     "project circe",
     "test",
     "project playJson",
-    "test"
+    "test",
+    "project /"
   )
     .mkString(";", ";", "")
 )

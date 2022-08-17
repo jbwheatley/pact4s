@@ -37,7 +37,7 @@ class PactForgerSuite extends RequestResponsePactForger {
       .method("GET")
       .willRespondWith()
       .status(204)
-      .`given`("bob exists")
+      .`given`("bob exists", Map("foo" -> "bar"))
       .uponReceiving("a request to find a friend")
       .path("/anyone-there")
       .method("GET")

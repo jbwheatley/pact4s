@@ -22,7 +22,7 @@ import pact4s.provider.ProviderState
 import java.net.InetSocketAddress
 import javax.json.{Json, JsonValue}
 import scala.jdk.CollectionConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 private[pact4s] sealed trait StateChanger {
   def start(): Unit
@@ -56,10 +56,9 @@ private[pact4s] object StateChanger {
         isShutdown = true
       }
 
-    object RootHandler extends HttpHandler {
+    object RootHandler extends HttpHandler with Pact4sLogger {
       def handle(t: HttpExchange): Unit = {
-        var responseBody = ""
-        Try {
+        val stateAndResponse: Option[(String, Map[String, String], String)] = Try {
           val parser = Json.createParser(t.getRequestBody)
           parser.next()
           val obj         = parser.getObject
@@ -81,16 +80,32 @@ private[pact4s] object StateChanger {
             )
             .getOrElse(Map.empty)
           // should return the params in the response body to be used with the generators
-          responseBody = "{" + params.map { case (k, v) => s""""$k": "$v"""" }.mkString(",") + "}"
-          (obj.getString("state"), params)
-        }.toOption.map { case (s, ps) => ProviderState(s, ps) }.flatMap(stateChange.lift).getOrElse(())
-        sendResponse(t, responseBody)
+          (obj.getString("state"), params, "{" + params.map { case (k, v) => s""""$k": "$v"""" }.mkString(",") + "}")
+        }.toOption
+
+        val stateChangeMaybeApplied = Try(stateAndResponse.foreach { case (s, ps, _) =>
+          stateChange
+            .lift(ProviderState(s, ps))
+            .getOrElse(
+              pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
+            )
+        })
+        stateChangeMaybeApplied match {
+          case Failure(exception) =>
+            pact4sLogger.error(exception)("State change application failed.")
+            sendResponse(t, "{}", 400)
+          case Success(_) =>
+            val responseBody: String = stateAndResponse
+              .map(_._3)
+              .getOrElse("{}")
+            sendResponse(t, responseBody, 200)
+        }
       }
 
-      private def sendResponse(t: HttpExchange, body: String): Unit = {
+      private def sendResponse(t: HttpExchange, body: String, code: Int): Unit = {
         val response = body
         t.getResponseHeaders.set("Content-Type", "application/json")
-        t.sendResponseHeaders(200, response.length().toLong)
+        t.sendResponseHeaders(code, response.length().toLong)
         val os = t.getResponseBody
         os.write(response.getBytes)
         os.close()
