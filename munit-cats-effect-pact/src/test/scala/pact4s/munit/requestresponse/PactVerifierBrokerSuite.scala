@@ -4,13 +4,13 @@ import cats.effect.IO
 import munit.CatsEffectSuite
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
-import pact4s.provider.{Branch, ConsumerVersionSelector, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
 
 class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(49154)
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelector().withMainBranch)
+    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelectors.mainBranch)
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
     ResourceSuiteLocalFixture(

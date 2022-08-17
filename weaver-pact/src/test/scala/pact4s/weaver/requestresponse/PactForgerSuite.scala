@@ -38,7 +38,7 @@ object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
       .method("GET")
       .willRespondWith()
       .status(204)
-      .`given`("bob exists")
+      .`given`("bob exists", Map("foo" -> "bar"))
       .uponReceiving("a request to find a friend")
       .path("/anyone-there")
       .method("GET")
