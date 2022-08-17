@@ -18,7 +18,13 @@ package pact4s
 
 import au.com.dius.pact.provider._
 import pact4s.provider.StateManagement.StateManagementFunction
-import pact4s.provider.{ProviderInfoBuilder, ProviderVerificationOption, PublishVerificationResults, ResponseBuilder}
+import pact4s.provider.{
+  Branch,
+  ProviderInfoBuilder,
+  ProviderVerificationOption,
+  PublishVerificationResults,
+  ResponseBuilder
+}
 import sourcecode.{File, FileName, Line}
 
 import java.util.concurrent.TimeUnit
@@ -126,7 +132,10 @@ trait PactVerifyResources {
     finally stateChanger.shutdown()
   }
 
-  /** @param publishVerificationResults
+  /** @param providerBranch
+    *   the branch of the provider project from which verification is being run. Applicable if using the
+    *   `MatchingBranch` selector, or can be used to label the verification results if they are being published.
+    * @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance
     *   The method instance to use when invoking methods with
@@ -135,6 +144,7 @@ trait PactVerifyResources {
     *   list of options to pass to the pact-jvm verifier
     */
   def verifyPacts(
+      providerBranch: Option[Branch] = None,
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
@@ -142,8 +152,10 @@ trait PactVerifyResources {
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     runWithStateChanger {
       val verifier = setupVerifier(publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+      // to support deprecated branch settings using PublishVerificationResults
+      val branch = providerBranch.orElse(publishVerificationResults.flatMap(_.providerBranch))
       val providerInfo =
-        provider.build(publishVerificationResults.flatMap(_.providerBranch.map(_.branch)), responseFactory) match {
+        provider.build(branch, responseFactory) match {
           case Left(value)  => failure(value.getMessage)
           case Right(value) => value
         }

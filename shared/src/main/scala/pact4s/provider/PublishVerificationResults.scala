@@ -34,6 +34,10 @@ object PublishVerificationResults {
   def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
     new PublishVerificationResults(providerVersion, Some(providerTags), None)
 
+  @deprecated(
+    "Set provider branch at PactVerifier.verifyPacts() instead as it can be used for the matchingBranch selector",
+    "0.5.0"
+  )
   def apply(providerVersion: String, providerBranch: Branch): PublishVerificationResults =
     new PublishVerificationResults(providerVersion, None, Some(providerBranch))
 }
