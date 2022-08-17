@@ -4,7 +4,7 @@ import cats.effect.IO
 import munit.CatsEffectSuite
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
-import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
 
 class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(49154)
@@ -22,11 +22,8 @@ class PactVerifierBrokerSuite extends CatsEffectSuite with PactVerifier {
   test("Verify pacts for provider `Pact4sProvider`, munit") {
     IO(
       verifyPacts(
-        publishVerificationResults = Some(
-          PublishVerificationResults(
-            providerVersion = "SNAPSHOT",
-            providerBranch = Branch.MAIN
-          )
+        Some(
+          Branch.MAIN
         )
       )
     ) *> mock.featureXState.tryGet.assertEquals(None)
