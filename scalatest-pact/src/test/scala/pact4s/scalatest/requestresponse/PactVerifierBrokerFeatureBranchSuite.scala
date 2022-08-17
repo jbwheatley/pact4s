@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pact4s.MockProviderServer
-import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder, PublishVerificationResults}
+import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
 import pact4s.scalatest.PactVerifier
 
 import scala.concurrent.duration._
@@ -29,12 +29,7 @@ class PactVerifierBrokerFeatureBranchSuite extends AnyFlatSpec with PactVerifier
 
   it should "Verify pacts for provider `Pact4sProvider` with a feature branch, scalatest" in {
     verifyPacts(
-      publishVerificationResults = Some(
-        PublishVerificationResults(
-          providerVersion = "SNAPSHOT",
-          providerBranch = Branch("feat/x")
-        )
-      )
+      Some(Branch("feat/x"))
     )
     mock.featureXState.get.unsafeRunTimed(10.seconds) shouldBe Some(true)
   }
