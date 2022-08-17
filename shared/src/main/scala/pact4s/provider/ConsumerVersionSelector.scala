@@ -60,6 +60,10 @@ import au.com.dius.pact.core.support.json.JsonValue
   *   for a list of available selectors that can be set. This list is subject to change and so we leave it to the user
   *   add any other selectors they require here rather than having them as strongly-typed fields.
   */
+@deprecated(
+  "Use pact4s.provider.ConsumerVersionSelectors instead, which closely models the new underlying java impl",
+  "0.5.0"
+)
 final class ConsumerVersionSelector private (
     val tag: Option[String],
     val latest: Boolean,
@@ -144,6 +148,10 @@ object ConsumerVersionSelector {
     *
     * etc.
     */
+  @deprecated(
+    "Use pact4s.provider.ConsumerVersionSelectors instead, which closely models the new underlying java impl",
+    "0.5.0"
+  )
   def apply(): ConsumerVersionSelector = new ConsumerVersionSelector(
     tag = None,
     latest = true,

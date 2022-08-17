@@ -16,7 +16,7 @@
 
 package pact4s
 
-import au.com.dius.pact.provider.{IConsumerInfo, PactVerification, ProviderVerifier, VerificationResult}
+import au.com.dius.pact.provider._
 import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.{ProviderInfoBuilder, ProviderVerificationOption, PublishVerificationResults, ResponseBuilder}
 import sourcecode.{File, FileName, Line}
@@ -32,21 +32,10 @@ trait PactVerifyResources {
 
   def provider: ProviderInfoBuilder
 
-  private lazy val stateChanger: StateChanger =
-    provider.stateManagement match {
-      case Some(s: StateManagementFunction) =>
-        new StateChanger.SimpleServer(s.stateChangeFunc, s.host, s.port, s.endpoint)
-      case _ => StateChanger.NoOpStateChanger
-    }
-
   def responseFactory: Option[ResponseFactory] = None
 
   private val failures: ListBuffer[String]        = new ListBuffer[String]()
   private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
-
-  private[pact4s] lazy val providerInfo = provider.build
-
-  private[pact4s] val verifier = new ProviderVerifier()
 
   private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
   private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
@@ -67,10 +56,11 @@ trait PactVerifyResources {
   }
 
   private def verifySingleConsumer(
-      consumer: IConsumerInfo,
+      providerInfo: ProviderInfo,
+      verifier: ProviderVerifier,
       timeout: Option[FiniteDuration]
-  ): Unit =
-    runWithTimeout(() => runVerification(consumer), timeout) match {
+  )(consumer: IConsumerInfo): Unit =
+    runWithTimeout(() => runVerification(verifier, providerInfo, consumer), timeout) match {
       case Right(failed: VerificationResult.Failed) =>
         verifier.displayFailures(List(failed).asJava)
         // Don't fail the build if the pact is pending.
@@ -86,11 +76,55 @@ trait PactVerifyResources {
         failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
     }
 
-  private[pact4s] def runVerification(consumer: IConsumerInfo): VerificationResult =
+  private[pact4s] def runVerification(
+      verifier: ProviderVerifier,
+      providerInfo: ProviderInfo,
+      consumer: IConsumerInfo
+  ): VerificationResult =
     verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
 
   private def resolveProperty(properties: Map[String, String], name: String): Option[String] =
     properties.get(name).orElse(Option(System.getProperty(name)))
+
+  private def setupVerifier(
+      publishVerificationResults: Option[PublishVerificationResults],
+      providerMethodInstance: Option[AnyRef],
+      providerVerificationOptions: List[ProviderVerificationOption]
+  ): ProviderVerifier = {
+    val verifier = new ProviderVerifier()
+    val properties =
+      publishVerificationResults
+        .fold(providerVerificationOptions)(_ =>
+          ProviderVerificationOption.VERIFIER_PUBLISH_RESULTS :: providerVerificationOptions
+        )
+        .map(opt => (opt.key, opt.value))
+        .toMap
+    verifier.setProviderBranch(() => publishVerificationResults.flatMap(_.providerBranch).map(_.branch).getOrElse(""))
+
+    providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
+    verifier.setProjectGetProperty(p => resolveProperty(properties, p).orNull)
+    verifier.setProjectHasProperty(name => resolveProperty(properties, name).isDefined)
+    verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
+    verifier.setProviderTags(() =>
+      publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
+    )
+    responseFactory.foreach { responseFactory =>
+      verifier.setResponseFactory(description => responseFactory(description).build)
+    }
+    verifier
+  }
+
+  private def runWithStateChanger(run: => Unit): Unit = {
+    val stateChanger: StateChanger =
+      provider.stateManagement match {
+        case Some(s: StateManagementFunction) =>
+          new StateChanger.SimpleServer(s.stateChangeFunc, s.host, s.port, s.endpoint)
+        case _ => StateChanger.NoOpStateChanger
+      }
+    stateChanger.start()
+    try run
+    finally stateChanger.shutdown()
+  }
 
   /** @param publishVerificationResults
     *   if set, results of verification will be published to the pact broker, along with version and tags
@@ -106,31 +140,18 @@ trait PactVerifyResources {
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
-    stateChanger.start()
-    val properties =
-      publishVerificationResults
-        .fold(providerVerificationOptions)(_ =>
-          ProviderVerificationOption.VERIFIER_PUBLISH_RESULTS :: providerVerificationOptions
-        )
-        .map(opt => (opt.key, opt.value))
-        .toMap
-    responseFactory.foreach { responseFactory =>
-      providerInfo.setVerificationType(PactVerification.RESPONSE_FACTORY)
-      verifier.setResponseFactory(description => responseFactory(description).build)
+    runWithStateChanger {
+      val verifier = setupVerifier(publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+      val providerInfo =
+        provider.build(publishVerificationResults.flatMap(_.providerBranch.map(_.branch)), responseFactory) match {
+          case Left(value)  => failure(value.getMessage)
+          case Right(value) => value
+        }
+
+      verifier.initialiseReporters(providerInfo)
+
+      providerInfo.getConsumers.asScala.foreach(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
     }
-    verifier.initialiseReporters(providerInfo)
-    providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
-    verifier.setProjectGetProperty(p => resolveProperty(properties, p).orNull)
-    verifier.setProjectHasProperty(name => resolveProperty(properties, name).isDefined)
-    verifier.setProviderVersion(() => publishVerificationResults.map(_.providerVersion).getOrElse(""))
-    verifier.setProviderTags(() =>
-      publishVerificationResults.flatMap(_.providerTags.map(_.toList)).getOrElse(Nil).asJava
-    )
-    verifier.setProviderBranch(() => publishVerificationResults.flatMap(_.providerBranch).map(_.branch).getOrElse(""))
-
-    providerInfo.getConsumers.forEach(verifySingleConsumer(_, verificationTimeout))
-
-    stateChanger.shutdown()
 
     val failedMessages  = failures.toList
     val pendingMessages = pendingFailures.toList
