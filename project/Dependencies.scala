@@ -17,7 +17,7 @@ object Dependencies {
 
   val _circe = "0.14.2"
 
-  val _playJson = "2.9.2"
+  val _playJson = "2.9.3"
 
   val _weaver = "0.7.15"
 
