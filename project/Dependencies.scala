@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "4.7.0"
+  val mockito = "4.8.0"
 
   val pactJvm = "4.3.14"
 
