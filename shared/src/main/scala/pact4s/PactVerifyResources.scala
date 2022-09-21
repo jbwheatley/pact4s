@@ -18,20 +18,14 @@ package pact4s
 
 import au.com.dius.pact.provider._
 import pact4s.provider.StateManagement.StateManagementFunction
-import pact4s.provider.{
-  Branch,
-  ProviderInfoBuilder,
-  ProviderVerificationOption,
-  PublishVerificationResults,
-  ResponseBuilder
-}
+import pact4s.provider._
 import sourcecode.{File, FileName, Line}
 
-import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
 
 trait PactVerifyResources {
   type ResponseFactory = String => ResponseBuilder
@@ -49,14 +43,14 @@ trait PactVerifyResources {
   private[pact4s] def runWithTimeout(
       verify: () => VerificationResult,
       timeout: Option[FiniteDuration]
-  ): Either[TimeoutException, VerificationResult] = timeout match {
+  ): Either[Throwable, VerificationResult] = timeout match {
     case Some(timeout) =>
       try
         Right(
-          TimeLimiter.callWithTimeout(verify, timeout.toSeconds, TimeUnit.SECONDS)
+          TimeLimiter.callWithTimeout(verify, timeout)
         )
       catch {
-        case e: TimeoutException => Left(e)
+        case NonFatal(e) => Left(e)
       }
     case None => Right(verify())
   }
@@ -78,8 +72,10 @@ trait PactVerifyResources {
         if (pending) pendingFailures += message else failures += message
       case Right(_: VerificationResult.Ok) => ()
       case Right(_)                        => ???
-      case Left(_) =>
+      case Left(_: TimeoutException) =>
         failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
+      case Left(e) =>
+        failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed due to: ${e.getMessage}"
     }
 
   private[pact4s] def runVerification(
