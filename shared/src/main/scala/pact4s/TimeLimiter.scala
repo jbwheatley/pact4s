@@ -16,16 +16,14 @@
 
 package pact4s
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
-
-import java.util.concurrent.{Callable, Executors, TimeUnit}
+import java.util.concurrent.Executors
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 
 private[pact4s] object TimeLimiter {
-  def callWithTimeout[T](thunk: () => T, timeoutDuration: Long, timeoutUnit: TimeUnit): T = {
-    val callable = new Callable[T] {
-      def call(): T = thunk()
-    }
-    new SimpleTimeLimiter(Executors.newSingleThreadExecutor())
-      .callWithTimeout(callable, timeoutDuration, timeoutUnit, true)
+  def callWithTimeout[T](thunk: () => T, timeoutDuration: FiniteDuration): T = {
+    implicit val executor: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
+    Await.result(Future(thunk()), timeoutDuration)
   }
 }
