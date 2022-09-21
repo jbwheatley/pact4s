@@ -1,7 +1,5 @@
 import sbt.Keys.{resolvers, testFrameworks}
 
-import scala.util.Try
-
 val scala212         = "2.12.17"
 val scala213         = "2.13.8"
 val scala2Versions   = Seq(scala212, scala213)
@@ -129,8 +127,8 @@ lazy val pact4s = (project in file("."))
 lazy val deletePactFiles = taskKey[Unit]("deletes pact files created during tests.")
 
 deletePactFiles := {
-  import scala.reflect.io.Directory
   import java.io.File
+  import scala.reflect.io.Directory
   List(scalaTest.base.base, munit.base.base, weaver.base.base).foreach { project =>
     new Directory(new File(s"./$project/target/pacts")).deleteRecursively()
     ()
