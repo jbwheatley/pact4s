@@ -10,6 +10,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 - [pact4s](#pact4s)
   * [Getting Started](#getting-started)
     + [Java 8 Support](#java-8-support)
+  * [Running the examples](#running-the-examples)
   * [Writing Pacts](#writing-pacts)
     + [Pact Builder DSL](#pact-builder-dsl)
       - [Using JSON bodies](#using-json-bodies)
@@ -61,6 +62,11 @@ We recommend using java11+ for your build if possible, as v4.3.x+ of pact-jvm wi
 java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
 ```
+
+## Running the examples
+
+In the example directory there are two sbt projects, one for the `consumer`, and one for the `provider`. The consumer has tests to generate pacts using both the `munit` and `scalatest` pact forging interfaces. These should be ran first, as they
+publish the pacts to files in `./example/resources/pacts` which the provider tests require to run. The provider has tests that verify the consumer generated pacts using the `munit` and `scalatest` pact verification interfaces. 
 
 ## Writing Pacts
 
