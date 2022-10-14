@@ -65,8 +65,8 @@ java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has
 
 ## Running the examples
 
-In the example directory there are two sbt projects, one for the `consumer`, and one for the `provider`. The consumer has tests to generate pacts using both the `munit` and `scalatest` pact forging interfaces. These should be ran first, as they
-publish the pacts to files in `./example/resources/pacts` which the provider tests require to run. The provider has tests that verify the consumer generated pacts using the `munit` and `scalatest` pact verification interfaces. 
+In the example directory there are two modules, one for the `consumer`, and one for the `provider`. The consumer has tests to generate pacts using both the `munit` and `scalatest` pact forging interfaces. These should be ran first, as they
+publish the pacts to files in `./example/resources/pacts` which the provider tests require to run. The provider has tests that verify the consumer generated pacts using the `munit` and `scalatest` pact verification interfaces. To run the tests from sbt go to `project exampleConsumer` or `project exampleProvider`. 
 
 ## Writing Pacts
 
