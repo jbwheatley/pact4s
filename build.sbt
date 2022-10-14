@@ -100,14 +100,23 @@ lazy val weaver =
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
-lazy val example =
-  (project in file("example"))
+lazy val exampleConsumer =
+  (project in file("example/consumer"))
     .settings(commonSettings)
     .settings(
       name := "example",
       libraryDependencies ++= Dependencies.example,
-      publish / skip := true,
-      Test / skip    := true
+      publish / skip := true
+    )
+    .dependsOn(circe % "test", munit % "test", scalaTest % "test")
+
+lazy val exampleProvider =
+  (project in file("example/provider"))
+    .settings(commonSettings)
+    .settings(
+      name := "example",
+      libraryDependencies ++= Dependencies.example,
+      publish / skip := true
     )
     .dependsOn(munit % "test", scalaTest % "test")
 
@@ -121,7 +130,8 @@ lazy val pact4s = (project in file("."))
     shared,
     circe,
     playJson,
-    example
+    exampleConsumer,
+    exampleProvider
   )
 
 lazy val deletePactFiles = taskKey[Unit]("deletes pact files created during tests.")
@@ -152,6 +162,10 @@ addCommandAlias(
     "project circe",
     "+test",
     "project playJson",
+    "+test",
+    "project exampleConsumer",
+    "+test",
+    "project exampleProvider",
     "+test",
     "project /"
   )
