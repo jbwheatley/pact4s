@@ -165,9 +165,9 @@ addCommandAlias(
     "project playJson",
     "+test",
     "project exampleConsumer",
-    "+test",
+    "test",
     "project exampleProvider",
-    "+test",
+    "test",
     "project /"
   )
     .mkString(";", ";", "")
