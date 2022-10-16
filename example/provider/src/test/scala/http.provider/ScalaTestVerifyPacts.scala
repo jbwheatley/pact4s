@@ -69,13 +69,16 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     )
   ).withHost("localhost")
     .withPort(1234)
-    .withStateChangeFunction {
-      case ProviderState("resource exists", params) =>
-        val id    = params.get("id")
-        val value = params.get("value").map(_.toInt)
-        (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
-      case ProviderState("resource does not exists", _) => store.empty.unsafeRunSync()
-    }
+    .withStateChangeFunction((state: ProviderState) =>
+      state match {
+        case ProviderState("resource exists", params) =>
+          val id    = params.get("id")
+          val value = params.get("value").map(_.toInt)
+          (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
+        case ProviderState("resource does not exists", _) => store.empty.unsafeRunSync()
+        case _                                            => ???
+      }
+    )
     .withRequestFiltering(requestFilter)
 
   it should "Verify pacts" in {
