@@ -104,7 +104,7 @@ lazy val exampleConsumer =
   (project in file("example/consumer"))
     .settings(commonSettings)
     .settings(
-      name := "example",
+      name := "example-consumer",
       libraryDependencies ++= Dependencies.example,
       publish / skip := true
     )
@@ -114,7 +114,7 @@ lazy val exampleProvider =
   (project in file("example/provider"))
     .settings(commonSettings)
     .settings(
-      name := "example",
+      name := "example-provider",
       libraryDependencies ++= Dependencies.example,
       publish / skip := true
     )
@@ -164,9 +164,9 @@ addCommandAlias(
     "project playJson",
     "+test",
     "project exampleConsumer",
-    "test",
+    "+test",
     "project exampleProvider",
-    "test",
+    "+test",
     "project /"
   )
     .mkString(";", ";", "")
