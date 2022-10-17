@@ -2,7 +2,7 @@ package http.provider
 
 import cats.effect.IO
 import cats.implicits._
-import com.comcast.ip4s.IpLiteralSyntax
+import com.comcast.ip4s.{Host, Port}
 import munit.CatsEffectSuite
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Authorization
@@ -29,8 +29,8 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
     "provider-server",
     EmberServerBuilder
       .default[IO]
-      .withHost(host"localhost")
-      .withPort(port"1234")
+      .withHost(Host.fromString("localhost").get)
+      .withPort(Port.fromInt(1235).get)
       .withHttpApp((fetchRoute <+> createRoute).orNotFound)
       .build
   )
@@ -59,15 +59,15 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
       Map("munit-consumer" -> new File("./example/resources/pacts/munit-consumer-munit-provider.json"))
     )
   ).withHost("localhost")
-    .withPort(1234)
+    .withPort(1235)
     .withStateChangeFunction((state: ProviderState) =>
       state match {
         case ProviderState("resource exists", params) =>
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
           (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
-        case ProviderState("resource does not exists", _) => store.empty.unsafeRunSync()
-        case _: ProviderState                             => ???
+        case ProviderState("resource does not exist", _) => store.empty.unsafeRunSync()
+        case _: ProviderState                            => ???
       }
     )
     .withRequestFiltering(requestFilter)
