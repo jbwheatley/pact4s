@@ -2,18 +2,18 @@ package http.provider
 
 import cats.effect
 import cats.effect.IO
-import cats.implicits._
-import com.comcast.ip4s.IpLiteralSyntax
 import cats.effect.unsafe.implicits._
+import cats.implicits._
+import com.comcast.ip4s.{Host, Port}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Authorization
 import org.http4s.server.Server
 import org.http4s.{BasicCredentials, HttpRoutes}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import pact4s.scalatest.PactVerifier
 import pact4s.provider.ProviderRequestFilter.{NoOpFilter, SetHeaders}
 import pact4s.provider._
+import pact4s.scalatest.PactVerifier
 
 import java.io.File
 import scala.concurrent.duration.DurationInt
@@ -31,8 +31,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
   val server: effect.Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
-      .withHost(host"localhost")
-      .withPort(port"1234")
+      .withHost(Host.fromString("localhost").get)
+      .withPort(Port.fromInt(1234).get)
       .withHttpApp((fetchRoute <+> createRoute).orNotFound)
       .build
 
@@ -75,8 +75,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
           (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
-        case ProviderState("resource does not exists", _) => store.empty.unsafeRunSync()
-        case _                                            => ???
+        case ProviderState("resource does not exist", _) => store.empty.unsafeRunSync()
+        case _                                           => ???
       }
     )
     .withRequestFiltering(requestFilter)
