@@ -65,7 +65,7 @@ private[pact4s] object StateChanger {
             .map(
               _.getEntries.asScala
                 .map { case (k, v) =>
-                  k -> v.toString
+                  k -> v.asString()
                 }
                 .toMap
             )
