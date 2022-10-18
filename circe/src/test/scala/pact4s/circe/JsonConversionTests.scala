@@ -1,21 +1,20 @@
 package pact4s.circe
 
-import cats.effect.IO
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import io.circe.parser
-import munit.CatsEffectSuite
+import munit.FunSuite
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
 
-class JsonConversionTests extends CatsEffectSuite {
-  def testRoundTrip(json: Json): IO[Unit] = IO
-    .fromEither(
+class JsonConversionTests extends FunSuite {
+  def testRoundTrip(json: Json): Unit =
+    assertEquals(
       parser
         .parse(
           jsonToPactDslJsonBody(json).getBody.toString
-        )
+        ),
+      Right(json)
     )
-    .assertEquals(json)
 
   test("array-less JSON should round-trip with PactDslJsonBody") {
     val json = Json.obj(
