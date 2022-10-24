@@ -60,7 +60,7 @@ private[pact4s] object StateChanger {
       def handle(t: HttpExchange): Unit = {
         val stateAndResponse: Option[(String, Map[String, String], String)] = Try {
           val json        = JsonParser.parseStream(t.getRequestBody)
-          val maybeParams = Try(json.get("params")).toOption.map(_.asObject())
+          val maybeParams = Try(json.get("params").asObject).toOption
           val params: Map[String, String] = maybeParams
             .map(
               _.getEntries.asScala
