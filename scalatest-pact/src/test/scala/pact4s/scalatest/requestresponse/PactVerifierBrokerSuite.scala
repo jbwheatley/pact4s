@@ -13,7 +13,7 @@ class PactVerifierBrokerSuite extends AnyFlatSpec with PactVerifier with BeforeA
   val mock = new MockProviderServer(49158)
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelectors.mainBranch)
+    mock.brokerProviderInfo(consumerVersionSelector = ConsumerVersionSelectors.mainBranch)
 
   var cleanUp: IO[Unit] = IO.unit
 
