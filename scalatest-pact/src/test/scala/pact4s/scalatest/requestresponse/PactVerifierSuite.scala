@@ -11,11 +11,7 @@ import pact4s.scalatest.PactVerifier
 class PactVerifierSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
   val mock = new MockProviderServer(49159)
 
-  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sConsumer",
-    providerName = "Pact4sProvider",
-    fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
-  )
+  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo()
 
   var cleanUp: IO[Unit] = IO.unit
 
