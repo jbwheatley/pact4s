@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package pact4s.provider
+package pact4s
+package provider
 
 sealed trait StateManagement {
   private[provider] def url: String

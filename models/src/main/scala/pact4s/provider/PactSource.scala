@@ -19,8 +19,6 @@ package provider
 
 import java.io.File
 import java.time.{Instant, LocalDate, OffsetDateTime}
-import scala.annotation.nowarn
-import scala.concurrent.duration.FiniteDuration
 
 sealed trait PactSource
 
@@ -112,10 +110,6 @@ object PactSource {
     *   used in the pending pact calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is
     *   set to false.
     *
-    * @param selectors
-    *   specifies which consumer pacts should be chosen for verification. Deprecated in favour of
-    *   consumerVersionSelectors.
-    *
     * @param consumerVersionSelectors
     *   specifies which consumer pacts should be chosen for verification.
     *
@@ -136,8 +130,6 @@ object PactSource {
       val enablePending: Boolean,
       val includeWipPactsSince: WipPactsSince,
       val providerTags: Option[ProviderTags],
-      @nowarn
-      val selectors: List[ConsumerVersionSelector],
       val consumerVersionSelectors: ConsumerVersionSelectors
   ) extends PactBroker {
     private def copy(
@@ -156,7 +148,6 @@ object PactSource {
         enablePending,
         includeWipPactsSince,
         providerTags,
-        selectors,
         consumerVersionSelectors
       )
 
@@ -196,23 +187,6 @@ object PactSource {
     def withOptionalProviderTags(providerTags: Option[ProviderTags]): PactBrokerWithSelectors =
       copy(providerTags = providerTags)
 
-    @deprecated("Apply selectors to source using `withConsumerVersionSelectors` instead", "0.5.0")
-    def withSelectors(selectors: List[ConsumerVersionSelector]): PactBrokerWithSelectors =
-      withSelectors(selectors: _*)
-
-    @deprecated("Apply selectors to source using `withConsumerVersionSelectors` instead", "0.5.0")
-    def withSelectors(selectors: ConsumerVersionSelector*): PactBrokerWithSelectors =
-      new PactBrokerWithSelectors(
-        brokerUrl,
-        insecureTLS,
-        auth,
-        enablePending,
-        includeWipPactsSince,
-        providerTags,
-        selectors.toList,
-        consumerVersionSelectors
-      )
-
     def withConsumerVersionSelectors(selectors: ConsumerVersionSelectors): PactBrokerWithSelectors =
       copy(consumerVersionSelectors = selectors)
 
@@ -237,33 +211,7 @@ object PactSource {
         enablePending = false,
         includeWipPactsSince = WipPactsSince.never,
         providerTags = None,
-        selectors = Nil,
         consumerVersionSelectors = ConsumerVersionSelectors()
       )
-
-    @deprecated(message = "Use the other apply method with the safer builder patterns", since = "0.0.17")
-    def apply(
-        brokerUrl: String,
-        auth: Option[Authentication] = None,
-        enablePending: Boolean = false,
-        includeWipPactsSince: Option[FiniteDuration] = None,
-        providerTags: List[String] = Nil,
-        @nowarn
-        selectors: List[ConsumerVersionSelector] = List(ConsumerVersionSelector())
-    ): PactBrokerWithSelectors = {
-      val tags = ProviderTags.fromList(providerTags)
-      new PactBrokerWithSelectors(
-        brokerUrl = brokerUrl,
-        insecureTLS = false,
-        auth = auth,
-        enablePending = enablePending,
-        includeWipPactsSince = includeWipPactsSince
-          .map(d => WipPactsSince.instant(Instant.ofEpochSecond(d.toSeconds)))
-          .getOrElse(WipPactsSince.never),
-        providerTags = tags,
-        selectors = selectors,
-        consumerVersionSelectors = ConsumerVersionSelectors()
-      )
-    }
   }
 }
