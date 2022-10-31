@@ -2,6 +2,7 @@ package pact4s
 
 import cats.data.Kleisli
 import cats.effect.kernel.{Deferred, Ref}
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
@@ -54,7 +55,16 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
     jsonOf
   }
 
-  private[pact4s] val stateRef: Ref[IO, Option[String]] = Ref.unsafe(None)
+  private[pact4s] val stateRef: Ref[IO, List[String]] = Ref.unsafe(Nil)
+
+  private[pact4s] val stateChangeFunction: ProviderState => IO[Unit] = {
+    case ProviderState("bob exists", params) =>
+      val person: String = params("person")
+      stateRef.set(List(person))
+    case ProviderState("nobody is home", _) =>
+      stateRef.set(Nil)
+    case _ => IO.unit
+  }
 
   private def middleware: HttpApp[IO] => HttpApp[IO] = { app =>
     Kleisli { (req: Request[IO]) =>
@@ -82,8 +92,13 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
           }
         case GET -> Root / "anyone-there" =>
           stateRef.get.flatMap {
-            case Some(s) => Ok(Json.obj("found" -> s.asJson))
-            case None    => NotFound()
+            case Nil   => NotFound()
+            case other => Ok(Json.obj("found" -> other.mkString(",").asJson))
+          }
+        case GET -> Root / "anyone-there" / person =>
+          stateRef.get.flatMap {
+            case ss if ss.contains(person) => Ok(Json.obj("found" -> person.asJson))
+            case _                         => NotFound()
           }
         case req @ GET -> Root / "authorized" =>
           req.headers
@@ -99,10 +114,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
             }
             .getOrElse(Unauthorized(`WWW-Authenticate`(Challenge(AuthScheme.Bearer.toString, "Authorized endpoints."))))
         case req @ POST -> Root / "setup" =>
-          req.as[ProviderState].flatMap {
-            case ProviderState("bob exists", _) =>
-              stateRef.set(Some("bob")) *> Ok()
-            case _ => Ok()
+          req.as[ProviderState].flatMap { state =>
+            stateChangeFunction(state) *> Ok()
           }
         case GET -> Root / "feature-x" if hasFeatureX =>
           featureXState.complete(true) *>
@@ -116,23 +129,41 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       case _                               => ProviderRequestFilter.NoOpFilter
     }
 
+  def fileSourceMessageProviderInfo: ProviderInfoBuilder = fileSourceProviderInfo(
+    consumerName = "Pact4sMessageConsumer",
+    providerName = "Pact4sMessageProvider",
+    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json"
+  )
+
   def fileSourceProviderInfo(
-      consumerName: String,
-      providerName: String,
-      fileName: String,
+      consumerName: String = "Pact4sConsumer",
+      providerName: String = "Pact4sProvider",
+      fileName: String = "./scripts/Pact4sConsumer-Pact4sProvider.json",
+      useStateChangeFunction: Boolean = false,
+      stateChangePortOverride: Option[Int] = None,
       verificationSettings: Option[VerificationSettings] = None
-  ): ProviderInfoBuilder =
-    ProviderInfoBuilder(
-      name = providerName,
-      providerUrl = new URL("http://localhost:0/"),
-      pactSource = FileSource(Map(consumerName -> new File(fileName)))
-    ).withPort(port)
-      .withOptionalVerificationSettings(verificationSettings)
-      .withStateChangeEndpoint("setup")
-      .withRequestFiltering(requestFilter)
+  ): ProviderInfoBuilder = {
+    val baseBuilder =
+      ProviderInfoBuilder(
+        name = providerName,
+        providerUrl = new URL("http://localhost:0/"),
+        pactSource = FileSource(Map(consumerName -> new File(fileName)))
+      ).withPort(port)
+        .withOptionalVerificationSettings(verificationSettings)
+        .withRequestFiltering(requestFilter)
+
+    if (useStateChangeFunction) {
+      baseBuilder
+        .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
+        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.get))
+    } else baseBuilder.withStateChangeEndpoint("setup")
+
+  }
+
+  def brokerMessageProviderInfo: ProviderInfoBuilder = brokerProviderInfo(providerName = "Pact4sMessageProvider")
 
   def brokerProviderInfo(
-      providerName: String,
+      providerName: String = "Pact4sProvider",
       verificationSettings: Option[VerificationSettings] = None,
       consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test")
   ): ProviderInfoBuilder =

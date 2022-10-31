@@ -9,11 +9,7 @@ import pact4s.provider.ProviderInfoBuilder
 class PactVerifierFileSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(49155)
 
-  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sConsumer",
-    providerName = "Pact4sProvider",
-    fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
-  )
+  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo()
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
     ResourceSuiteLocalFixture(
