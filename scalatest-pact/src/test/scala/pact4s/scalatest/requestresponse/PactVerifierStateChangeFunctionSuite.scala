@@ -5,7 +5,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import pact4s.MockProviderServer
-import pact4s.provider.{ProviderInfoBuilder, ProviderState}
+import pact4s.provider.ProviderInfoBuilder
 import pact4s.scalatest.PactVerifier
 
 class PactVerifierStateChangeFunctionSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterAll {
@@ -13,15 +13,9 @@ class PactVerifierStateChangeFunctionSuite extends AnyFlatSpec with PactVerifier
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
-      consumerName = "Pact4sConsumer",
-      providerName = "Pact4sProvider",
-      fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
+      useStateChangeFunction = true,
+      stateChangePortOverride = Some(64645)
     )
-    .withStateChangeFunction({ case ProviderState("bob exists", params) =>
-      val _ = params.getOrElse("foo", fail())
-      mock.stateRef.set(Some("bob")).unsafeRunSync()
-    }: PartialFunction[ProviderState, Unit])
-    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64645))
 
   var cleanUp: IO[Unit] = IO.unit
 
