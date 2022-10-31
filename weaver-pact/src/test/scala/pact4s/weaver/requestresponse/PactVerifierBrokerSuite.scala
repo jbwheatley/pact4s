@@ -15,7 +15,7 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
   override def sharedResource: Resource[IO, Server] = mock.server
 
   override val provider: ProviderInfoBuilder =
-    mock.brokerProviderInfo("Pact4sProvider", consumerVersionSelector = ConsumerVersionSelectors.mainBranch)
+    mock.brokerProviderInfo(consumerVersionSelector = ConsumerVersionSelectors.mainBranch)
 
   test("Verify pacts for provider `Pact4sProvider`, weaver") {
     for {
