@@ -10,7 +10,7 @@ object PactVerifierBrokerSuite extends SimpleIOSuite with MessagePactVerifier {
   val mock = new MockProviderServer(49161)
 
   def messages: ResponseFactory              = MessagesProvider.messages
-  override val provider: ProviderInfoBuilder = mock.brokerProviderInfo(providerName = "Pact4sMessageProvider")
+  override val provider: ProviderInfoBuilder = mock.brokerMessageProviderInfo
 
   pureTest("Verify pacts for provider `MessageProvider`") {
     succeed(

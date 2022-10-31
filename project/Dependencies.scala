@@ -28,21 +28,24 @@ object Dependencies {
 
   val munitCatsEffect = "1.0.7"
 
+  val models: Seq[ModuleID] = Seq(
+    "au.com.dius.pact"        % "consumer"                % pactJvm,
+    "au.com.dius.pact"        % "provider"                % pactJvm,
+    "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompat,
+    "org.scalameta"          %% "munit"                   % _munit % Test
+  )
+
   val shared: Seq[ModuleID] =
     Seq(
-      "au.com.dius.pact"        % "consumer"                % pactJvm,
-      "au.com.dius.pact"        % "provider"                % pactJvm,
-      "org.log4s"              %% "log4s"                   % log4s,
-      "ch.qos.logback"          % "logback-classic"         % logback         % Runtime,
-      "org.scala-lang.modules" %% "scala-collection-compat" % collectionCompat,
-      "com.lihaoyi"            %% "sourcecode"              % sourcecode,
-      "org.http4s"             %% "http4s-ember-client"     % http4s          % Test,
-      "org.http4s"             %% "http4s-dsl"              % http4s          % Test,
-      "org.http4s"             %% "http4s-ember-server"     % http4s          % Test,
-      "org.http4s"             %% "http4s-circe"            % http4s          % Test,
-      "io.circe"               %% "circe-core"              % _circe          % Test,
-      "org.mockito"             % "mockito-core"            % mockito         % Test,
-      "org.typelevel"          %% "munit-cats-effect-3"     % munitCatsEffect % Test
+      "org.log4s"     %% "log4s"               % log4s,
+      "ch.qos.logback" % "logback-classic"     % logback % Runtime,
+      "com.lihaoyi"   %% "sourcecode"          % sourcecode,
+      "org.http4s"    %% "http4s-ember-client" % http4s  % Test,
+      "org.http4s"    %% "http4s-dsl"          % http4s  % Test,
+      "org.http4s"    %% "http4s-ember-server" % http4s  % Test,
+      "org.http4s"    %% "http4s-circe"        % http4s  % Test,
+      "io.circe"      %% "circe-core"          % _circe  % Test,
+      "org.mockito"    % "mockito-core"        % mockito % Test
     )
 
   val munit: Seq[ModuleID] = Seq(
