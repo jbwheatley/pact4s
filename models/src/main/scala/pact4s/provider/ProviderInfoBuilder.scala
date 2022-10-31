@@ -18,9 +18,7 @@ package pact4s
 package provider
 
 import au.com.dius.pact.core.model.{FileSource => PactJVMFileSource}
-import au.com.dius.pact.core.pactbroker.{ConsumerVersionSelector => PactJVMSelector}
 import au.com.dius.pact.core.support.Auth
-import au.com.dius.pact.core.support.JsonKt.jsonArray
 import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderInfo}
 import org.apache.hc.core5.http.HttpRequest
 import pact4s.provider.Authentication.{BasicAuth, TokenAuth}
@@ -212,17 +210,7 @@ final class ProviderInfoBuilder private (
               p.insecureTLS,
               pactJvmAuth
             )
-            val applySelectors = if (p.consumerVersionSelectors.isEmpty && p.selectors.nonEmpty) {
-              val pactJvmSelectorsJsonString = jsonArray(p.selectors.map(_.toJson).asJava).toString
-              System.setProperty("pactbroker.consumerversionselectors.rawjson", pactJvmSelectorsJsonString)
-              Try(
-                providerInfo.hasPactsFromPactBrokerWithSelectors(
-                  p.brokerUrl,
-                  List.empty[PactJVMSelector].asJava,
-                  brokerOptions
-                )
-              )
-            } else {
+            val applySelectors =
               Try(
                 providerInfo.hasPactsFromPactBrokerWithSelectorsV2(
                   p.brokerUrl,
@@ -230,7 +218,6 @@ final class ProviderInfoBuilder private (
                   brokerOptions
                 )
               )
-            }
             applySelectors.toEither.map(_ => providerInfo)
         }
       case p: PactBrokerWithTags =>

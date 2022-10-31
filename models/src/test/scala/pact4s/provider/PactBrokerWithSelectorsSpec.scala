@@ -1,24 +1,26 @@
-package pact4s.provider
+package pact4s
+package provider
 
-import munit.CatsEffectSuite
+import munit.FunSuite
 import pact4s.provider.PactSource.PactBrokerWithSelectors
 
 import java.time.Instant
 
-class PactBrokerWithSelectorsSpec extends CatsEffectSuite {
+class PactBrokerWithSelectorsSpec extends FunSuite {
   test("pending enabled but no provider tags should throw IllegalArgumentException") {
-    intercept[IllegalArgumentException](
-      PactBrokerWithSelectors("brokerUrl").withPendingPacts(true).withOptionalProviderTags(None).validate()
+    assert(
+      PactBrokerWithSelectors("brokerUrl").withPendingPacts(true).withOptionalProviderTags(None).validate().isLeft
     )
   }
 
   test("WIP enabled but no provider tags should throw IllegalArgumentException") {
-    intercept[IllegalArgumentException](
+    assert(
       PactBrokerWithSelectors("brokerUrl")
         .withWipPactsSince(
           WipPactsSince.instant(Instant.now)
         )
         .validate()
+        .isLeft
     )
   }
 

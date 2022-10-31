@@ -28,7 +28,7 @@ object ProviderVerificationOption {
   /** Gives a more detailed output for pact verification failures */
   case object SHOW_STACKTRACE extends BooleanProviderVerificationOption(ProviderVerifier.PACT_SHOW_STACKTRACE)
 
-  /** Doesn't need to be set if publishVerificationResults is non-empty in [[PactVerifyResources.verifyPacts]] */
+  /** Doesn't need to be set if [[PublishVerificationResults]] are provided to the verifier */
   case object VERIFIER_PUBLISH_RESULTS
       extends BooleanProviderVerificationOption(ProviderVerifier.PACT_VERIFIER_PUBLISH_RESULTS)
 
