@@ -3,22 +3,16 @@ package pact4s.munit.requestresponse
 import munit.CatsEffectSuite
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
-import pact4s.provider.{ProviderInfoBuilder, ProviderState}
+import pact4s.provider.ProviderInfoBuilder
 
 class PactVerifierStateChangeFunctionSuite extends CatsEffectSuite with PactVerifier {
   val mock = new MockProviderServer(49172)
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
-      consumerName = "Pact4sConsumer",
-      providerName = "Pact4sProvider",
-      fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json"
+      useStateChangeFunction = true,
+      stateChangePortOverride = Some(64643)
     )
-    .withStateChangeFunction({ case ProviderState("bob exists", params) =>
-      val _ = params.getOrElse("foo", fail("params missing value foo"))
-      mock.stateRef.set(Some("bob")).unsafeRunSync()
-    }: PartialFunction[ProviderState, Unit])
-    .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = 64643))
 
   override val munitFixtures: Seq[Fixture[_]] = Seq(
     ResourceSuiteLocalFixture(

@@ -1,22 +1,22 @@
 package pact4s.scalatest.requestresponse
 
-import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.{RequestResponseInteraction, RequestResponsePact}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.http4s._
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
-import org.http4s._
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.ci.CIString
-import pact4s.circe.implicits._
+import pact4s.TestModels
 import pact4s.scalatest.RequestResponsePactForger
 
 class PactForgerSuite extends AnyFlatSpec with Matchers with RequestResponsePactForger {
@@ -24,31 +24,7 @@ class PactForgerSuite extends AnyFlatSpec with Matchers with RequestResponsePact
     "./scalatest-pact/target/pacts"
   )
 
-  val pact: RequestResponsePact =
-    ConsumerPactBuilder
-      .consumer("Pact4sConsumer")
-      .hasPactWith("Pact4sProvider")
-      .uponReceiving("a request to say Hello")
-      .path("/hello")
-      .method("POST")
-      .body(Json.obj("name" -> "harry".asJson), "application/json")
-      .headers("other-header" -> "howdy")
-      .willRespondWith()
-      .status(200)
-      .body(Json.obj("hello" -> "harry".asJson))
-      .uponReceiving("a request to say Goodbye")
-      .path("/goodbye")
-      .method("GET")
-      .willRespondWith()
-      .status(204)
-      .`given`("bob exists", Map("foo" -> "bar"))
-      .uponReceiving("a request to find a friend")
-      .path("/anyone-there")
-      .method("GET")
-      .willRespondWith()
-      .status(200)
-      .body(Json.obj("found" -> "bob".asJson))
-      .toPact()
+  val pact: RequestResponsePact = TestModels.requestResponsePact
 
   val client: Client[IO] = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
 
@@ -78,11 +54,19 @@ class PactForgerSuite extends AnyFlatSpec with Matchers with RequestResponsePact
         }
         .unsafeRunSync()
     case "a request to find a friend" =>
-      val request = Request[IO](uri = Uri.unsafeFromString(mockServer.getUrl + "/anyone-there"))
+      val request = Request[IO](uri = Uri.unsafeFromString(mockServer.getUrl + "/anyone-there/bob"))
       client
         .run(request)
         .use {
           _.as[String].map(_ shouldBe "{\"found\":\"bob\"}")
+        }
+        .unsafeRunSync()
+    case "a request to find anyone" =>
+      val request = Request[IO](uri = Uri.unsafeFromString(mockServer.getUrl + "/anyone-there"))
+      client
+        .run(request)
+        .use {
+          _.status.code.pure[IO].map(_ shouldBe 404)
         }
         .unsafeRunSync()
     case description => fail(s"Missing verification for message: '$description'.'")
