@@ -1,12 +1,12 @@
 package pact4s.weaver.message
 
-import au.com.dius.pact.consumer.{MessagePactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.messaging.MessagePact
 import cats.effect.IO
 import io.circe.Json
-import pact4s.weaver.SimpleMessagePactForger
-import io.circe.syntax.EncoderOps
+import pact4s.TestModels
 import pact4s.circe.implicits._
+import pact4s.weaver.SimpleMessagePactForger
 import weaver.IOSuite
 
 object PactForgerSuite extends IOSuite with SimpleMessagePactForger[IO] {
@@ -14,19 +14,7 @@ object PactForgerSuite extends IOSuite with SimpleMessagePactForger[IO] {
     "./weaver-pact/target/pacts"
   )
 
-  val pact: MessagePact = MessagePactBuilder
-    .consumer("Pact4sMessageConsumer")
-    .hasPactWith("Pact4sMessageProvider")
-    .expectsToReceive("A message to say hello")
-    .withContent(Json.obj("hello" -> "harry".asJson))
-    .withMetadata(Map("hi" -> "there"))
-    .expectsToReceive("A message to say goodbye")
-    .withContent(Json.obj("goodbye" -> "harry".asJson))
-    .expectsToReceive("A message with nested arrays in the body")
-    .withContent(Json.obj("array" -> List(1, 2, 3).asJson))
-    .expectsToReceive("A message with a json array as content")
-    .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
-    .toPact
+  val pact: MessagePact = TestModels.messagePact
 
   test("weaver message pact test") { messages =>
     IO.fromEither(messages.head.as[Json].flatMap(_.hcursor.get[String]("hello")))

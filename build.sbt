@@ -40,6 +40,10 @@ val commonSettings = Seq(
 val moduleBase =
   Def.setting((Compile / scalaSource).value.getParentFile.getParentFile.getParentFile)
 
+lazy val models = (project in file("models"))
+  .settings(commonSettings)
+  .settings(name := "pact4s-models", libraryDependencies ++= Dependencies.models)
+
 lazy val shared =
   (project in file("shared"))
     .settings(commonSettings)
@@ -48,6 +52,8 @@ lazy val shared =
       libraryDependencies ++= Dependencies.shared,
       scalacOptions += "-Wconf:cat=deprecation:i"
     )
+    .dependsOn(models)
+    .dependsOn(circe % "test->test")
 
 lazy val circe =
   (project in file("circe"))
@@ -57,7 +63,7 @@ lazy val circe =
       libraryDependencies ++= Dependencies.circe,
       Test / parallelExecution := true
     )
-    .dependsOn(shared)
+    .dependsOn(models)
 
 lazy val playJson =
   (project in file("play-json"))
@@ -67,7 +73,7 @@ lazy val playJson =
       libraryDependencies ++= Dependencies.playJson,
       Test / parallelExecution := true
     )
-    .dependsOn(shared)
+    .dependsOn(models)
 
 lazy val munit =
   (project in file("munit-cats-effect-pact"))
@@ -124,6 +130,7 @@ lazy val pact4s = (project in file("."))
   .settings(commonSettings)
   .enablePlugins(AutomateHeaderPlugin)
   .aggregate(
+    models,
     munit,
     scalaTest,
     weaver,
@@ -153,6 +160,8 @@ addCommandAlias(
     "+compile:doc",
     "+test:compile",
     "deletePactFiles",
+    "project models",
+    "+test",
     "project munit",
     "+test",
     "project weaver",

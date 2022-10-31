@@ -9,12 +9,8 @@ import weaver.SimpleIOSuite
 object PactVerifierFileSuite extends SimpleIOSuite with MessagePactVerifier {
   val mock = new MockProviderServer(49162)
 
-  def messages: ResponseFactory = MessagesProvider.messages
-  override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo(
-    consumerName = "Pact4sMessageConsumer",
-    providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json"
-  )
+  def messages: ResponseFactory              = MessagesProvider.messages
+  override val provider: ProviderInfoBuilder = mock.fileSourceMessageProviderInfo
 
   pureTest("Verify pacts for provider `MessageProvider`") {
     succeed(verifyPacts())
