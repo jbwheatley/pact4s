@@ -23,6 +23,7 @@ import sourcecode.{File => SCFile}
 import java.io.File
 import java.net.URL
 import scala.concurrent.duration.DurationInt
+import scala.util.chaining.scalaUtilChainingOps
 
 class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file: SCFile) {
 
@@ -72,7 +73,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
         IO.println(
           Console.BLUE +
             s"[PACT4S TEST INFO] Request to mock provider server with port $port in test suite ${file.value.split("/").takeRight(3).mkString("/")}" +
-            s"\n[PACT4S TEST INFO] ${req.toString()}\n[PACT4S TEST INFO] ${resp
+            s"\n[PACT4S TEST INFO] Request(method=${req.method}, uri=${req.uri}, headers=${req.headers})\n[PACT4S TEST INFO] ${resp
                 .toString()}\n[PACT4S TEST INFO] Duration: ${time.toMillis} millis" +
             Console.WHITE
         ).as(resp)
@@ -165,14 +166,16 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
   def brokerProviderInfo(
       providerName: String = "Pact4sProvider",
       verificationSettings: Option[VerificationSettings] = None,
-      consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test")
+      consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test"),
+      pendingPactsEnabled: Boolean = false
   ): ProviderInfoBuilder =
     ProviderInfoBuilder(
       name = providerName,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pactflow.io"
-      ).withPendingPactsEnabled(ProviderTags("SNAPSHOT"))
-        .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+      ).pipe(b =>
+        if (pendingPactsEnabled) b.withPendingPactsEnabled(ProviderTags("SNAPSHOT")) else b.withPendingPactsDisabled
+      ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withConsumerVersionSelectors(consumerVersionSelector)
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
