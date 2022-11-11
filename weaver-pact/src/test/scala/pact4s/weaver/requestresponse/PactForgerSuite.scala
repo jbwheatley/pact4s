@@ -11,7 +11,7 @@ import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
-import org.typelevel.ci.CIString
+import org.typelevel.ci.{CIString, CIStringSyntax}
 import pact4s.TestModels
 import pact4s.weaver.RequestResponsePactForger
 import weaver.IOSuite
@@ -70,5 +70,17 @@ object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
     client.run(request).use {
       _.status.code.pure[IO].map(code => expect(code == 404))
     }
+  }
+
+  test("test with generated auth header") { resources =>
+    val client = resources._1
+    val server = resources._2
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/authorized"))
+      .putHeaders(headers.Authorization(Credentials.Token(ci"Bearer", "super-secure")))
+    client
+      .run(request)
+      .use {
+        _.status.code.pure[IO].map(code => expect(code == 200))
+      }
   }
 }
