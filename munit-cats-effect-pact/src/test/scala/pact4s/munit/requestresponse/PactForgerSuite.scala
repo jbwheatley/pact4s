@@ -10,7 +10,7 @@ import org.http4s._
 import org.http4s.circe.jsonEncoder
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
-import org.typelevel.ci.CIString
+import org.typelevel.ci.{CIString, CIStringSyntax}
 import pact4s.TestModels
 import pact4s.munit.RequestResponsePactForger
 
@@ -63,5 +63,15 @@ class PactForgerSuite extends RequestResponsePactForger {
     client().run(request).use {
       _.status.code.pure[IO].assertEquals(404)
     }
+  }
+
+  pactTest("test with generated auth header") { server =>
+    val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/authorized"))
+      .putHeaders(headers.Authorization(Credentials.Token(ci"Bearer", "super-secure")))
+    client()
+      .run(request)
+      .use {
+        _.status.code.pure[IO].assertEquals(200)
+      }
   }
 }
