@@ -89,6 +89,7 @@ trait PactVerifyResources {
     properties.get(name).orElse(Option(System.getProperty(name)))
 
   private def setupVerifier(
+      providerBranch: Option[Branch],
       publishVerificationResults: Option[PublishVerificationResults],
       providerMethodInstance: Option[AnyRef],
       providerVerificationOptions: List[ProviderVerificationOption]
@@ -101,7 +102,7 @@ trait PactVerifyResources {
         )
         .map(opt => (opt.key, opt.value))
         .toMap
-    verifier.setProviderBranch(() => publishVerificationResults.flatMap(_.providerBranch).map(_.branch).getOrElse(""))
+    verifier.setProviderBranch(() => providerBranch.map(_.branch).getOrElse(""))
 
     providerMethodInstance.foreach(instance => verifier.setProviderMethodInstance(_ => instance))
     verifier.setProjectGetProperty(p => resolveProperty(properties, p).orNull)
@@ -147,12 +148,14 @@ trait PactVerifyResources {
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     runWithStateChanger {
-      val verifier = setupVerifier(publishVerificationResults, providerMethodInstance, providerVerificationOptions)
-      // to support deprecated branch settings using PublishVerificationResults
       val branch = providerBranch.orElse(publishVerificationResults.flatMap(_.providerBranch))
+      val verifier =
+        setupVerifier(branch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+      // to support deprecated branch settings using PublishVerificationResults
       val providerInfo =
         provider.build(branch, responseFactory) match {
-          case Left(value)  => failure(value.getMessage)
+          case Left(value) =>
+            failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
           case Right(value) => value
         }
 

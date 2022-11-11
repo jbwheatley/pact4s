@@ -4,21 +4,6 @@
   },
   "interactions": [
     {
-      "description": "a request to find anyone",
-      "providerStates": [
-        {
-          "name": "Nobody is home"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/anyone-there"
-      },
-      "response": {
-        "status": 404
-      }
-    },
-    {
       "description": "a request to say Goodbye",
       "request": {
         "method": "GET",
@@ -83,11 +68,38 @@
       "response": {
         "status": 404
       }
+    },
+    {
+      "description": "a request with auth header",
+      "providerStates": [
+        {
+          "name": "request is authorized"
+        }
+      ],
+      "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "dataType": "STRING",
+              "expression": "Bearer ${bearerToken}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer super-secure"
+        },
+        "method": "GET",
+        "path": "/authorized"
+      },
+      "response": {
+        "status": 200
+      }
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.3.15"
+      "version": "4.3.16"
     },
     "pactSpecification": {
       "version": "3.0.0"
