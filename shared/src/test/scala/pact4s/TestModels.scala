@@ -36,6 +36,12 @@ object TestModels extends RequestResponsePactOps with MessagePactOps {
     .path("/anyone-there")
     .willRespondWith()
     .status(404)
+    .uponReceiving("a request with auth header")
+    .path("/authorized")
+    .method("GET")
+    .headerFromProviderState("Authorization", "Bearer ${bearerToken}", "Bearer super-secure")
+    .willRespondWith()
+    .status(200)
     .toPact()
 
   val messagePact = Pact4sMessagePactBuilder()
