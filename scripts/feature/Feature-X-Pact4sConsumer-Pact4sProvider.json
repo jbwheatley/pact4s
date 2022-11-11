@@ -39,8 +39,26 @@
         {
           "name": "bob exists",
           "params": {
-            "foo": "bar"
+            "person": "bob"
           }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/anyone-there/bob"
+      },
+      "response": {
+        "body": {
+          "found": "bob"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to find anyone",
+      "providerStates": [
+        {
+          "name": "nobody is home"
         }
       ],
       "request": {
@@ -48,9 +66,33 @@
         "path": "/anyone-there"
       },
       "response": {
-        "body": {
-          "found": "bob"
+        "status": 404
+      }
+    },
+    {
+      "description": "a request with auth header",
+      "providerStates": [
+        {
+          "name": "request is authorized"
+        }
+      ],
+      "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "dataType": "STRING",
+              "expression": "Bearer ${bearerToken}",
+              "type": "ProviderState"
+            }
+          }
         },
+        "headers": {
+          "Authorization": "Bearer super-secure"
+        },
+        "method": "GET",
+        "path": "/authorized"
+      },
+      "response": {
         "status": 200
       }
     },
