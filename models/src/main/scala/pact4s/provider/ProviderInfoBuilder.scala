@@ -199,7 +199,7 @@ final class ProviderInfoBuilder private (
           case Right(_) =>
             val pactJvmAuth: Auth = p.auth match {
               case None                        => Auth.None.INSTANCE
-              case Some(TokenAuth(token))      => new Auth.BearerAuthentication(token)
+              case Some(TokenAuth(token))      => new Auth.BearerAuthentication(token, Auth.DEFAULT_AUTH_HEADER)
               case Some(BasicAuth(user, pass)) => new Auth.BasicAuthentication(user, pass)
             }
             val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
