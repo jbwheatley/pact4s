@@ -122,6 +122,29 @@ val pact: RequestResponsePact =
     // ...
 ```
 
+Or similarly when using the import `pact4s.sprayjson.implicits._`
+```scala
+import pact4s.sprayjson.implicits._
+
+final case class Foo(a: String)
+
+implicit object fooFormat extends JsonFormat[Foo] {
+  override def write(object: Foo): JsValue = ???
+  override def read(value: JsValue): Foo = ???
+}
+
+val pact: RequestResponsePact = {
+  ConsumerPactBuilder
+    .consumer("Consumer")
+    .hasPactWith("Provider")
+    .uponReceiving("a request to say Hello")
+    .path("/hello")
+    .method("POST")
+    .body(Foo("abcde"), "application/json")
+    // ...
+}
+```
+
 ### Request/Response Pacts
 
 Request/response pacts use the `RequestResponsePactForger` trait. This trait requires that you provide a `RequestResponsePact`, which will be used to stand up a stub of the provider server. Each interaction in the pact should then run against the stub server using client the consumer application uses to interact with the real provider. This ensures that the client, and thus the application, is compatible with the pact being defined.
