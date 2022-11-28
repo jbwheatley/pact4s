@@ -20,6 +20,8 @@ object Dependencies {
 
   val _playJson = "2.9.3"
 
+  val _sprayJson = "1.3.6"
+
   val _weaver = "0.8.1"
 
   val _scalatest = "3.2.14"
@@ -69,6 +71,11 @@ object Dependencies {
 
   val playJson: Seq[ModuleID] = Seq(
     ("com.typesafe.play" %% "play-json" % _playJson).cross(CrossVersion.for3Use2_13),
+    "org.scalameta"      %% "munit"     % _munit % Test
+  )
+
+  val sprayJson: Seq[ModuleID] = Seq(
+    ("io.spray" %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
     "org.scalameta"      %% "munit"     % _munit % Test
   )
 
