@@ -40,7 +40,7 @@ This library provides support for `munit-cats-effect`, `weaver`, and `scalatest`
 
 | Branch | Pact Spec | JDK |
 | ------ | ------------- | --- | 
-| [4.3.x](https://github.com/DiUS/pact-jvm/blob/v4.3.x/README.md) | V4* | 11+ |
+| [4.4.x](https://github.com/DiUS/pact-jvm/blob/v4.4.x/README.md) | V4* | 11+ |
 | [4.1.x](https://github.com/DiUS/pact-jvm/blob/v4.1.x/README.md) | V3 | 8-12 |
 
 All the modules in `pact4s` are built against both of these branches to accommodate all jdk versions. To use the java11+ modules, simply add one of the following dependencies to your project: 
