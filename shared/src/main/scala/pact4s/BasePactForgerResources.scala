@@ -19,10 +19,11 @@ package pact4s
 import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 import au.com.dius.pact.core.support.V4PactFeaturesException
+import pact4s.syntax.PactOps
 
 import scala.jdk.CollectionConverters._
 
-trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger {
+trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger with PactOps {
   def pact: Pact
 
   val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
