@@ -17,11 +17,18 @@
 package pact4s
 package syntax
 
-import au.com.dius.pact.consumer.MessagePactBuilder
+import au.com.dius.pact.consumer.{MessageContentsBuilder, MessagePactBuilder}
+import au.com.dius.pact.consumer.dsl.{MetadataBuilder, SynchronousMessagePactBuilder}
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
-import pact4s.syntax.MessagePactOps.{MessageOps, MessagePactBuilderOps}
+import pact4s.syntax.MessagePactOps.{
+  MessageContentsBuilderOps,
+  MessageOps,
+  MessagePactBuilderOps,
+  SynchronousMessagePactBuilderOps
+}
 
+import java.util.function.Consumer
 import scala.jdk.CollectionConverters._
 
 object MessagePactOps {
@@ -41,6 +48,34 @@ object MessagePactOps {
 
     def metadata: Map[String, Any] = message.getMetadata.asScala.toMap
   }
+
+  class SynchronousMessagePactBuilderOps(val builder: SynchronousMessagePactBuilder) extends AnyVal {
+    def `given`(state: String, params: Map[String, Any]): SynchronousMessagePactBuilder =
+      builder.`given`(state, params.asJava)
+
+    def withRequest(callback: MessageContentsBuilder => Unit): SynchronousMessagePactBuilder =
+      builder.withRequest(new Consumer[MessageContentsBuilder] {
+        override def accept(t: MessageContentsBuilder): Unit = callback(t)
+      })
+
+    def withResponse(callback: MessageContentsBuilder => Unit): SynchronousMessagePactBuilder = builder.withResponse(
+      new Consumer[MessageContentsBuilder] {
+        override def accept(t: MessageContentsBuilder): Unit = callback(t)
+      }
+    )
+  }
+
+  class MessageContentsBuilderOps(val builder: MessageContentsBuilder) extends AnyVal {
+    def withMetadata(metadata: Map[String, Any]): MessageContentsBuilder = builder.withMetadata(metadata.asJava)
+
+    def withMetadata(callback: MetadataBuilder => Unit): MessageContentsBuilder =
+      builder.withMetadata(new Consumer[MetadataBuilder] {
+        override def accept(t: MetadataBuilder): Unit = callback(t)
+      })
+
+    def withContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): MessageContentsBuilder =
+      builder.withContent(ev.toPactDslJsonBody(content))
+  }
 }
 
 trait MessagePactOps {
@@ -49,6 +84,13 @@ trait MessagePactOps {
   )
 
   implicit def toMessageOps(message: Message): MessageOps = new MessageOps(message)
+
+  implicit def toSynchronousMessagePactBuilderOps(
+      builder: SynchronousMessagePactBuilder
+  ): SynchronousMessagePactBuilderOps = new SynchronousMessagePactBuilderOps(builder)
+
+  implicit def toMessageContentsBuilderOps(builder: MessageContentsBuilder): MessageContentsBuilderOps =
+    new MessageContentsBuilderOps(builder)
 
   sealed class Pact4sMessagePactBuilder() {
     def consumer(consumer: String): MessagePactBuilder = new MessagePactBuilder().consumer(consumer)
