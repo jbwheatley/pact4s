@@ -24,7 +24,7 @@ trait MessagePactForgerResources extends BasePactForgerResources[MessagePact] wi
   val pactSpecVersion: PactSpecVersion = PactSpecVersion.V3
 
   def writeMessagePactToFile(): Either[Throwable, Unit] = {
-    val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion).component2()
+    val write = pact.write(pactTestExecutionContext.getPactFolder, pactSpecVersion).errorValue()
     if (write == null) Right(()) else Left(write)
   }
 }
