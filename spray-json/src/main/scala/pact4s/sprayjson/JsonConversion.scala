@@ -20,7 +20,6 @@ import au.com.dius.pact.consumer.dsl.{DslPart, PactDslJsonArray, PactDslJsonBody
 import spray.json._
 
 private[sprayjson] object JsonConversion {
-
   private def addFieldToBuilder(builder: PactDslJsonBody, fieldName: String, json: JsValue): PactDslJsonBody =
     json match {
       case JsNull               => builder.nullValue(fieldName)
