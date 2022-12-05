@@ -75,6 +75,16 @@ lazy val playJson =
     )
     .dependsOn(models)
 
+lazy val sprayJson =
+  (project in file("spray-json"))
+    .settings(commonSettings)
+    .settings(
+      name := "pact4s-spray-json",
+      libraryDependencies ++= Dependencies.sprayJson,
+      Test / parallelExecution := true
+    )
+    .dependsOn(models)
+
 lazy val munit =
   (project in file("munit-cats-effect-pact"))
     .settings(commonSettings)
@@ -137,6 +147,7 @@ lazy val pact4s = (project in file("."))
     shared,
     circe,
     playJson,
+    sprayJson,
     exampleConsumer,
     exampleProvider
   )
@@ -173,6 +184,8 @@ addCommandAlias(
     "+test",
     "project playJson",
     "+test",
+    "project sprayJson",
+    "+test",
     "project exampleConsumer",
     "+test",
     "project exampleProvider",
@@ -201,6 +214,8 @@ addCommandAlias(
     "project circe",
     "test",
     "project playJson",
+    "test",
+    "project sprayJson",
     "test",
     "project /"
   )
