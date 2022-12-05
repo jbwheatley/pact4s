@@ -94,6 +94,6 @@ class JsonConversionTests extends FunSuite {
   }
 
   test("should encode top level number") {
-    assertEquals(jsonToPactDslJsonBody(12.toJson).getBody.asInstanceOf[Long].toInt, 12)
+    assertEquals(jsonToPactDslJsonBody(12.toJson).getBody.asInstanceOf[BigDecimal].intValue, 12)
   }
 }
