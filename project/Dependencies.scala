@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val mockito = "4.9.0"
+  val mockito = "4.11.0"
 
   val pactJvm = "4.1.40"
 
@@ -74,8 +74,8 @@ object Dependencies {
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
-    ("io.spray" %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
-    "org.scalameta"      %% "munit"     % _munit % Test
+    ("io.spray"     %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
+    "org.scalameta" %% "munit"      % _munit % Test
   )
 
   val example: Seq[ModuleID] = Seq(
