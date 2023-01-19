@@ -74,6 +74,61 @@ The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` m
 
 Pacts are constructed using the pact-jvm DSL, but with additional helpers for easier interoperability with scala. For example, anywhere a java `Map` is expected, a scala `Map`, or scala tuples can be provided instead.
 
+#### Using Pact matching DSL
+
+Using `PactDslJsonBody` or `PactDslJsonArray` can be painful.
+This is why Pact JVM exposes a `LambdaDsl` which aims to be easier to use and read (Read ["Why a new DSL implementation?"](https://docs.pact.io/implementation_guides/jvm/consumer#why-a-new-dsl-implementation)).
+
+But still, in Scala it can be very verbose to use it.
+Pact4s provides a `ScalaDsl` trait to reduce verbosity.
+
+For instance, see below how the following JSON body can be expressed with both DSLs:
+
+```json
+{
+  "keyA": {
+    "a1": "...",
+    "a2": "..."
+  },
+  "keyB": [1]
+}
+```
+
+```scala
+// Pact JVM LambdaDsl
+val dsl: DslPart = LambdaDsl
+  .newJsonBody { rootObj =>
+    rootObj.`object`(
+      "keyA",
+      o => {
+        o.stringType("a1")
+        o.stringType("a2")
+        ()
+      }
+    )
+    rootObj.array(
+      "keyB",
+      a => {
+        a.integerType()
+        ()
+      }
+    )
+    ()
+  }
+  .build()
+
+// Pact4s ScalaDsl
+val dsl: DslPart = newJsonObject { rootObj =>
+  rootObj.newObject("keyA") { o =>
+    o.stringType("a1")
+    o.stringType("a2")
+  }
+  rootObj.newArray("keyB") { a =>
+    a.integerType()
+  }
+}
+```
+
 #### Using JSON bodies
 
 If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided.
