@@ -13,6 +13,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
   * [Running the examples](#running-the-examples)
   * [Writing Pacts](#writing-pacts)
     + [Pact Builder DSL](#pact-builder-dsl)
+      - [Using Pact Matching DSL](#using-pact-matching-dsl)
       - [Using JSON bodies](#using-json-bodies)
     + [Request/Response Pacts](#requestresponse-pacts)
       - [Choosing a port](#choosing-a-port)
