@@ -26,7 +26,7 @@ class ImplicitsTests extends FunSuite {
   private def checkJsonRead(json: String, expectedProviderState: ProviderState): Unit = {
     println(JsonParser(json))
     println(expectedProviderState)
-     assertEquals(JsonParser(json).convertTo[ProviderState], expectedProviderState)
+    assertEquals(JsonParser(json).convertTo[ProviderState], expectedProviderState)
   }
 
   test("ProviderState read no param") {
