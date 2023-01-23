@@ -17,8 +17,8 @@
 package pact4s
 package syntax
 
-import au.com.dius.pact.consumer.{MessageContentsBuilder, MessagePactBuilder}
-import au.com.dius.pact.consumer.dsl.{MetadataBuilder, SynchronousMessagePactBuilder}
+import au.com.dius.pact.consumer.MessagePactBuilder
+import au.com.dius.pact.consumer.dsl.{MessageContentsBuilder, MetadataBuilder, SynchronousMessagePactBuilder}
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
 import pact4s.syntax.MessagePactOps.{
