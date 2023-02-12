@@ -26,6 +26,8 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Request Filtering](#request-filtering)
     + [Message Pact Verification](#message-pact-verification)
     + [Provider state](#provider-state)
+      - [Exposing your own state-change endpoint](#exposing-your-own-state-change-endpoint)
+      - [Using a state-change function](#using-a-state-change-function)
   * [Logging](#logging)
   * [Contributing](#contributing)
 
@@ -380,26 +382,46 @@ def messages: String => MessageAndMetadataBuilder = {
 
 ### Provider state
 
-Some pacts have requirements on the state of the provider. These are defined by the consumer by creating a pact like: 
+Some pacts have requirements on the state of the provider. These are defined by the consumer by creating a pact with the `given` clause: 
 ```scala
   val pact: RequestResponsePact =
   ConsumerPactBuilder
     .consumer("Consumer")
     .hasPactWith("Provider")
-    .given("user exists", Map("id" -> "bob")) // provider state id and parameters (optional)
+    .`given`("user exists", Map("id" -> "bob")) // provider state id, and parameters (optional)
     .uponReceiving(...)
     ...
 ```
 
-In order to verify pacts that require state, your mock provider server should expose a POST endpoint (e.g. named "setup", or something similar) that expects a request body of `{"state" : "the provider state id string", "params": { "id": "bob" } }` (`params` are optional). Then by setting the field `stateChangeUrl` on the `provider` in your test suite:
+During the verification process, `pact-jvm` sends the provider state ID and parameters to a given http endpoint, and it is up to the end user to decode the request and manage the state of the provider. We have a domain model `pact4s.providerProviderState` representing this state. For users of `pact4s` we provide 2 ways of managing state in your verification tests. 
+
+#### Exposing your own state-change endpoint
+
+You can receive a state-change request to a POST endpoint on your mock provider server (e.g. named "setup", or something similar) that expects a request body of `{"state" : "the provider state id string", "params": { "id": "bob" } }` (`params` are optional). This endpoint can be configured on the `ProviderInfoBuilder` in your suite by setting the field `stateChangeUrl`:
 
 ```scala
-val provider: ProviderInfoBuilder =
+val provider: ProviderInfoBuilder = 
   // alternatively: withStateChangeEndpoint("/setup")
   ProviderInfoBuilder().withStateChangeUrl("http://localhost:1234/setup")
 ```
 
-This will cause a request to be sent to the setup url prior to verification of each interaction that requires provider state. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+Json codecs for the `ProviderState` can be found in the json modules in the `implicits` objects. 
+
+See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+
+#### Using a state-change function
+
+It may not always be possible or desirable to add a endpoint to your provider server for this purpose. We can also simply configure a (maybe partial) function `ProviderState => Unit` for managing provider state on the `ProviderInfoBuilder` in your suite as follows: 
+
+```scala
+val provider: ProviderInfoBuilder = 
+  ProviderInfoBuilder().withStateChangeFunction { 
+   case ProviderState("state", params) => doSomething()
+   case _ => ()
+  } 
+```
+
+In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server receieves requests to `localhost:64646/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overriden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
 
 ## Logging 
 
