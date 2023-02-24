@@ -1,4 +1,5 @@
-package pact4s.dsl
+package pact4s
+package dsl
 
 import au.com.dius.pact.consumer.dsl.{DslPart, LambdaDsl}
 import munit.FunSuite
