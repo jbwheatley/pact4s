@@ -452,4 +452,15 @@ Here is an example `logback.xml` if you are using logback:
 
 ## Contributing
 
-Please run `sbt commitCheck` before creating a PR. 
+Thank you for considering contributing to `pact4s`! Before opening a PR, please make sure you have read the [style guide](./docs/style-guide.md), and gone through 
+the following checklist: 
+
+- Scaladocs are included where necessary - e.g. where methods or fields have been added.
+- Broken or invalidated methods/fields have had a deprecation tag applied.
+- Tests for your new feature or bugfix have been included.
+- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreate` to add headers to new files. 
+- You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
+- If you're feeling especially generous, open the same PR against the `java8` branch in addition to `main`, so I don't have to backport it myself :)
+
+*N.B.* `sbt commitCheck` takes a while to run because we need to run each test suite in serial as there is networking involved. 
+You can save some time locally by using `sbt quickCommitCheck` which doesn't do any cross-building for different scala versions. 

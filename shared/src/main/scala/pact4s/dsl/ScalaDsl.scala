@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package pact4s.dsl
+package pact4s
+package dsl
 
 import au.com.dius.pact.consumer.dsl.{DslPart, LambdaDsl, LambdaDslJsonArray, LambdaDslObject}
+import pact4s.dsl.ScalaDsl.{LambdaDslJsonArrayOps, LambdaDslObjectOps}
 
 trait ScalaDsl {
 
@@ -47,40 +49,43 @@ trait ScalaDsl {
 
 }
 
-class LambdaDslObjectOps(val obj: LambdaDslObject) extends AnyVal {
+object ScalaDsl {
 
-  def newArray(name: String)(body: LambdaDslJsonArray => Any): LambdaDslObject =
-    obj.array(
-      name,
-      { a =>
+  class LambdaDslObjectOps(val obj: LambdaDslObject) extends AnyVal {
+
+    def newArray(name: String)(body: LambdaDslJsonArray => Any): LambdaDslObject =
+      obj.array(
+        name,
+        { a =>
+          body.apply(a)
+          ()
+        }
+      )
+
+    def newObject(name: String)(body: LambdaDslObject => Any): LambdaDslObject =
+      obj.`object`(
+        name,
+        { o =>
+          body.apply(o)
+          ()
+        }
+      )
+
+  }
+
+  class LambdaDslJsonArrayOps(val array: LambdaDslJsonArray) extends AnyVal {
+
+    def newArray(body: LambdaDslJsonArray => Any): LambdaDslJsonArray =
+      array.array { a =>
         body.apply(a)
         ()
       }
-    )
 
-  def newObject(name: String)(body: LambdaDslObject => Any): LambdaDslObject =
-    obj.`object`(
-      name,
-      { o =>
+    def newObject(body: LambdaDslObject => Any): LambdaDslJsonArray =
+      array.`object` { o =>
         body.apply(o)
         ()
       }
-    )
 
-}
-
-class LambdaDslJsonArrayOps(val array: LambdaDslJsonArray) extends AnyVal {
-
-  def newArray(body: LambdaDslJsonArray => Any): LambdaDslJsonArray =
-    array.array { a =>
-      body.apply(a)
-      ()
-    }
-
-  def newObject(body: LambdaDslObject => Any): LambdaDslJsonArray =
-    array.`object` { o =>
-      body.apply(o)
-      ()
-    }
-
+  }
 }

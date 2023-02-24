@@ -78,10 +78,10 @@ final class ProviderInfoBuilder private (
     host: String,
     port: Int,
     path: String,
-    val pactSource: PactSource,
+    pactSource: PactSource,
     private[pact4s] val stateManagement: Option[StateManagement],
     verificationSettings: Option[VerificationSettings],
-    val requestFilter: ProviderRequest => Option[ProviderRequestFilter]
+    requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
   private def copy(
       name: String = name,
@@ -117,7 +117,7 @@ final class ProviderInfoBuilder private (
   def withStateChangeUrl(url: String): ProviderInfoBuilder =
     copy(stateManagement = Some(StateManagement.ProviderUrl(url)))
   def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
-    val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
+    val endpointWithLeadingSlash: String = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     withStateChangeUrl(s"$protocol://$host:$port$endpointWithLeadingSlash")
   }
 
@@ -129,7 +129,7 @@ final class ProviderInfoBuilder private (
   def withStateChangeFunctionConfigOverrides(
       overrides: StateManagement.StateManagementFunction => StateManagement.StateManagementFunction
   ): ProviderInfoBuilder = {
-    val withOverrides = stateManagement.map {
+    val withOverrides: Option[StateManagement] = stateManagement.map {
       case x: StateManagement.ProviderUrl             => x
       case x: StateManagement.StateManagementFunction => overrides(x)
     }
@@ -210,14 +210,15 @@ final class ProviderInfoBuilder private (
               p.insecureTLS,
               pactJvmAuth
             )
-            val applySelectors =
-              Try(
+            val applySelectors: Try[Unit] =
+              Try {
                 providerInfo.hasPactsFromPactBrokerWithSelectorsV2(
                   p.brokerUrl,
                   p.consumerVersionSelectors.asJava,
                   brokerOptions
                 )
-              )
+                ()
+              }
             applySelectors.toEither.map(_ => providerInfo)
         }
       case p: PactBrokerWithTags =>
