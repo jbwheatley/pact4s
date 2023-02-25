@@ -76,7 +76,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
         case ProviderState("resource does not exist", _) => () // Nothing to do
         case _: ProviderState                            => ???
       }
-    )
+    )(() => ())
     .withRequestFiltering(requestFilter)
 
   test("Verify pacts") {
