@@ -38,6 +38,7 @@ private[pact4s] object StateChanger {
   class SimpleServer(
       stateChange: PartialFunction[ProviderState, Unit],
       stateChangeBeforeHook: () => Unit,
+      stateChangeAfterHook: () => Unit,
       host: String,
       port: Int,
       endpoint: String
@@ -97,6 +98,8 @@ private[pact4s] object StateChanger {
             .getOrElse(
               pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
             )
+          // Apply after hook
+          stateChangeAfterHook.apply()
         })
         stateChangeMaybeApplied match {
           case Failure(exception) =>
