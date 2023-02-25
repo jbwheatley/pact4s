@@ -82,7 +82,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
         case ProviderState("resource does not exist", _) => () // Nothing to do
         case _                                           => ???
       }
-    )
+    )(() => ())
     .withRequestFiltering(requestFilter)
 
   it should "Verify pacts" in {
