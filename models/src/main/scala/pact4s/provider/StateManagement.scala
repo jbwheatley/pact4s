@@ -27,6 +27,7 @@ object StateManagement {
   final class StateManagementFunction private (
       private[pact4s] val stateChangeFunc: PartialFunction[ProviderState, Unit],
       private[pact4s] val stateChangeBeforeHook: () => Unit,
+      private[pact4s] val stateChangeAfterHook: () => Unit,
       private[pact4s] val host: String,
       private[pact4s] val port: Int,
       private[pact4s] val endpoint: String
@@ -39,6 +40,7 @@ object StateManagement {
       new StateManagementFunction(
         stateChangeFunc,
         stateChangeBeforeHook,
+        stateChangeAfterHook,
         host = hostOverride,
         port = portOverride,
         endpoint = endpointOverride
@@ -51,8 +53,9 @@ object StateManagement {
   object StateManagementFunction {
     def apply(
         stateChangeFunc: PartialFunction[ProviderState, Unit],
-        stateChangeBeforeHook: () => Unit
+        stateChangeBeforeHook: () => Unit,
+        stateChangeAfterHook: () => Unit
     ): StateManagementFunction =
-      new StateManagementFunction(stateChangeFunc, stateChangeBeforeHook, "localhost", 64646, "/pact4s-state-change")
+      new StateManagementFunction(stateChangeFunc, stateChangeBeforeHook, stateChangeAfterHook, "localhost", 64646, "/pact4s-state-change")
   }
 }
