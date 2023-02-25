@@ -122,11 +122,11 @@ final class ProviderInfoBuilder private (
   }
 
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
-    withStateChangeFunction(() => ())(stateChange)
+    withStateChangeFunction(() => ())(stateChange)(() => ())
   def withStateChangeFunction(stateChangeBeforeHook: () => Unit)(
       stateChange: PartialFunction[ProviderState, Unit]
-  ): ProviderInfoBuilder =
-    copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange, stateChangeBeforeHook)))
+  )(stateChangeAfterHook: () => Unit): ProviderInfoBuilder =
+    copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange, stateChangeBeforeHook, stateChangeAfterHook)))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
     withStateChangeFunction({ case x => stateChange(x) }: PartialFunction[ProviderState, Unit])
 
