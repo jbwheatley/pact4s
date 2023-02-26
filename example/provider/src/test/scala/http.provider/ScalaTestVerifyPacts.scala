@@ -12,6 +12,7 @@ import org.http4s.{BasicCredentials, HttpRoutes}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import pact4s.provider.ProviderRequestFilter.{NoOpFilter, SetHeaders}
+import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider._
 import pact4s.scalatest.PactVerifier
 
@@ -73,8 +74,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     )
   ).withHost("localhost")
     .withPort(1234)
-    .withStateChangeFunction(() => store.empty.unsafeRunSync())((state: ProviderState) =>
-      state match {
+    .withStateManagementFunction(
+      StateManagementFunction {
         case ProviderState("resource exists", params) =>
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
@@ -82,7 +83,9 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
         case ProviderState("resource does not exist", _) => () // Nothing to do
         case _                                           => ???
       }
-    )(() => ())
+        .withBeforeEach(() => store.empty.unsafeRunSync())
+        .withAfterEach(() => ()) // only to highlight and test the API
+    )
     .withRequestFiltering(requestFilter)
 
   it should "Verify pacts" in {
