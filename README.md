@@ -423,20 +423,18 @@ val provider: ProviderInfoBuilder =
 
 In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server receieves requests to `localhost:64646/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overriden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
 
-It is also possible to define a "before hook" and/or "after hook" that will run at each state change before/after the state-change function:
+It is also possible to define a before/after hook (`() => Unit`) that will run at each state change before/after the state-change function:
 
 ```scala
 val provider: ProviderInfoBuilder = 
-  ProviderInfoBuilder().withStateChangeFunction {
-    // This is the before hook    
-    () => cleanTheState()
-  } { 
-   case ProviderState("state", params) => doSomething()
-   case _ => ()
-  } {
-    // This is the after hook
-    () => afterHook()
-  }
+  ProviderInfoBuilder().withStateManagementFunction(
+    StateManagementFunction {
+      case ProviderState("state", params) => doSomething()
+      case _ => ()
+    }
+    .withBeforeEach(() => cleanTheState())
+    .withAfterEach(() => afterHook())
+  )
 ```
 
 ## Logging 

@@ -46,16 +46,22 @@ object StateManagement {
         endpoint = endpointOverride
       )
 
+    def withBeforeEach(beforeHook: () => Unit): StateManagementFunction =
+      new StateManagementFunction(stateChangeFunc, beforeHook, stateChangeAfterHook, host, port, endpoint)
+
+    def withAfterEach(afterHook: () => Unit): StateManagementFunction =
+      new StateManagementFunction(stateChangeFunc, stateChangeBeforeHook, afterHook, host, port, endpoint)
+
     private val slashedEndpoint       = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     private[provider] val url: String = s"http://$host:$port$slashedEndpoint"
   }
 
   object StateManagementFunction {
+
     def apply(
-        stateChangeFunc: PartialFunction[ProviderState, Unit],
-        stateChangeBeforeHook: () => Unit,
-        stateChangeAfterHook: () => Unit
+        stateChangeFunc: PartialFunction[ProviderState, Unit]
     ): StateManagementFunction =
-      new StateManagementFunction(stateChangeFunc, stateChangeBeforeHook, stateChangeAfterHook, "localhost", 64646, "/pact4s-state-change")
+      new StateManagementFunction(stateChangeFunc, () => (), () => (), "localhost", 64646, "/pact4s-state-change")
+
   }
 }
