@@ -84,7 +84,6 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
         case _                                           => ???
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
-        .withAfterEach(() => ()) // only to highlight and test the API
     )
     .withRequestFiltering(requestFilter)
 
