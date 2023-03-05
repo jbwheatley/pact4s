@@ -121,7 +121,7 @@ trait PactVerifyResources {
     val stateChanger: StateChanger =
       provider.stateManagement match {
         case Some(s: StateManagementFunction) =>
-          new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.stateChangeAfterHook, s.host, s.port, s.endpoint)
+          new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
         case _ => StateChanger.NoOpStateChanger
       }
     stateChanger.start()

@@ -78,7 +78,6 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
         case _: ProviderState                            => ???
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
-        .withAfterEach(() => ()) // only to highlight and test the API
     )
     .withRequestFiltering(requestFilter)
 
