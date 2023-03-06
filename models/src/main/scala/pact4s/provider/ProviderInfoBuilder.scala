@@ -23,6 +23,7 @@ import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderI
 import org.apache.hc.core5.http.HttpRequest
 import pact4s.provider.Authentication.{BasicAuth, TokenAuth}
 import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
+import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
 
 import java.net.URL
@@ -122,9 +123,12 @@ final class ProviderInfoBuilder private (
   }
 
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
-    copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
+    withStateManagementFunction(StateManagementFunction(stateChange))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
     withStateChangeFunction({ case x => stateChange(x) }: PartialFunction[ProviderState, Unit])
+
+  def withStateManagementFunction(stateManagementFunction: StateManagementFunction): ProviderInfoBuilder =
+    copy(stateManagement = Some(stateManagementFunction))
 
   def withStateChangeFunctionConfigOverrides(
       overrides: StateManagement.StateManagementFunction => StateManagement.StateManagementFunction
