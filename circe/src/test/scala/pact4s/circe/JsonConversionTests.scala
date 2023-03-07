@@ -3,6 +3,7 @@ package pact4s.circe
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import io.circe.parser
+
 import munit.FunSuite
 import pact4s.circe.JsonConversion.jsonToPactDslJsonBody
 
