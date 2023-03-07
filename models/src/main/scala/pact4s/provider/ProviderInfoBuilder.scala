@@ -23,6 +23,7 @@ import au.com.dius.pact.provider.{PactBrokerOptions, PactVerification, ProviderI
 import org.apache.http.HttpRequest
 import pact4s.provider.Authentication.{BasicAuth, TokenAuth}
 import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelectors, PactBrokerWithTags}
+import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
 
 import java.net.{URI, URL}
@@ -78,10 +79,10 @@ final class ProviderInfoBuilder private (
     host: String,
     port: Int,
     path: String,
-    val pactSource: PactSource,
+    pactSource: PactSource,
     private[pact4s] val stateManagement: Option[StateManagement],
     verificationSettings: Option[VerificationSettings],
-    val requestFilter: ProviderRequest => Option[ProviderRequestFilter]
+    requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
   private def copy(
       name: String = name,
@@ -117,19 +118,22 @@ final class ProviderInfoBuilder private (
   def withStateChangeUrl(url: String): ProviderInfoBuilder =
     copy(stateManagement = Some(StateManagement.ProviderUrl(url)))
   def withStateChangeEndpoint(endpoint: String): ProviderInfoBuilder = {
-    val endpointWithLeadingSlash = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
+    val endpointWithLeadingSlash: String = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
     withStateChangeUrl(s"$protocol://$host:$port$endpointWithLeadingSlash")
   }
 
   def withStateChangeFunction(stateChange: PartialFunction[ProviderState, Unit]): ProviderInfoBuilder =
-    copy(stateManagement = Some(StateManagement.StateManagementFunction(stateChange)))
+    withStateManagementFunction(StateManagementFunction(stateChange))
   def withStateChangeFunction(stateChange: ProviderState => Unit): ProviderInfoBuilder =
     withStateChangeFunction({ case x => stateChange(x) }: PartialFunction[ProviderState, Unit])
+
+  def withStateManagementFunction(stateManagementFunction: StateManagementFunction): ProviderInfoBuilder =
+    copy(stateManagement = Some(stateManagementFunction))
 
   def withStateChangeFunctionConfigOverrides(
       overrides: StateManagement.StateManagementFunction => StateManagement.StateManagementFunction
   ): ProviderInfoBuilder = {
-    val withOverrides = stateManagement.map {
+    val withOverrides: Option[StateManagement] = stateManagement.map {
       case x: StateManagement.ProviderUrl             => x
       case x: StateManagement.StateManagementFunction => overrides(x)
     }
