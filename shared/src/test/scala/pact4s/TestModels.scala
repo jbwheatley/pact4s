@@ -57,4 +57,5 @@ object TestModels extends RequestResponsePactOps with MessagePactOps {
     .expectsToReceive("A message with a json array as content")
     .withContent(Json.arr(Json.obj("a" -> 1.asJson), Json.obj("b" -> true.asJson)))
     .toPact
+
 }
