@@ -3,7 +3,7 @@
 ![Tag](https://img.shields.io/github/v/tag/jbwheatley/pact4s?sort=semver)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 
-Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) for commonly used scala testing frameworks. To find out more about consumer-driven contract testing, visit the Pact Foundation website [here](https://docs.pact.io/)! Supported scala versions are 2.12 and 2.13.<sup>1</sup>
+Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) for commonly used scala testing frameworks. To find out more about consumer-driven contract testing, visit the Pact Foundation website [here](https://docs.pact.io/)! Supported scala versions are 2.12, 2.13 and 3. 
 
 `pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
 
@@ -25,12 +25,12 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Request Filtering](#request-filtering)
     + [Message Pact Verification](#message-pact-verification)
     + [Provider state](#provider-state)
+      - [Exposing your own state-change endpoint](#exposing-your-own-state-change-endpoint)
+      - [Using a state-change function](#using-a-state-change-function)
   * [Logging](#logging)
   * [Contributing](#contributing)
 
 ---
-
-<sup>1</sup> _support for scala 3 is currently blocked by https://github.com/lampepfl/dotty/issues/12086, as pact-jvm is written in kotlin_
 
 ## Getting Started
 
@@ -39,8 +39,8 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 This library provides support for `munit-cats-effect`, `weaver`, and `scalatest`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
 
 | Branch | Pact Spec | JDK |
-| ------ | ------------- | --- | 
-| [4.3.x](https://github.com/DiUS/pact-jvm/blob/v4.3.x/README.md) | V4* | 11+ |
+| ------ | ------------- | --- |
+| [4.4.x](https://github.com/DiUS/pact-jvm/blob/v4.4.x/README.md) | V4* | 11+ |
 | [4.1.x](https://github.com/DiUS/pact-jvm/blob/v4.1.x/README.md) | V3 | 8-12 |
 
 All the modules in `pact4s` are built against both of these branches to accommodate all jdk versions. To use the java11+ modules, simply add one of the following dependencies to your project: 
@@ -72,17 +72,13 @@ publish the pacts to files in `./example/resources/pacts` which the provider tes
 
 The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each, or the examples module.
 
-### Pact Builder DSL
-
-Pacts are constructed using the pact-jvm DSL, but with additional helpers for easier interoperability with scala. For example, anywhere a java `Map` is expected, a scala `Map`, or scala tuples can be provided instead.
-
 #### Using JSON bodies
 
 If you want to construct simple pacts with bodies that do not use the pact-jvm matching dsl, (`PactDslJsonBody`), a scala data type `A` can be passed to `.body` directly, provided there is an implicit instance of `pact4s.PactBodyEncoder[A]` provided.
 
 Instances of `pact4s.PactBodyEncoder` are provided for:
-- any type that has a `circe.Encoder` by adding the additional dependency: ```io.github.jbwheatley %% pact4s-circe % xxx```
-- any type that has a `play.api.libs.json.Writes` by adding the additional dependency: ```io.github.jbwheatley %% pact4s-play-json % xxx```
+- any type that has a `circe.Encoder` by adding the additional dependency: ```"io.github.jbwheatley" %% "pact4s-circe" % xxx```
+- any type that has a `play.api.libs.json.Writes` by adding the additional dependency: ```"io.github.jbwheatley" %% "pact4s-play-json" % xxx```
 
 This allows the following when using the import `pact4s.circe.implicits._`:
 ```scala
@@ -326,26 +322,59 @@ def messages: String => MessageAndMetadataBuilder = {
 
 ### Provider state
 
-Some pacts have requirements on the state of the provider. These are defined by the consumer by creating a pact like: 
+Some pacts have requirements on the state of the provider. These are defined by the consumer by creating a pact with the `given` clause: 
 ```scala
   val pact: RequestResponsePact =
   ConsumerPactBuilder
     .consumer("Consumer")
     .hasPactWith("Provider")
-    .given("user exists", Map("id" -> "bob")) // provider state id and parameters (optional)
+    .`given`("user exists", Map("id" -> "bob")) // provider state id, and parameters (optional)
     .uponReceiving(...)
     ...
 ```
 
-In order to verify pacts that require state, your mock provider server should expose a POST endpoint (e.g. named "setup", or something similar) that expects a request body of `{"state" : "the provider state id string", "params": { "id": "bob" } }` (`params` are optional). Then by setting the field `stateChangeUrl` on the `provider` in your test suite:
+During the verification process, `pact-jvm` sends the provider state ID and parameters to a given http endpoint, and it is up to the end user to decode the request and manage the state of the provider. We have a domain model `pact4s.providerProviderState` representing this state. For users of `pact4s` we provide 2 ways of managing state in your verification tests. 
+
+#### Exposing your own state-change endpoint
+
+You can receive a state-change request to a POST endpoint on your mock provider server (e.g. named "setup", or something similar) that expects a request body of `{"state" : "the provider state id string", "params": { "id": "bob" } }` (`params` are optional). This endpoint can be configured on the `ProviderInfoBuilder` in your suite by setting the field `stateChangeUrl`:
 
 ```scala
-val provider: ProviderInfoBuilder =
+val provider: ProviderInfoBuilder = 
   // alternatively: withStateChangeEndpoint("/setup")
   ProviderInfoBuilder().withStateChangeUrl("http://localhost:1234/setup")
 ```
 
-This will cause a request to be sent to the setup url prior to verification of each interaction that requires provider state. See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+Json codecs for the `ProviderState` can be found in the json modules in the `implicits` objects. 
+
+See [our internal test setup here](https://github.com/jbwheatley/pact4s/blob/main/shared/src/test/scala/pact4s/MockProviderServer.scala) for an example of how we handle provider state.
+
+#### Using a state-change function
+
+It may not always be possible or desirable to add a endpoint to your provider server for this purpose. We can also simply configure a (maybe partial) function `ProviderState => Unit` for managing provider state on the `ProviderInfoBuilder` in your suite as follows: 
+
+```scala
+val provider: ProviderInfoBuilder = 
+  ProviderInfoBuilder().withStateChangeFunction { 
+   case ProviderState("state", params) => doSomething()
+   case _ => ()
+  } 
+```
+
+In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server receieves requests to `localhost:64646/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overriden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
+
+It is also possible to define a before hook (`() => Unit`) that will run at each state change before the state-change function:
+
+```scala
+val provider: ProviderInfoBuilder = 
+  ProviderInfoBuilder().withStateManagementFunction(
+    StateManagementFunction {
+      case ProviderState("state", params) => doSomething()
+      case _ => ()
+    }
+    .withBeforeEach(() => cleanTheState())
+  )
+```
 
 ## Logging 
 
@@ -372,8 +401,20 @@ Here is an example `logback.xml` if you are using logback:
 </configuration>
 ```
 
----
 
 ## Contributing
 
 Please run `sbt commitCheck` before creating a PR. 
+
+Thank you for considering contributing to `pact4s`! Before opening a PR, please make sure you have read the [style guide](./docs/style-guide.md), and gone through 
+the following checklist: 
+
+- Scaladocs are included where necessary - e.g. where methods or fields have been added.
+- Broken or invalidated methods/fields have had a deprecation tag applied.
+- Tests for your new feature or bugfix have been included.
+- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreate` to add headers to new files. 
+- You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
+- If you're feeling especially generous, open the same PR against the `java8` branch in addition to `main`, so I don't have to backport it myself :)
+
+*N.B.* `sbt commitCheck` takes a while to run because we need to run each test suite in serial as there is networking involved. 
+You can save some time locally by using `sbt quickCommitCheck` which doesn't do any cross-building for different scala versions. 
