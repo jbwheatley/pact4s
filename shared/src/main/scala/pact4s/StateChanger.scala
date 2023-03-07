@@ -35,8 +35,13 @@ private[pact4s] object StateChanger {
     def shutdown(): Unit = ()
   }
 
-  class SimpleServer(stateChange: PartialFunction[ProviderState, Unit], host: String, port: Int, endpoint: String)
-      extends StateChanger {
+  class SimpleServer(
+      stateChange: PartialFunction[ProviderState, Unit],
+      stateChangeBeforeHook: () => Unit,
+      host: String,
+      port: Int,
+      endpoint: String
+  ) extends StateChanger {
     private var isShutdown: Boolean    = true
     private var stopServer: () => Unit = () => ()
 
@@ -79,6 +84,9 @@ private[pact4s] object StateChanger {
         }.toOption
 
         val stateChangeMaybeApplied = Try(stateAndResponse.foreach { case (s, ps, _) =>
+          // Apply before hook
+          stateChangeBeforeHook.apply()
+          // Apply state change function
           stateChange
             .lift(ProviderState(s, ps))
             .getOrElse(

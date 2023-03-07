@@ -166,6 +166,7 @@ deletePactFiles := {
 addCommandAlias(
   "commitCheck",
   List(
+    "clean",
     "scalafmtCheck",
     "headerCheck",
     "+compile:doc",
