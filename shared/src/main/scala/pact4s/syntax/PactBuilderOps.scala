@@ -20,6 +20,8 @@ import au.com.dius.pact.consumer.dsl.PactBuilder
 import au.com.dius.pact.core.model.PactSpecVersion
 import pact4s.syntax.PactOps.PactBuilderOps
 
+import scala.jdk.CollectionConverters._
+
 object PactOps {
   class PactBuilderOps(val builder: PactBuilder) extends AnyVal {
     def consumer(consumer: String): PactBuilder = {
@@ -36,6 +38,16 @@ object PactOps {
       builder.setPactVersion(pactVersion)
       builder
     }
+
+    /** Describe the state the provider needs to be in for the pact test to be verified. Any parameters for the provider
+      * state can be provided in the second parameter.
+      */
+    def `given`(state: String, params: Map[String, Any]): PactBuilder = builder.`given`(state, params.asJava)
+
+    /** Values to configure the interaction. In the case of an interaction configured by a plugin, you need to follow
+      * the plugin documentation of what values must be specified here.
+      */
+    def `with`(values: Map[String, Any]): PactBuilder = builder.`with`(values.asJava)
   }
 }
 
