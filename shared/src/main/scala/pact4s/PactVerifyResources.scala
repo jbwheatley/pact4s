@@ -148,12 +148,11 @@ trait PactVerifyResources {
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): Unit = {
     runWithStateChanger {
-      val branch = providerBranch.orElse(publishVerificationResults.flatMap(_.providerBranch))
       val verifier =
-        setupVerifier(branch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+        setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
       // to support deprecated branch settings using PublishVerificationResults
       val providerInfo =
-        provider.build(branch, responseFactory) match {
+        provider.build(providerBranch, responseFactory) match {
           case Left(value) =>
             failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
           case Right(value) => value
@@ -161,7 +160,12 @@ trait PactVerifyResources {
 
       verifier.initialiseReporters(providerInfo)
 
-      providerInfo.getConsumers.asScala.foreach(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
+      val consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
+      if (consumers.isEmpty) {
+        verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo))
+      }
+
+      consumers.foreach(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
     }
 
     val failedMessages  = failures.toList
