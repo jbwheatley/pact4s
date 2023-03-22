@@ -19,14 +19,13 @@ package provider
 
 final class PublishVerificationResults private (
     val providerVersion: String,
-    val providerTags: Option[ProviderTags],
-    val providerBranch: Option[Branch]
+    val providerTags: Option[ProviderTags]
 )
 
 object PublishVerificationResults {
   def apply(providerVersion: String): PublishVerificationResults =
-    new PublishVerificationResults(providerVersion, None, None)
+    new PublishVerificationResults(providerVersion, None)
 
   def apply(providerVersion: String, providerTags: ProviderTags): PublishVerificationResults =
-    new PublishVerificationResults(providerVersion, Some(providerTags), None)
+    new PublishVerificationResults(providerVersion, Some(providerTags))
 }
