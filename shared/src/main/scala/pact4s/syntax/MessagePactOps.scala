@@ -18,7 +18,7 @@ package pact4s
 package syntax
 
 import au.com.dius.pact.consumer.MessagePactBuilder
-import au.com.dius.pact.consumer.dsl.{MessageContentsBuilder, MetadataBuilder, SynchronousMessagePactBuilder}
+import au.com.dius.pact.consumer.dsl.{DslPart, MessageContentsBuilder, MetadataBuilder, SynchronousMessagePactBuilder}
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
 import pact4s.syntax.MessagePactOps.{
@@ -28,7 +28,6 @@ import pact4s.syntax.MessagePactOps.{
   SynchronousMessagePactBuilderOps
 }
 
-import java.util.function.Consumer
 import scala.jdk.CollectionConverters._
 
 object MessagePactOps {
@@ -53,25 +52,46 @@ object MessagePactOps {
     def `given`(state: String, params: Map[String, Any]): SynchronousMessagePactBuilder =
       builder.`given`(state, params.asJava)
 
-    def withRequest(callback: MessageContentsBuilder => Unit): SynchronousMessagePactBuilder =
-      builder.withRequest(new Consumer[MessageContentsBuilder] {
-        override def accept(t: MessageContentsBuilder): Unit = callback(t)
-      })
+    /** e.g. builder.withRequest(_.withMetadata(Map("foo" -> "bar").withContent("123")) Alternatively use
+      * builder.withRequestMetadata(Map("foo" -> "bar")).withRequestContent("123")
+      */
+    def withRequest(updateMessage: MessageContentsBuilder => MessageContentsBuilder): SynchronousMessagePactBuilder =
+      builder.withRequest(content => updateMessage.andThen(_ => ()).apply(content))
 
-    def withResponse(callback: MessageContentsBuilder => Unit): SynchronousMessagePactBuilder = builder.withResponse(
-      new Consumer[MessageContentsBuilder] {
-        override def accept(t: MessageContentsBuilder): Unit = callback(t)
-      }
-    )
+    def withRequestContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): SynchronousMessagePactBuilder =
+      withRequestContent(ev.toPactDslJsonBody(content))
+
+    def withRequestContent(body: DslPart): SynchronousMessagePactBuilder = withRequest(_.withContent(body))
+
+    def withRequestMetadata(params: Map[String, Any]): SynchronousMessagePactBuilder =
+      withRequest(r => new MessageContentsBuilderOps(r).withMetadata(params))
+
+    def withRequestMetadata(updateMetadata: MetadataBuilder => MetadataBuilder): SynchronousMessagePactBuilder =
+      withRequest(r => new MessageContentsBuilderOps(r).withMetadata(updateMetadata))
+
+    /** e.g. builder.withResponse(_.withMetadata(Map("foo" -> "bar").withContent("123")) Alternatively use
+      * builder.withResponseMetadata(Map("foo" -> "bar")).withResponseContent("123")
+      */
+    def withResponse(updateMessage: MessageContentsBuilder => MessageContentsBuilder): SynchronousMessagePactBuilder =
+      builder.withResponse(content => updateMessage.andThen(_ => ()).apply(content))
+
+    def withResponseContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): SynchronousMessagePactBuilder =
+      withResponseContent(ev.toPactDslJsonBody(content))
+
+    def withResponseContent(body: DslPart): SynchronousMessagePactBuilder = withResponse(_.withContent(body))
+
+    def withResponseMetadata(params: Map[String, Any]): SynchronousMessagePactBuilder =
+      withResponse(r => new MessageContentsBuilderOps(r).withMetadata(params))
+
+    def withResponseMetadata(updateMetadata: MetadataBuilder => MetadataBuilder): SynchronousMessagePactBuilder =
+      withResponse(r => new MessageContentsBuilderOps(r).withMetadata(updateMetadata))
   }
 
   class MessageContentsBuilderOps(val builder: MessageContentsBuilder) extends AnyVal {
     def withMetadata(metadata: Map[String, Any]): MessageContentsBuilder = builder.withMetadata(metadata.asJava)
 
-    def withMetadata(callback: MetadataBuilder => Unit): MessageContentsBuilder =
-      builder.withMetadata(new Consumer[MetadataBuilder] {
-        override def accept(t: MetadataBuilder): Unit = callback(t)
-      })
+    def withMetadata(updateMetadata: MetadataBuilder => MetadataBuilder): MessageContentsBuilder =
+      builder.withMetadata(metadata => updateMetadata.andThen(_ => ()).apply(metadata))
 
     def withContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): MessageContentsBuilder =
       builder.withContent(ev.toPactDslJsonBody(content))
