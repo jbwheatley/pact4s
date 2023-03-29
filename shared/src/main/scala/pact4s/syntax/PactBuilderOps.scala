@@ -47,7 +47,16 @@ object PactOps {
     /** Values to configure the interaction. In the case of an interaction configured by a plugin, you need to follow
       * the plugin documentation of what values must be specified here.
       */
-    def `with`(values: Map[String, Any]): PactBuilder = builder.`with`(values.asJava)
+    def `with`(values: Map[String, Any]): PactBuilder = {
+      def valuesToJava(value: Any): Any =
+        value match {
+          case map: Map[_, _]  => map.map { case (k, v) => (k, valuesToJava(v)) }.asJava
+          case it: Iterable[_] => it.map(valuesToJava).asJava
+          case other           => other
+        }
+
+      builder.`with`(valuesToJava(values).asInstanceOf[java.util.Map[String, Any]])
+    }
   }
 }
 
