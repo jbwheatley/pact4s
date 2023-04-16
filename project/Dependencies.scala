@@ -21,7 +21,7 @@ object Dependencies {
 
   val _sprayJson = "1.3.6"
 
-  val _weaver = "0.8.2"
+  val _weaver = "0.8.3"
 
   val _scalatest = "3.2.15"
 
