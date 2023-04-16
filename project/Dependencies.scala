@@ -4,7 +4,7 @@ object Dependencies {
 
   val mockito = "5.2.0"
 
-  val pactJvm = "4.5.5"
+  val pactJvm = "4.5.6"
 
   val http4s = "1.0.0-M30"
 
