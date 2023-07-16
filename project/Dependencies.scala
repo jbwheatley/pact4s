@@ -23,7 +23,7 @@ object Dependencies {
 
   val _weaver = "0.8.3"
 
-  val _scalatest = "3.2.15"
+  val _scalatest = "3.2.16"
 
   val _munit = "0.7.29"
 
