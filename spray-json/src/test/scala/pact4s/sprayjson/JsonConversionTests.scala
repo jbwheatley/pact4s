@@ -86,14 +86,14 @@ class JsonConversionTests extends FunSuite {
   }
 
   test("should encode top level string") {
-    assertEquals(jsonToPactDslJsonBody("pact4s".toJson).getBody.asInstanceOf[String], "pact4s")
+    assertEquals(jsonToPactDslJsonBody("pact4s".toJson).getBody.asString(), "pact4s")
   }
 
   test("should encode top level boolean") {
-    assertEquals(jsonToPactDslJsonBody(true.toJson).getBody.asInstanceOf[Boolean], true)
+    assertEquals(jsonToPactDslJsonBody(true.toJson).getBody.asBoolean().booleanValue(), true)
   }
 
   test("should encode top level number") {
-    assertEquals(jsonToPactDslJsonBody(12.toJson).getBody.asInstanceOf[BigDecimal].intValue, 12)
+    assertEquals(jsonToPactDslJsonBody(12.toJson).getBody.asNumber().intValue(), 12)
   }
 }
