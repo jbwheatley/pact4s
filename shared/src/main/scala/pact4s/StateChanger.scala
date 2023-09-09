@@ -74,7 +74,7 @@ private[pact4s] object StateChanger {
                   .getEntries
                   .asScala
                   .map { case (k, v) =>
-                    k -> v.asString()
+                    k -> v.toString
                   }
                   .toMap
               ).toOption
@@ -99,6 +99,7 @@ private[pact4s] object StateChanger {
         })
         stateChangeMaybeApplied match {
           case Failure(exception) =>
+            println(exception)
             pact4sLogger.error(exception)("State change application failed.")
             sendResponse(t, "{}", 400)
           case Success(_) =>
