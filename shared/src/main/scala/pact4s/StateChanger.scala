@@ -16,7 +16,7 @@
 
 package pact4s
 
-import au.com.dius.pact.core.support.json.JsonParser
+import au.com.dius.pact.core.support.json.{JsonParser, JsonValue}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
@@ -64,17 +64,21 @@ private[pact4s] object StateChanger {
     object RootHandler extends HttpHandler with Pact4sLogger {
       def handle(t: HttpExchange): Unit = {
         val stateAndResponse: Option[(String, Map[String, String], String)] = Try {
-          val json        = JsonParser.parseStream(t.getRequestBody)
-          val maybeParams = Try(json.get("params").asObject).toOption
-          val params: Map[String, String] = maybeParams
-            .map(
-              _.getEntries.asScala
-                .map { case (k, v) =>
-                  k -> v.asString()
-                }
-                .toMap
-            )
-            .getOrElse(Map.empty)
+          val json: JsonValue = JsonParser.parseStream(t.getRequestBody)
+          val params: Map[String, String] = Try {
+            val j = json.get("params")
+            if (j.isNull) None
+            else
+              Try(
+                j.asObject()
+                  .getEntries
+                  .asScala
+                  .map { case (k, v) =>
+                    k -> v.asString()
+                  }
+                  .toMap
+              ).toOption
+          }.toOption.flatten.getOrElse(Map.empty)
           // should return the params in the response body to be used with the generators
           (
             json.get("state").asString(),
