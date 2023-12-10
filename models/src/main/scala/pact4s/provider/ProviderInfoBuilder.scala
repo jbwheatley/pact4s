@@ -31,7 +31,7 @@ import java.net.URL
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset}
 import java.util.function.Consumer
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -200,13 +200,14 @@ final class ProviderInfoBuilder private (
   ): Either[Throwable, ProviderInfo] =
     pactSource match {
       case p: PactBrokerWithSelectors =>
-        p.validate() match {
+        p.validate(providerBranch) match {
           case Left(value) => Left(value)
           case Right(_) =>
             val pactJvmAuth: Option[Auth] = p.auth.map {
               case TokenAuth(token)      => new Auth.BearerAuthentication(token)
               case BasicAuth(user, pass) => new Auth.BasicAuthentication(user, pass)
             }
+            @nowarn("cat=deprecation")
             val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
               p.enablePending,
               p.providerTags.map(_.toList).getOrElse(Nil).asJava,

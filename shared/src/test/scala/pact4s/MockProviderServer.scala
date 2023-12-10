@@ -174,7 +174,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pactflow.io"
       ).pipe(b =>
-        if (pendingPactsEnabled) b.withPendingPactsEnabled(ProviderTags("SNAPSHOT")) else b.withPendingPactsDisabled
+        if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled
       ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withConsumerVersionSelectors(consumerVersionSelector)
     ).withPort(port)
