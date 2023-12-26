@@ -116,6 +116,17 @@ lazy val weaver =
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
 
+lazy val zioTest =
+  (project in file("ziotest-pact"))
+    .settings(commonSettings)
+    .settings(
+      name := "pact4s-zio-test",
+      libraryDependencies ++= Dependencies.zioTest,
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+    )
+    .dependsOn(shared % "compile->compile;test->test")
+    .dependsOn(circe % "test->test")
+
 lazy val exampleConsumer =
   (project in file("example/consumer"))
     .settings(commonSettings)
@@ -144,6 +155,7 @@ lazy val pact4s = (project in file("."))
     munit,
     scalaTest,
     weaver,
+    zioTest,
     shared,
     circe,
     playJson,
@@ -157,7 +169,7 @@ lazy val deletePactFiles = taskKey[Unit]("deletes pact files created during test
 deletePactFiles := {
   import java.io.File
   import scala.reflect.io.Directory
-  List(scalaTest.base.base, munit.base.base, weaver.base.base).foreach { project =>
+  List(scalaTest.base.base, munit.base.base, weaver.base.base, zioTest.base.base).foreach { project =>
     new Directory(new File(s"./$project/target/pacts")).deleteRecursively()
     ()
   }
@@ -177,6 +189,8 @@ addCommandAlias(
     "project munit",
     "+test",
     "project weaver",
+    "+test",
+    "project zioTest",
     "+test",
     "project scalaTest",
     "+test",
@@ -208,6 +222,8 @@ addCommandAlias(
     "project munit",
     "test",
     "project weaver",
+    "test",
+    "project zioTest",
     "test",
     "project scalaTest",
     "test",
