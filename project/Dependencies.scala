@@ -28,6 +28,8 @@ object Dependencies {
 
   val _munit = "0.7.29"
 
+  val _zio = "2.0.21"
+
   val munitCatsEffect = "1.0.7"
 
   val models: Seq[ModuleID] = Seq(
@@ -61,6 +63,12 @@ object Dependencies {
   val weaver: Seq[ModuleID] = Seq(
     "com.disneystreaming" %% "weaver-core" % _weaver % Provided,
     "com.disneystreaming" %% "weaver-cats" % _weaver % Test
+  )
+
+  val zioTest: Seq[ModuleID] = Seq(
+    "dev.zio" %% "zio"          % _zio,
+    "dev.zio" %% "zio-test"     % _zio,
+    "dev.zio" %% "zio-test-sbt" % _zio
   )
 
   val circe: Seq[ModuleID] = Seq(
