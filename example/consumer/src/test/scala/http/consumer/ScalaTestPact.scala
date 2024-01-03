@@ -1,35 +1,18 @@
 package http.consumer
 
-import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.ConsumerPactBuilder
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
 import io.circe.Json
 import io.circe.syntax._
-import org.http4s.client.Client
-import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.{BasicCredentials, Uri}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pact4s.circe.implicits._
 import pact4s.scalatest.RequestResponsePactForger
 
-import java.util.Base64
-
-class ScalaTestPact extends AnyFlatSpec with Matchers with RequestResponsePactForger {
-  /*
-  we can define the folder that the pact contracts get written to upon completion of this test suite.
-   */
-  override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./example/resources/pacts"
-  )
-
-  val testID           = "testID"
-  val missingID        = "missingID"
-  val newResource      = Resource("newID", 234)
-  val conflictResource = Resource("conflict", 234)
-
-  def mkAuthHeader(pass: String) = s"Basic ${Base64.getEncoder.encodeToString(s"user:$pass".getBytes)}"
+class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons with RequestResponsePactForger {
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
@@ -83,8 +66,6 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with RequestResponsePactFo
       .willRespondWith()
       .status(409)
       .toPact
-
-  val client: Client[IO] = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
 
   /*
   we should use these tests to ensure that our client class correctly handles responses from the provider - i.e. decoding, error mapping, validation
