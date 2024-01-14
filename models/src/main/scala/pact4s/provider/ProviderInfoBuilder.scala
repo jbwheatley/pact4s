@@ -26,6 +26,7 @@ import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelecto
 import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
 
+import java.net.URI
 import java.net.URL
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset}
@@ -166,7 +167,7 @@ final class ProviderInfoBuilder private (
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
-    stateManagement.foreach(s => p.setStateChangeUrl(new URL(s.url)))
+    stateManagement.foreach(s => p.setStateChangeUrl(new URI(s.url).toURL))
     p.setRequestFilter {
       // because java
       new Consumer[HttpRequest] {
