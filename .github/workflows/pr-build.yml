@@ -8,6 +8,10 @@ on:
     branches:
       - main
       - java8
+  pull_request_target:
+    branches:
+      - main
+      - java8
 env:
   JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
 jobs:
