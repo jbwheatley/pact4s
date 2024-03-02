@@ -5,21 +5,30 @@ import munit.FunSuite
 import pact4s.provider.PactSource.PactBrokerWithSelectors
 
 import java.time.Instant
+import scala.annotation.nowarn
 
+@nowarn
 class PactBrokerWithSelectorsSpec extends FunSuite {
-  test("pending enabled but no provider tags should throw IllegalArgumentException") {
+
+  test("pending enabled but no provider branch should throw IllegalArgumentException") {
     assert(
-      PactBrokerWithSelectors("brokerUrl").withPendingPacts(true).withOptionalProviderTags(None).validate().isLeft
+      PactBrokerWithSelectors("brokerUrl").withPendingPacts(true).validate(None).isLeft
     )
   }
 
-  test("WIP enabled but no provider tags should throw IllegalArgumentException") {
+  test("pending enabled but no provider tags nor branch should throw IllegalArgumentException") {
+    assert(
+      PactBrokerWithSelectors("brokerUrl").withPendingPacts(true).withOptionalProviderTags(None).validate(None).isLeft
+    )
+  }
+
+  test("WIP enabled but no provider tags nor branch should throw IllegalArgumentException") {
     assert(
       PactBrokerWithSelectors("brokerUrl")
         .withWipPactsSince(
           WipPactsSince.instant(Instant.now)
         )
-        .validate()
+        .validate(None)
         .isLeft
     )
   }
@@ -37,7 +46,8 @@ class PactBrokerWithSelectorsSpec extends FunSuite {
         WipPactsSince.instant(Instant.now)
       )
       .withPendingPacts(false)
-    p.validate()
+    p.validate(None)
     assertEquals(p.includeWipPactsSince, WipPactsSince.never)
   }
+
 }
