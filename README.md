@@ -37,15 +37,9 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 
 `pact4s` is available through maven-central. 
 
-This library provides support for `munit-cats-effect`, `weaver`, `scalatest` and `zio-test`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
+This library provides support for `munit-cats-effect`, `weaver`, `scalatest` and `zio-test`, to write and verify both request/response and message pacts.
 
-| Branch | Pact Spec | JDK |
-| ------ | ------------- | --- | 
-| [4.4.x](https://github.com/DiUS/pact-jvm/blob/v4.4.x/README.md) | V4* | 11+ |
-| [4.1.x](https://github.com/DiUS/pact-jvm/blob/v4.1.x/README.md) | V3 | 8-12 |
-
-All the modules in `pact4s` are built against both of these branches to accommodate all jdk versions. To use the java11+ modules, simply add one of the following dependencies to your project: 
-```
+```scala
 "io.github.jbwheatley" %% "pact4s-munit-cats-effect" % xxx
 "io.github.jbwheatley" %% "pact4s-weaver"            % xxx
 "io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
@@ -54,16 +48,33 @@ All the modules in `pact4s` are built against both of these branches to accommod
 
 We also offer some additional helpers for using JSON encoders directly in your pact definitions. Currently, support is offered for `circe` and `play-json` in the modules `pact4s-circe` and `pact4s-play-json`, respectively. If you would like to see support for your favourite scala JSON library, consider submitting a PR!
 
-### Java 8 Support
+### Compatibility matrix
 
-We recommend using java11+ for your build if possible, as v4.3.x+ of pact-jvm will see longer continued support. But, if you are unable to use java11+ for your build, versions that work with java 8 can be found with the version suffix `-java8`. e.g. instead of using version `0.1.0`, use version `0.1.0-java8`.
+| Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
+|---------------------------|----------|-----------|------|-----------------|
+| 0.10.x                    | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
+| 0.9.x                     | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.8.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.7.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.6.x                     | 4.3      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.4.x - 0.5.x             | 4.3      | V4        | 11+  | 2.12, 2.13, 3.1 |
+| 0.1.x - 0.3.x             | 4.3      | V4        | 11+  | 2.12, 2.13      |
 
-**N.B.** If you try and use the non-java8 module versions, and your project is built on java8, you will see an error like this:
+See also [Pact JVM Compatibility Matrix](https://github.com/pact-foundation/pact-jvm/blob/master/README.md).
 
-```
-java.lang.UnsupportedClassVersionError: au/com/dius/pact/core/model/BasePact has been compiled by a more recent version of the Java Runtime (class file version
-55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
-```
+#### Java 8 support
+
+We recommend using recent Java versions for your build.
+But if you can't for some reason, and as Pact JVM still supports Java 8 on their 4.1.x versions, pact4s provides
+`-java8` suffixed versions:
+
+| Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
+|---------------------------|----------|-----------|------|-----------------|
+| 0.10.x-java8              | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.3 |
+| 0.6.x-java8 - 0.9.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.2 |
+| 0.4.x-java8 - 0.5.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.1 |
+| 0.1.x-java8 - 0.3.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13      |
+
 
 ## Running the examples
 
