@@ -5,9 +5,8 @@ on:
       - main
       - java8
   pull_request:
-    branches:
-      - main
-      - java8
+    types: [opened, edited, reopened, synchronize]
+    
 env:
   JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
 jobs:

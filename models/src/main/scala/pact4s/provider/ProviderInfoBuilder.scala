@@ -26,11 +26,12 @@ import pact4s.provider.PactSource.{FileSource, PactBroker, PactBrokerWithSelecto
 import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings
 
+import java.net.URI
 import java.net.URL
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset}
 import java.util.function.Consumer
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -166,7 +167,7 @@ final class ProviderInfoBuilder private (
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
-    stateManagement.foreach(s => p.setStateChangeUrl(new URL(s.url)))
+    stateManagement.foreach(s => p.setStateChangeUrl(new URI(s.url).toURL))
     p.setRequestFilter {
       // because java
       new Consumer[HttpRequest] {
@@ -198,7 +199,7 @@ final class ProviderInfoBuilder private (
   ): Either[Throwable, ProviderInfo] =
     pactSource match {
       case p: PactBrokerWithSelectors =>
-        p.validate() match {
+        p.validate(providerBranch) match {
           case Left(value) => Left(value)
           case Right(_) =>
             val pactJvmAuth: Auth = p.auth match {
@@ -206,6 +207,7 @@ final class ProviderInfoBuilder private (
               case Some(TokenAuth(token))      => new Auth.BearerAuthentication(token, Auth.DEFAULT_AUTH_HEADER)
               case Some(BasicAuth(user, pass)) => new Auth.BasicAuthentication(user, pass)
             }
+            @nowarn("cat=deprecation")
             val brokerOptions: PactBrokerOptions = new PactBrokerOptions(
               p.enablePending,
               p.providerTags.map(_.toList).getOrElse(Nil).asJava,
