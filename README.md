@@ -36,7 +36,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 
 `pact4s` is available through maven-central. 
 
-This library provides support for `munit-cats-effect`, `weaver`, and `scalatest`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
+This library provides support for `munit-cats-effect`, `weaver`, `scalatest` and `zio-test`, to write and verify both request/response and message pacts. The underlying library, pact-jvm, is currently supported on two branches, depending on the jdk version: 
 
 | Branch | Pact Spec | JDK |
 | ------ | ------------- | --- |
@@ -48,6 +48,7 @@ All the modules in `pact4s` are built against both of these branches to accommod
 "io.github.jbwheatley" %% "pact4s-munit-cats-effect" % xxx
 "io.github.jbwheatley" %% "pact4s-weaver"            % xxx
 "io.github.jbwheatley" %% "pact4s-scalatest"         % xxx
+"io.github.jbwheatley" %% "pact4s-zio-test"          % xxx
 ```
 
 We also offer some additional helpers for using JSON encoders directly in your pact definitions. Currently, support is offered for `circe` and `play-json` in the modules `pact4s-circe` and `pact4s-play-json`, respectively. If you would like to see support for your favourite scala JSON library, consider submitting a PR!
@@ -70,7 +71,7 @@ publish the pacts to files in `./example/resources/pacts` which the provider tes
 
 ## Writing Pacts
 
-The modules `pact4s-munit-cats-effect`, `pact4s-weaver` and `pact4s-scalatest` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each, or the examples module.
+The modules `pact4s-munit-cats-effect`, `pact4s-weaver`, `pact4s-scalatest` and `pact4s-zio-test` mixins all share common interfaces for defining pacts. The APIs for each of these modules is slightly different to account for the differences between the APIs of the testing frameworks. We recommend looking at the tests in this project for examples of each, or the examples module.
 
 #### Using JSON bodies
 
