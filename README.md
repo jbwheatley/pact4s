@@ -30,6 +30,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Using a state-change function](#using-a-state-change-function)
   * [Logging](#logging)
   * [Contributing](#contributing)
+  * [Adopters](#adopters)
 
 ---
 
@@ -489,3 +490,13 @@ the following checklist:
 
 *N.B.* `sbt commitCheck` takes a while to run because we need to run each test suite in serial as there is networking involved. 
 You can save some time locally by using `sbt quickCommitCheck` which doesn't do any cross-building for different scala versions. 
+
+---
+
+## Adopters
+
+You are using pact4s? We would love to know about you! Please [open a PR](https://github.com/jbwheatley/pact4s/edit/main/README.md) to add your project or company to the list below.
+
+||||
+| :---: | :---: | :---: |       
+| <a href="https://www.kelkoogroup.com"><img src="https://www.kelkoogroup.com/wp-content/uploads/2019/11/logo-1024x189-1.jpg" height="40" alt="KelkooGroup" /></a> |  |  |
