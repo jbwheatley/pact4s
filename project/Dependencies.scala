@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val mockito = "5.10.0"
+  val mockito = "4.11.0"
 
   val pactJvm = "4.1.42"
 
@@ -9,7 +9,7 @@ object Dependencies {
 
   val log4s = "1.10.0"
 
-  val logback = "1.4.14"
+  val logback = "1.3.14"
 
   val collectionCompat = "2.11.0"
 
