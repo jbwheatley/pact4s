@@ -7,18 +7,21 @@
 
 	"features": {
 		"ghcr.io/devcontainers/features/java:1": {
-			"version": "none",
+			"version": "17",
 			"installMaven": "false",
 			"installGradle": "false"
 		},
-		"ghcr.io/devcontainers-contrib/features/sbt-sdkman:2": {}
+		"ghcr.io/devcontainers-contrib/features/sbt-sdkman:2": {
+			"jdkVersion": "17"
+		}
 	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"scala-lang.scala",
 				"lightbend.vscode-sbt-scala",
-				"scalameta.metals"
+				"scalameta.metals",
+				"github.vscode-github-actions"
 			]
 		}
 	}
