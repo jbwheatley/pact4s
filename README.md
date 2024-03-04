@@ -52,7 +52,7 @@ We also offer some additional helpers for using JSON encoders directly in your p
 
 | Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
 |---------------------------|----------|-----------|------|-----------------|
-| 0.10.x                    | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
+| 0.10.x - 0.11.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
 | 0.9.x                     | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.8.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.7.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
@@ -70,7 +70,7 @@ But if you can't for some reason, and as Pact JVM still supports Java 8 on their
 
 | Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
 |---------------------------|----------|-----------|------|-----------------|
-| 0.10.x-java8              | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.3 |
+| 0.10.x-java8 - 0.11.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.3 |
 | 0.6.x-java8 - 0.9.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.2 |
 | 0.4.x-java8 - 0.5.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.1 |
 | 0.1.x-java8 - 0.3.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13      |
