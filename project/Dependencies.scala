@@ -10,7 +10,7 @@ object Dependencies {
 
   val log4s = "1.10.0"
 
-  val logback = "1.5.2"
+  val logback = "1.5.3"
 
   val collectionCompat = "2.11.0"
 
@@ -79,7 +79,7 @@ object Dependencies {
 
   val playJson: Seq[ModuleID] = Seq(
     "org.playframework" %% "play-json" % _playJson,
-    "org.scalameta"      %% "munit"     % _munit % Test
+    "org.scalameta"     %% "munit"     % _munit % Test
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
