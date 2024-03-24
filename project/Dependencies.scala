@@ -5,7 +5,7 @@ object Dependencies {
 
   val pactJvm = "4.1.42"
 
-  val http4s = "1.0.0-M30"
+  val http4s = "1.0.0-M41"
 
   val log4s = "1.10.0"
 
