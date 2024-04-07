@@ -2,31 +2,33 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "5.5.0"
+  val mockito = "5.11.0"
 
-  val pactJvm = "4.6.2"
+  val pactJvm = "4.6.8"
 
   val http4s = "1.0.0-M30"
 
   val log4s = "1.10.0"
 
-  val logback = "1.4.11"
+  val logback = "1.5.3"
 
   val collectionCompat = "2.11.0"
 
-  val sourcecode = "0.3.0"
+  val sourcecode = "0.3.1"
 
   val _circe = "0.14.6"
 
-  val _playJson = "2.9.4"
+  val _playJson = "3.0.2"
 
   val _sprayJson = "1.3.6"
 
   val _weaver = "0.8.3"
 
-  val _scalatest = "3.2.16"
+  val _scalatest = "3.2.18"
 
   val _munit = "0.7.29"
+
+  val _zio = "2.0.21"
 
   val munitCatsEffect = "1.0.7"
 
@@ -63,6 +65,12 @@ object Dependencies {
     "com.disneystreaming" %% "weaver-cats" % _weaver % Test
   )
 
+  val zioTest: Seq[ModuleID] = Seq(
+    "dev.zio" %% "zio"          % _zio,
+    "dev.zio" %% "zio-test"     % _zio,
+    "dev.zio" %% "zio-test-sbt" % _zio
+  )
+
   val circe: Seq[ModuleID] = Seq(
     "io.circe"      %% "circe-core"   % _circe,
     "io.circe"      %% "circe-parser" % _circe,
@@ -70,8 +78,8 @@ object Dependencies {
   )
 
   val playJson: Seq[ModuleID] = Seq(
-    ("com.typesafe.play" %% "play-json" % _playJson).cross(CrossVersion.for3Use2_13),
-    "org.scalameta"      %% "munit"     % _munit % Test
+    "org.playframework" %% "play-json" % _playJson,
+    "org.scalameta"     %% "munit"     % _munit % Test
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
