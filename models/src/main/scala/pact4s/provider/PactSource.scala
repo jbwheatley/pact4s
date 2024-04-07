@@ -19,6 +19,7 @@ package provider
 
 import java.io.File
 import java.time.{Instant, LocalDate, OffsetDateTime}
+import scala.annotation.nowarn
 
 sealed trait PactSource
 
@@ -93,7 +94,7 @@ object PactSource {
     *   https://docs.pact.io/pact_broker/advanced_topics/pending_pacts for information on pending and WIP pacts
     *
     * @param enablePending
-    *   enable pending pacts. Off by default. If enabled, [[providerTags]] must be provided.
+    *   enable pending pacts. Off by default. If enabled, you must provide a provider branch for verifications.
     * @see
     *   also the master issue for pending pacts https://github.com/pact-foundation/pact_broker/issues/320
     *
@@ -106,9 +107,9 @@ object PactSource {
     *   https://github.com/pact-foundation/pact_broker/issues/338
     *
     * @param providerTags
-    *   any tags that are going to be applied to the provider version when the verification results are published. Only
-    *   used in the pending pact calculation, so will get set to empty when passed to pact-jvm if [[enablePending]] is
-    *   set to false.
+    *   deprecated in favour of provider branch. Any tags that are going to be applied to the provider version when the
+    *   verification results are published. Only used in the pending pact calculation, so will get set to empty when
+    *   passed to pact-jvm if [[enablePending]] is set to false.
     *
     * @param consumerVersionSelectors
     *   specifies which consumer pacts should be chosen for verification.
@@ -117,7 +118,7 @@ object PactSource {
     * {{{
     *   PactBrokerWithSelectors(
     *     brokerUrl = "https://test.pact.dius.com.au"
-    *   ).withPendingPactsEnabled(ProviderTags("MAIN"))
+    *   ).withPendingPactsEnabled
     *     .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
     *     .withWipPactsSince(WipPactsSince.instant(Instant.EPOCH))
     *     .withConsumerVersionSelectors(ConsumerVersionSelectors.mainBranch)
@@ -129,16 +130,23 @@ object PactSource {
       val auth: Option[Authentication],
       val enablePending: Boolean,
       val includeWipPactsSince: WipPactsSince,
-      val providerTags: Option[ProviderTags],
+      @deprecated(
+        message = "Set a provider branch when verifying instead of using tags. Tags are deprecated.",
+        since = "0.11.0"
+      ) val providerTags: Option[ProviderTags],
       val consumerVersionSelectors: ConsumerVersionSelectors
   ) extends PactBroker {
+    @nowarn("cat=deprecation")
     private def copy(
         brokerUrl: String = brokerUrl,
         insecureTLS: Boolean = insecureTLS,
         auth: Option[Authentication] = auth,
         enablePending: Boolean = enablePending,
         includeWipPactsSince: WipPactsSince = includeWipPactsSince,
-        providerTags: Option[ProviderTags] = providerTags,
+        @deprecated(
+          message = "Set a provider branch when verifying instead of using tags. Tags are deprecated.",
+          since = "0.11.0"
+        ) providerTags: Option[ProviderTags] = providerTags,
         consumerVersionSelectors: ConsumerVersionSelectors = consumerVersionSelectors
     ): PactBrokerWithSelectors =
       new PactBrokerWithSelectors(
@@ -155,11 +163,15 @@ object PactSource {
 
     def withAuth(auth: Authentication): PactBrokerWithSelectors = withOptionalAuth(Some(auth))
 
+    @deprecated(message = "Use withPendingPactsEnabled", since = "0.11.0")
     def withPendingPactsEnabled(providerTags: ProviderTags): PactBrokerWithSelectors =
-      copy(enablePending = true, providerTags = Some(providerTags))
+      withPendingPacts(true).withProviderTags(providerTags)
+
+    def withPendingPactsEnabled: PactBrokerWithSelectors =
+      withPendingPacts(true)
 
     def withPendingPactsDisabled: PactBrokerWithSelectors =
-      copy(enablePending = false, includeWipPactsSince = WipPactsSince.never)
+      withPendingPacts(false)
 
     def withPendingPacts(enabled: Boolean): PactBrokerWithSelectors =
       copy(enablePending = enabled, includeWipPactsSince = if (enabled) includeWipPactsSince else WipPactsSince.never)
@@ -182,8 +194,16 @@ object PactSource {
     def withWipPactsSince(since: WipPactsSince): PactBrokerWithSelectors =
       copy(enablePending = true, includeWipPactsSince = since)
 
+    @deprecated(
+      message = "Set a provider branch when verifying instead of using tags. Tags are deprecated.",
+      since = "0.11.0"
+    )
     def withProviderTags(providerTags: ProviderTags): PactBrokerWithSelectors = copy(providerTags = Some(providerTags))
 
+    @deprecated(
+      message = "Set a provider branch when verifying instead of using tags. Tags are deprecated.",
+      since = "0.11.0"
+    )
     def withOptionalProviderTags(providerTags: Option[ProviderTags]): PactBrokerWithSelectors =
       copy(providerTags = providerTags)
 
@@ -192,11 +212,18 @@ object PactSource {
 
     def withInsecureTLS(insecureTLS: Boolean): PactBrokerWithSelectors = copy(insecureTLS = insecureTLS)
 
-    private[pact4s] def validate(): Either[Throwable, Unit] =
-      if (enablePending && providerTags.isEmpty)
-        Left(new IllegalArgumentException("Provider tags must be provided if pending pacts are enabled"))
-      else if (includeWipPactsSince.since.isDefined && providerTags.isEmpty)
-        Left(new IllegalArgumentException("Provider tags must be provided if WIP pacts are enabled"))
+    @nowarn("cat=deprecation")
+    private[pact4s] def validate(providerBranch: Option[Branch]): Either[Throwable, Unit] =
+      if (enablePending && providerTags.isEmpty && providerBranch.isEmpty)
+        Left(
+          new IllegalArgumentException(
+            "Provider branch (or previously tags) must be provided if pending pacts are enabled"
+          )
+        )
+      else if (includeWipPactsSince.since.isDefined && providerTags.isEmpty && providerBranch.isEmpty)
+        Left(
+          new IllegalArgumentException("Provider branch (or previously tags) must be provided if WIP pacts are enabled")
+        )
       else Right(())
   }
 
