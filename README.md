@@ -17,6 +17,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Using JSON bodies](#using-json-bodies)
     + [Request/Response Pacts](#requestresponse-pacts)
       - [Choosing a port](#choosing-a-port)
+      - ['Inline' Style of Processing Request/Response Pacts](#inline-style-of-processing-requestresponse-pacts)
     + [Message Pacts](#message-pacts)
     + [Mixed Pacts](#mixed-pacts)
   * [Publishing Pacts](#publishing-pacts)
@@ -255,6 +256,66 @@ If your consumer test need that the provider mock server runs on a specific port
 // Mock server will run on port 9003
 override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 9003)
 ```
+
+#### 'Inline' Style of Processing Request/Response Pacts
+
+Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForger` (currently only available for ScalaTest) and the method `withPact` that it provides.
+
+An example ScalaTest using `InlineRequestResponsePactForger` is shown below.
+```scala
+class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestResponsePactForger {
+
+  override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
+    "./my-sub-project/target/pacts" //this is where the pact file gets written to. It defaults to ./target/pacts (relative to the project base)
+  )
+  
+  describe("Some client") {
+    it("does one interaction") {
+      withPact(
+        ConsumerPactBuilder
+                .consumer("Consumer")
+                .hasPactWith("Provider")
+                .uponReceiving("a request to say Hello")
+                .path("/hello")
+                .method("POST")
+                .body("""{"json": "body"}""", "application/json")
+                .headers("other-header" -> "howdy")
+                .willRespondWith()
+                .status(200)
+                .body("""{"response": "body"}""")
+                .toPact()
+      ) { mockServer: BaseMockServer =>
+        // The client your application uses to consume from the provider
+        val client: Client = new Client(mockServer.getUrl)
+        // ... test code that depends on the defined interaction(s)
+      }
+    }
+    
+    it("does another interaction") {
+      withPact(
+        ConsumerPactBuilder
+                .consumer("Consumer")
+                .hasPactWith("Provider")
+                .uponReceiving("a request to say Bye")
+                .path("/bye")
+                .method("POST")
+                .body("""{"json": "body"}""", "application/json")
+                .headers("other-header" -> "see ya")
+                .willRespondWith()
+                .status(200)
+                .body("""{"response": "body"}""")
+                .toPact()
+      ) { mockServer: BaseMockServer =>
+        // The client your application uses to consume from the provider
+        val client: Client = new Client(mockServer.getUrl)
+        // ... test code that depends on the defined interaction(s)
+      }
+    }
+  }
+}
+```
+
+This style may be useful when it is impractical to write all interactions for all test cases in one single pact. Note, however, that for this approach, the `BaseMockServer` is created and started for each test case individually, which has a performance drawback.
 
 ### Message Pacts
 
