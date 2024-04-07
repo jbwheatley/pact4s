@@ -5,19 +5,21 @@ on:
       - main
       - java8
   pull_request:
-    branches:
-      - main
-      - java8
+    types: [opened, edited, reopened, synchronize]
+    
 env:
   JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v13
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          java-version: temurin@17
+          distribution: temurin
+          java-version: 17
+          cache: sbt
       - run: sbt commitCheck

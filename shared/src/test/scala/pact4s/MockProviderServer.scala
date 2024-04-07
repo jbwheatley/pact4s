@@ -173,9 +173,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       name = providerName,
       pactSource = PactBrokerWithSelectors(
         brokerUrl = "https://test.pactflow.io"
-      ).pipe(b =>
-        if (pendingPactsEnabled) b.withPendingPactsEnabled(ProviderTags("SNAPSHOT")) else b.withPendingPactsDisabled
-      ).withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+      ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
+        .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
         .withConsumerVersionSelectors(consumerVersionSelector)
     ).withPort(port)
       .withOptionalVerificationSettings(verificationSettings)
