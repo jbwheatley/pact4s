@@ -34,11 +34,37 @@
       }
     },
     {
+      "description": "a request with auth header",
+      "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "dataType": "STRING",
+              "expression": "Bearer ${bearerToken}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer super-secure"
+        },
+        "method": "GET",
+        "path": "/authorized"
+      },
+      "response": {
+        "status": 200
+      }
+    },
+    {
       "description": "a request to find a friend",
       "providerStates": [
         {
           "name": "bob exists",
           "params": {
+            "a": 1,
+            "b": [
+              "str"
+            ],
             "person": "bob"
           }
         }
@@ -68,38 +94,11 @@
       "response": {
         "status": 404
       }
-    },
-    {
-      "description": "a request with auth header",
-      "providerStates": [
-        {
-          "name": "request is authorized"
-        }
-      ],
-      "request": {
-        "generators": {
-          "header": {
-            "Authorization": {
-              "dataType": "STRING",
-              "expression": "Bearer ${bearerToken}",
-              "type": "ProviderState"
-            }
-          }
-        },
-        "headers": {
-          "Authorization": "Bearer super-secure"
-        },
-        "method": "GET",
-        "path": "/authorized"
-      },
-      "response": {
-        "status": 200
-      }
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.3.16"
+      "version": "4.6.9"
     },
     "pactSpecification": {
       "version": "3.0.0"
