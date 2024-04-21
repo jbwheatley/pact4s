@@ -20,6 +20,7 @@ package syntax
 import au.com.dius.pact.consumer.dsl._
 import org.apache.hc.core5.http.ContentType
 import pact4s.algebras.PactBodyJsonEncoder
+import pact4s.syntax.JavaHelpers.convertJ
 import pact4s.syntax.RequestResponsePactOps._
 
 import scala.jdk.CollectionConverters._
@@ -69,16 +70,16 @@ object RequestResponsePactOps {
     def body[A](body: A, mimeType: String, charset: String)(implicit ev: PactBodyJsonEncoder[A]): PactDslResponse =
       builder.body(ev.toJsonString(body), ContentType.create(mimeType, charset))
 
-    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, convertJ(params))
   }
 
   class PactDslWithProviderOps(val builder: PactDslWithProvider) extends AnyVal {
-    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): PactDslWithState = builder.`given`(state, convertJ(params))
   }
 
   class PactDslWithStateOps(val builder: PactDslWithState) extends AnyVal {
     def `given`(stateDesc: String, params: Map[String, Any]): PactDslWithState =
-      builder.`given`(stateDesc, params.asJava)
+      builder.`given`(stateDesc, convertJ(params))
   }
 }
 
