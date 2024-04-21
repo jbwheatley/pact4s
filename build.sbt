@@ -186,16 +186,14 @@ addCommandAlias(
     "deletePactFiles",
     "project models",
     "+test",
+    "project shared",
+    "+test",
     "project circe",
     "+test",
     "project playJson",
     "+test",
     "project sprayJson",
     "+test",
-    "project exampleConsumer",
-    "+test",
-    "project exampleProvider",
-    "+test"
   )
     .mkString(";", ";", "")
 )
@@ -239,6 +237,19 @@ addCommandAlias(
     "clean",
     "deletePactFiles",
     "project weaver",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testExamples",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project exampleConsumer",
+    "+test",
+    "project exampleProvider",
     "+test"
   )
     .mkString(";", ";", "")

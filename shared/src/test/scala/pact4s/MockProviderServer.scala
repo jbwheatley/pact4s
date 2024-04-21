@@ -6,7 +6,7 @@ import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
-import io.circe.{Decoder, HCursor, Json, JsonObject}
+import io.circe.{Decoder, Json}
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.jsonOf
@@ -15,6 +15,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.Server
+import pact4s.circe.implicits._
 import pact4s.provider.Authentication.BasicAuth
 import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
 import pact4s.provider._
@@ -38,32 +39,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       .withShutdownTimeout(1.seconds)
       .build
 
-  private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = {
-    def jsonAsString(json: Json): Option[String] =
-      json.fold[Option[String]](
-        jsonNull = None,
-        jsonBoolean = bool => Some(bool.toString),
-        jsonNumber = num => Some(num.toString),
-        jsonString = str => Some(str),
-        jsonArray = arr => Some(arr.asJson.noSpaces),
-        jsonObject = obj => Some(obj.asJson.noSpaces)
-      )
-
-    implicit val decoder: Decoder[ProviderState] = (c: HCursor) =>
-      for {
-        state  <- c.get[String]("state")
-        params <- c.get[Option[JsonObject]]("params")
-        stringParams = params
-          .map(
-            _.toMap
-              .map { case (k, v) => k -> jsonAsString(v) }
-              .collect { case (k, Some(v)) => k -> v }
-          )
-          .getOrElse(Map.empty)
-      } yield ProviderState(state, stringParams)
-
-    jsonOf
-  }
+  private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = jsonOf
 
   private[pact4s] val stateRef: Ref[IO, List[String]] = Ref.unsafe(Nil)
 
