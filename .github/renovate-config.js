@@ -4,5 +4,12 @@ module.exports = {
     gitAuthor: 'Renovate Bot <bot@renovateapp.com>',
     platform: 'github',
     repositories: ['jbwheatley/pact4s'],
-    packageRules: [],
+    "baseBranches": ["main"],
+    "packageRules": [{
+		"packagePatterns": ["*"],
+		"enabled": false
+	}, {
+		"paths": [".github/workflows/*"],
+		"enabled": true
+	}],
 };
