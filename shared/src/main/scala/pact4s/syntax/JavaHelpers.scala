@@ -21,10 +21,10 @@ import scala.jdk.CollectionConverters._
 
 object JavaHelpers {
   private[syntax] def convertJ(map: Map[String, Any]): java.util.Map[String, Any] =
-    map.view.mapValues(convertValue).toMap.asJava
+    map.map { case (k, v) => (k, convertValue(v)) }.asJava
 
   private def convertValue(a: Any): Any = a match {
-    case map: Map[_, _]  => map.view.mapValues(convertValue).asJava
+    case map: Map[_, _]  => map.map { case (k, v) => (k, convertValue(v)) }.asJava
     case as: Iterable[_] => as.map(convertValue).asJava
     case a               => a
   }
