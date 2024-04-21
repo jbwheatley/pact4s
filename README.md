@@ -9,7 +9,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
 
 - [pact4s](#pact4s)
   * [Getting Started](#getting-started)
-    + [Java 8 Support](#java-8-support)
+    + [Java 8 Support](#java-8-support-deprecated)
   * [Running the examples](#running-the-examples)
   * [Writing Pacts](#writing-pacts)
     + [Pact Builder DSL](#pact-builder-dsl)
@@ -54,7 +54,7 @@ We also offer some additional helpers for using JSON encoders directly in your p
 
 | Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
 |---------------------------|----------|-----------|------|-----------------|
-| 0.10.x - 0.11.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
+| 0.10.x - 0.12.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
 | 0.9.x                     | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.8.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.7.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
@@ -64,18 +64,18 @@ We also offer some additional helpers for using JSON encoders directly in your p
 
 See also [Pact JVM Compatibility Matrix](https://github.com/pact-foundation/pact-jvm/blob/master/README.md).
 
-#### Java 8 support
+#### Java 8 support (Deprecated)
 
 We recommend using recent Java versions for your build.
 But if you can't for some reason, and as Pact JVM still supports Java 8 on their 4.1.x versions, pact4s provides
 `-java8` suffixed versions:
 
-| Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
-|---------------------------|----------|-----------|------|-----------------|
+| Pact4s version              | Pact JVM | Pact Spec | JDK  | Scala           |
+|-----------------------------|----------|-----------|------|-----------------|
 | 0.10.x-java8 - 0.11.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.3 |
-| 0.6.x-java8 - 0.9.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.2 |
-| 0.4.x-java8 - 0.5.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.1 |
-| 0.1.x-java8 - 0.3.x-java8 | 4.1      | V3        | 8-12 | 2.12, 2.13      |
+| 0.6.x-java8 - 0.9.x-java8   | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.2 |
+| 0.4.x-java8 - 0.5.x-java8   | 4.1      | V3        | 8-12 | 2.12, 2.13, 3.1 |
+| 0.1.x-java8 - 0.3.x-java8   | 4.1      | V3        | 8-12 | 2.12, 2.13      |
 
 
 ## Running the examples
