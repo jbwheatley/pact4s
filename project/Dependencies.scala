@@ -6,7 +6,7 @@ object Dependencies {
 
   val pactJvm = "4.6.9"
 
-  val http4s = "1.0.0-M30"
+  val http4s = "0.23.26"
 
   val log4s = "1.10.0"
 
@@ -66,9 +66,9 @@ object Dependencies {
   )
 
   val zioTest: Seq[ModuleID] = Seq(
-    "dev.zio" %% "zio"          % _zio,
-    "dev.zio" %% "zio-test"     % _zio,
-    "dev.zio" %% "zio-test-sbt" % _zio
+    "dev.zio" %% "zio"          % _zio % Provided,
+    "dev.zio" %% "zio-test"     % _zio % Provided,
+    "dev.zio" %% "zio-test-sbt" % _zio % Provided
   )
 
   val circe: Seq[ModuleID] = Seq(
