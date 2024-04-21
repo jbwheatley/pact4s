@@ -11,6 +11,10 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command: [ testCore, testScalaTest, testZioTest, testMunit, testWeaver ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,4 +25,4 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: sbt
-      - run: sbt commitCheck
+      - run: sbt ${{ matrix.command }}
