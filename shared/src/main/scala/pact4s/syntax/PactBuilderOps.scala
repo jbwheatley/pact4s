@@ -18,9 +18,8 @@ package pact4s.syntax
 
 import au.com.dius.pact.consumer.dsl.PactBuilder
 import au.com.dius.pact.core.model.PactSpecVersion
+import pact4s.syntax.JavaHelpers.convertJ
 import pact4s.syntax.PactOps.PactBuilderOps
-
-import scala.jdk.CollectionConverters._
 
 object PactOps {
   class PactBuilderOps(val builder: PactBuilder) extends AnyVal {
@@ -42,21 +41,12 @@ object PactOps {
     /** Describe the state the provider needs to be in for the pact test to be verified. Any parameters for the provider
       * state can be provided in the second parameter.
       */
-    def `given`(state: String, params: Map[String, Any]): PactBuilder = builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): PactBuilder = builder.`given`(state, convertJ(params))
 
     /** Values to configure the interaction. In the case of an interaction configured by a plugin, you need to follow
       * the plugin documentation of what values must be specified here.
       */
-    def `with`(values: Map[String, Any]): PactBuilder = {
-      def valuesToJava(value: Any): Any =
-        value match {
-          case map: Map[_, _]  => map.map { case (k, v) => (k, valuesToJava(v)) }.asJava
-          case it: Iterable[_] => it.map(valuesToJava).asJava
-          case other           => other
-        }
-
-      builder.`with`(valuesToJava(values).asInstanceOf[java.util.Map[String, Any]])
-    }
+    def `with`(values: Map[String, Any]): PactBuilder = builder.`with`(convertJ(values))
   }
 }
 
