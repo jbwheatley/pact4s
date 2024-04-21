@@ -176,7 +176,7 @@ deletePactFiles := {
 }
 
 addCommandAlias(
-  "commitCheck",
+  "testCore",
   List(
     "clean",
     "scalafmtCheck",
@@ -185,14 +185,6 @@ addCommandAlias(
     "+test:compile",
     "deletePactFiles",
     "project models",
-    "+test",
-    "project munit",
-    "+test",
-    "project weaver",
-    "+test",
-    "project zioTest",
-    "+test",
-    "project scalaTest",
     "+test",
     "project circe",
     "+test",
@@ -203,13 +195,55 @@ addCommandAlias(
     "project exampleConsumer",
     "+test",
     "project exampleProvider",
-    "+test",
-    "project /"
+    "+test"
   )
     .mkString(";", ";", "")
 )
 
-//Same as above but no cross building
+addCommandAlias(
+  "testScalaTest",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project scalaTest",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testMunit",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project munit",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testZioTest",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project scalaTest",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testWeaver",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project weaver",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
 addCommandAlias(
   "quickCommitCheck",
   List(
