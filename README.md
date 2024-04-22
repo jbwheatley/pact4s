@@ -547,7 +547,7 @@ the following checklist:
 - Tests for your new feature or bugfix have been included.
 - You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreate` to add headers to new files. 
 - You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
-- If you're feeling especially generous, open the same PR against the `java8` branch in addition to `main`, so I don't have to backport it myself :)
+- Feature parity between the various library implementations is maintained. 
 
 *N.B.* `sbt commitCheck` takes a while to run because we need to run each test suite in serial as there is networking involved. 
 You can save some time locally by using `sbt quickCommitCheck` which doesn't do any cross-building for different scala versions. 
