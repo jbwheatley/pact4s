@@ -1,0 +1,15 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "baseBranches": ["main"],
+    "packageRules": [
+        // Enable only for GH Workflows for now as Scala Steward is taking care of Scala stuff
+        {
+          "packagePatterns": ["*"],
+          "enabled": false
+        },
+        {
+          "paths": [".github/workflows/*"],
+          "enabled": true
+        }
+      ]
+}
