@@ -4,17 +4,17 @@ object Dependencies {
 
   val mockito = "5.11.0"
 
-  val pactJvm = "4.6.8"
+  val pactJvm = "4.6.9"
 
   val http4s = "1.0.0-M30"
 
   val log4s = "1.10.0"
 
-  val logback = "1.5.3"
+  val logback = "1.5.6"
 
-  val collectionCompat = "2.11.0"
+  val collectionCompat = "2.12.0"
 
-  val sourcecode = "0.3.1"
+  val sourcecode = "0.4.1"
 
   val _circe = "0.14.6"
 
@@ -28,7 +28,7 @@ object Dependencies {
 
   val _munit = "0.7.29"
 
-  val _zio = "2.0.21"
+  val _zio = "2.0.22"
 
   val munitCatsEffect = "1.0.7"
 
