@@ -1,7 +1,7 @@
 import sbt.Keys.{resolvers, testFrameworks}
 
 val scala212         = "2.12.19"
-val scala213         = "2.13.13"
+val scala213         = "2.13.14"
 val scala2Versions   = Seq(scala212, scala213)
 val scala3           = "3.3.3"
 val allScalaVersions = Seq(scala212, scala213, scala3)
@@ -193,7 +193,7 @@ addCommandAlias(
     "project playJson",
     "+test",
     "project sprayJson",
-    "+test",
+    "+test"
   )
     .mkString(";", ";", "")
 )
