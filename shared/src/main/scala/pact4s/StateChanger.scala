@@ -19,8 +19,9 @@ package pact4s
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import pact4s.provider.ProviderState
 
+import java.io.ByteArrayOutputStream
 import java.net.InetSocketAddress
-import javax.json.{Json, JsonValue}
+import javax.json.{Json, JsonObject, JsonValue}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -62,12 +63,13 @@ private[pact4s] object StateChanger {
       }
 
     object RootHandler extends HttpHandler with Pact4sLogger {
+
       def handle(t: HttpExchange): Unit = {
         val stateAndResponse: Option[(String, Map[String, String], String)] = Try {
           val parser = Json.createParser(t.getRequestBody)
           parser.next()
-          val obj         = parser.getObject
-          val maybeParams = Option(obj.getJsonObject("params"))
+          val obj                             = parser.getObject
+          val maybeParams: Option[JsonObject] = Option(obj.getJsonObject("params"))
           // This needs work.
           val params: Map[String, String] = maybeParams
             .map(
@@ -77,15 +79,26 @@ private[pact4s] object StateChanger {
                   val value = kv.getValue
                   val fixedValue = value.getValueType match {
                     case JsonValue.ValueType.STRING => value.toString.init.tail
-                    case _                          => value.toString
+                    case _                          => value.toString.replace("\"", "\\\"")
                   }
                   key -> fixedValue
                 }
                 .toMap
             )
             .getOrElse(Map.empty)
+
           // should return the params in the response body to be used with the generators
-          (obj.getString("state"), params, "{" + params.map { case (k, v) => s""""$k": "$v"""" }.mkString(",") + "}")
+          val body = maybeParams
+            .map { ps =>
+              val os     = new ByteArrayOutputStream()
+              val writer = Json.createWriter(os)
+              writer.writeObject(ps)
+              writer.close()
+              os.toString
+            }
+            .getOrElse("{}")
+
+          (obj.getString("state"), params, body)
         }.toOption
 
         val stateChangeMaybeApplied = Try(stateAndResponse.foreach { case (s, ps, _) =>

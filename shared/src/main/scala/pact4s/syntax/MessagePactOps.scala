@@ -21,6 +21,7 @@ import au.com.dius.pact.consumer.MessagePactBuilder
 import au.com.dius.pact.consumer.dsl.{DslPart, MessageContentsBuilder, MetadataBuilder, SynchronousMessagePactBuilder}
 import au.com.dius.pact.core.model.messaging.{Message, MessagePact}
 import pact4s.algebras.{MessagePactDecoder, PactDslJsonBodyEncoder}
+import pact4s.syntax.JavaHelpers.convertJ
 import pact4s.syntax.MessagePactOps.{
   MessageContentsBuilderOps,
   MessageOps,
@@ -32,9 +33,9 @@ import scala.jdk.CollectionConverters._
 
 object MessagePactOps {
   class MessagePactBuilderOps(val builder: MessagePactBuilder) extends AnyVal {
-    def withMetadata(metadata: Map[String, Any]): MessagePactBuilder = builder.withMetadata(metadata.asJava)
+    def withMetadata(metadata: Map[String, Any]): MessagePactBuilder = builder.withMetadata(convertJ(metadata))
 
-    def `given`(state: String, params: Map[String, Any]): MessagePactBuilder = builder.`given`(state, params.asJava)
+    def `given`(state: String, params: Map[String, Any]): MessagePactBuilder = builder.`given`(state, convertJ(params))
 
     def withContent[A](content: A)(implicit ev: PactDslJsonBodyEncoder[A]): MessagePactBuilder =
       builder.withContent(ev.toPactDslJsonBody(content))
@@ -50,7 +51,7 @@ object MessagePactOps {
 
   class SynchronousMessagePactBuilderOps(val builder: SynchronousMessagePactBuilder) extends AnyVal {
     def `given`(state: String, params: Map[String, Any]): SynchronousMessagePactBuilder =
-      builder.`given`(state, params.asJava)
+      builder.`given`(state, convertJ(params))
 
     /** e.g. builder.withRequest(_.withMetadata(Map("foo" -> "bar").withContent("123")) Alternatively use
       * builder.withRequestMetadata(Map("foo" -> "bar")).withRequestContent("123")
@@ -88,7 +89,7 @@ object MessagePactOps {
   }
 
   class MessageContentsBuilderOps(val builder: MessageContentsBuilder) extends AnyVal {
-    def withMetadata(metadata: Map[String, Any]): MessageContentsBuilder = builder.withMetadata(metadata.asJava)
+    def withMetadata(metadata: Map[String, Any]): MessageContentsBuilder = builder.withMetadata(convertJ(metadata))
 
     def withMetadata(updateMetadata: MetadataBuilder => MetadataBuilder): MessageContentsBuilder =
       builder.withMetadata(metadata => updateMetadata.andThen(_ => ()).apply(metadata))

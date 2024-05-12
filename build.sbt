@@ -1,7 +1,7 @@
 import sbt.Keys.{resolvers, testFrameworks}
 
 val scala212         = "2.12.19"
-val scala213         = "2.13.13"
+val scala213         = "2.13.14"
 val scala2Versions   = Seq(scala212, scala213)
 val scala3           = "3.3.3"
 val allScalaVersions = Seq(scala212, scala213, scala3)
@@ -176,7 +176,7 @@ deletePactFiles := {
 }
 
 addCommandAlias(
-  "commitCheck",
+  "testCore",
   List(
     "clean",
     "scalafmtCheck",
@@ -186,30 +186,75 @@ addCommandAlias(
     "deletePactFiles",
     "project models",
     "+test",
-    "project munit",
-    "+test",
-    "project weaver",
-    "+test",
-    "project zioTest",
-    "+test",
-    "project scalaTest",
+    "project shared",
     "+test",
     "project circe",
     "+test",
     "project playJson",
     "+test",
     "project sprayJson",
-    "+test",
-    "project exampleConsumer",
-    "+test",
-    "project exampleProvider",
-    "+test",
-    "project /"
+    "+test"
   )
     .mkString(";", ";", "")
 )
 
-//Same as above but no cross building
+addCommandAlias(
+  "testScalaTest",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project scalaTest",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testMunit",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project munit",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testZioTest",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project scalaTest",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testWeaver",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project weaver",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "testExamples",
+  List(
+    "clean",
+    "deletePactFiles",
+    "project exampleConsumer",
+    "+test",
+    "project exampleProvider",
+    "+test"
+  )
+    .mkString(";", ";", "")
+)
+
 addCommandAlias(
   "quickCommitCheck",
   List(
