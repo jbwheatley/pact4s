@@ -32,7 +32,7 @@ object Resource {
     )
   }
 
-  implicit def entityEncoder[F[_]]: EntityEncoder[F, Resource] = jsonEncoderOf[Resource]
+  implicit def entityEncoder[F[_]]: EntityEncoder[F, Resource] = jsonEncoderOf[F, Resource]
 
   implicit val decoder: Decoder[Resource] = Decoder.forProduct2("id", "value")(Resource.apply)
 
