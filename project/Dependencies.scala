@@ -30,7 +30,7 @@ object Dependencies {
 
   val _zio = "2.1.1"
 
-  val munitCatsEffect = "1.0.7"
+  val munitCatsEffect = "2.0.0"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
@@ -53,7 +53,7 @@ object Dependencies {
     )
 
   val munit: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Provided
+    "org.typelevel" %% "munit-cats-effect" % munitCatsEffect % Provided
   )
 
   val scalatest: Seq[ModuleID] = Seq(
@@ -93,7 +93,7 @@ object Dependencies {
     "org.http4s"    %% "http4s-ember-server" % http4s,
     "org.http4s"    %% "http4s-circe"        % http4s,
     "io.circe"      %% "circe-core"          % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test,
+    "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
 
