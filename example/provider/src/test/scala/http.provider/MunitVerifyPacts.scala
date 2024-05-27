@@ -3,7 +3,8 @@ package http.provider
 import cats.effect.IO
 import cats.implicits._
 import com.comcast.ip4s.{Host, Port}
-import munit.CatsEffectSuite
+import munit.catseffect.IOFixture
+import munit.{AnyFixture, CatsEffectSuite}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Authorization
 import org.http4s.server.Server
@@ -26,7 +27,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
 
   val createRoute: HttpRoutes[IO] = CreateRoute[IO](store.create, apiKey)
 
-  val server: Fixture[Server] = ResourceSuiteLocalFixture(
+  val server: IOFixture[Server] = ResourceSuiteLocalFixture(
     "provider-server",
     EmberServerBuilder
       .default[IO]
@@ -36,7 +37,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
       .build
   )
 
-  override def munitFixtures: Seq[Fixture[_]] = Seq(server)
+  override def munitFixtures: Seq[AnyFixture[_]] = Seq(server)
 
   override def beforeAll(): Unit = {
     // Insert deliberately data that the provider state before hook should clean so that tests succeed

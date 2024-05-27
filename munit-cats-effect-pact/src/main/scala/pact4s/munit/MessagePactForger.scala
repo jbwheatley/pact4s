@@ -36,7 +36,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
       new Test(
         options.name,
         () =>
-          try PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
+          try PlatformCompat.waitAtMost(() => munitValueTransform(body), munitTimeout, munitExecutionContext)
           catch {
             case NonFatal(e) =>
               testFailed = true

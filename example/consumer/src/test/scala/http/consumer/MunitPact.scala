@@ -5,11 +5,13 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import io.circe.Json
 import io.circe.syntax._
+import munit.AnyFixture
+import munit.catseffect.IOFixture
 import org.http4s.client.Client
-import org.http4s.{BasicCredentials, Uri}
 import org.http4s.ember.client.EmberClientBuilder
-import pact4s.munit.RequestResponsePactForger
+import org.http4s.{BasicCredentials, Uri}
 import pact4s.circe.implicits._
+import pact4s.munit.RequestResponsePactForger
 
 import java.util.Base64
 
@@ -81,7 +83,7 @@ class MunitPact extends RequestResponsePactForger {
       .status(409)
       .toPact
 
-  val client: Fixture[Client[IO]] = ResourceSuiteLocalFixture(
+  val client: IOFixture[Client[IO]] = ResourceSuiteLocalFixture(
     "httpClient",
     EmberClientBuilder.default[IO].build
   )
@@ -90,7 +92,7 @@ class MunitPact extends RequestResponsePactForger {
   As pact4s uses an munit fixture to manage the mock provider that it uses to run these tests against,
   any additional fixtures must be specified by overriding this method, rather than `munitFixtures`
    */
-  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
+  override def additionalMunitFixtures: Seq[AnyFixture[_]] = Seq(client)
 
   /*
   we should use these tests to ensure that our client class correctly handles responses from the provider - i.e. decoding, error mapping, validation
