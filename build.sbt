@@ -143,7 +143,8 @@ lazy val exampleProvider =
     .settings(
       name := "example-provider",
       libraryDependencies ++= Dependencies.example,
-      publish / skip := true
+      Test / parallelExecution := false,
+      publish / skip           := true
     )
     .dependsOn(munit % "test", scalaTest % "test")
 
