@@ -53,7 +53,7 @@ object Dependencies {
     )
 
   val munit: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Provided
+    "org.typelevel" %% "munit-cats-effect" % munitCatsEffect % Provided
   )
 
   val scalatest: Seq[ModuleID] = Seq(
@@ -83,7 +83,7 @@ object Dependencies {
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
-    ("io.spray"     %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
+    "io.spray"      %% "spray-json" % _sprayJson,
     "org.scalameta" %% "munit"      % _munit % Test
   )
 
@@ -93,7 +93,7 @@ object Dependencies {
     "org.http4s"    %% "http4s-ember-server" % http4s,
     "org.http4s"    %% "http4s-circe"        % http4s,
     "io.circe"      %% "circe-core"          % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test,
+    "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
 
