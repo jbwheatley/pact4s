@@ -1,6 +1,5 @@
 package pact4s.munit.requestresponse
 
-import cats.effect.IO
 import munit.{AnyFixture, CatsEffectSuite}
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
@@ -20,8 +19,6 @@ class PactVerifierBrokerFeatureBranchSuite extends CatsEffectSuite with PactVeri
   )
 
   test("Verify pacts for provider `Pact4sProvider` with a feature branch, munit") {
-    IO(
-      verifyPacts()
-    ) *> mock.featureXState.tryGet.assertEquals(Some(true))
+    verifyPacts() *> mock.featureXState.tryGet.assertEquals(Some(true))
   }
 }

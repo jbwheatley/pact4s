@@ -19,5 +19,5 @@ class MockResourceStore[F[_]: Functor](ref: Ref[F, Map[String, Int]]) {
 }
 
 object MockResourceStore {
-  def unsafe[F[_]: Sync] = new MockResourceStore[F](Ref.unsafe(Map.empty))
+  def unsafe[F[_]: Sync](init: Map[String, Int] = Map.empty) = new MockResourceStore[F](Ref.unsafe(init))
 }

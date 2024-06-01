@@ -12,11 +12,13 @@ class PactVerifierBrokerSuite extends CatsEffectSuite with MessagePactVerifier {
   def messages: ResponseFactory              = MessagesProvider.messages
   override val provider: ProviderInfoBuilder = mock.brokerMessageProviderInfo
 
-  verifyPacts(
-    publishVerificationResults = Some(
-      PublishVerificationResults(
-        providerVersion = "SNAPSHOT"
+  test("verify pacts") {
+    verifyPacts(
+      publishVerificationResults = Some(
+        PublishVerificationResults(
+          providerVersion = "SNAPSHOT"
+        )
       )
     )
-  )
+  }
 }

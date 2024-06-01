@@ -43,22 +43,22 @@ private[pact4s] object StateChanger {
       port: Int,
       endpoint: String
   ) extends StateChanger {
-    private var isShutdown: Boolean    = true
-    private var stopServer: () => Unit = () => ()
+    private var isShutdown: Boolean = true
+    private var _server: HttpServer = null
 
     def start(): Unit = {
-      val server          = HttpServer.create(new InetSocketAddress(host, port), 0)
+      val server = HttpServer.create(new InetSocketAddress(host, port), 0)
+      _server = server
       val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
       server.createContext(slashedEndpoint, RootHandler)
       server.setExecutor(null)
-      stopServer = () => server.stop(0)
       isShutdown = false
       server.start()
     }
 
     def shutdown(): Unit =
       if (!isShutdown) {
-        stopServer()
+        _server.stop(0)
         isShutdown = true
       }
 
@@ -105,11 +105,12 @@ private[pact4s] object StateChanger {
           // Apply before hook
           stateChangeBeforeHook.apply()
           // Apply state change function
-          stateChange
-            .lift(ProviderState(s, ps))
-            .getOrElse(
-              pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
-            )
+          if (ps.nonEmpty)
+            stateChange
+              .lift(ProviderState(s, ps))
+              .getOrElse(
+                pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
+              )
         })
         stateChangeMaybeApplied match {
           case Failure(exception) =>
