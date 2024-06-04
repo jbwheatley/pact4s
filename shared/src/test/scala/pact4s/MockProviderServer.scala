@@ -36,7 +36,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
       .withHttpApp(middleware(app))
-      .withShutdownTimeout(1.seconds)
+      .withShutdownTimeout(0.seconds)
       .build
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = jsonOf

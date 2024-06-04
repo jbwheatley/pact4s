@@ -7,7 +7,7 @@ import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
 import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
-object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
+object PactVerifierBrokerSuite extends IOSuite with PactVerifier[IO] {
   type Res = Server
 
   val mock = new MockProviderServer(49163)
@@ -19,13 +19,9 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier {
 
   test("Verify pacts for provider `Pact4sProvider`, weaver") {
     for {
-      a <- IO(
-        succeed(
-          verifyPacts(
-            Some(Branch.MAIN)
-          )
-        )
-      )
+      a <- verifyPacts(
+        Some(Branch.MAIN)
+      ).map(succeed)
       x <- mock.featureXState.tryGet
     } yield a && assert(x.isEmpty)
   }

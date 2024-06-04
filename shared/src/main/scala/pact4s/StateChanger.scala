@@ -43,22 +43,22 @@ private[pact4s] object StateChanger {
       port: Int,
       endpoint: String
   ) extends StateChanger {
-    private var isShutdown: Boolean    = true
-    private var stopServer: () => Unit = () => ()
+    private var isShutdown: Boolean = true
+    private var _server: HttpServer = null
 
     def start(): Unit = {
-      val server          = HttpServer.create(new InetSocketAddress(host, port), 0)
+      val server = HttpServer.create(new InetSocketAddress(host, port), 0)
+      _server = server
       val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
       server.createContext(slashedEndpoint, RootHandler)
       server.setExecutor(null)
-      stopServer = () => server.stop(0)
       isShutdown = false
       server.start()
     }
 
     def shutdown(): Unit =
       if (!isShutdown) {
-        stopServer()
+        _server.stop(0)
         isShutdown = true
       }
 
