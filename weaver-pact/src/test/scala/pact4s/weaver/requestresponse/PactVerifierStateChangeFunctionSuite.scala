@@ -7,7 +7,7 @@ import pact4s.provider.ProviderInfoBuilder
 import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
-object PactVerifierStateChangeFunctionSuite extends IOSuite with PactVerifier {
+object PactVerifierStateChangeFunctionSuite extends IOSuite with PactVerifier[IO] {
   override type Res = Server
 
   val mock = new MockProviderServer(49170)
@@ -23,7 +23,7 @@ object PactVerifierStateChangeFunctionSuite extends IOSuite with PactVerifier {
       stateChangePortOverride = Some(64640)
     )
 
-  pureTest("Verify pacts for provider `Pact4sProvider`") {
-    succeed(verifyPacts())
+  test("Verify pacts for provider `Pact4sProvider`") {
+    verifyPacts().map(succeed)
   }
 }

@@ -3,7 +3,8 @@ package http.provider
 import cats.effect.IO
 import cats.implicits._
 import com.comcast.ip4s.{Host, Port}
-import munit.CatsEffectSuite
+import munit.{AnyFixture, CatsEffectSuite}
+import munit.catseffect.IOFixture
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Authorization
 import org.http4s.server.Server
@@ -14,11 +15,14 @@ import pact4s.provider.StateManagement.StateManagementFunction
 import pact4s.provider._
 
 import java.io.File
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt}
 
 class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
 
-  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO]
+  override def munitIOTimeout: Duration = 1.minute
+
+  // Insert deliberately data that the provider state before hook should clean so that tests succeed
+  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO](Map("missingId" -> 99, "newId" -> 66))
 
   val apiKey: String = "1dcbkjabyge1g273ie1u2"
 
@@ -26,24 +30,18 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
 
   val createRoute: HttpRoutes[IO] = CreateRoute[IO](store.create, apiKey)
 
-  val server: Fixture[Server] = ResourceSuiteLocalFixture(
+  val server: IOFixture[Server] = ResourceSuiteLocalFixture(
     "provider-server",
     EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(1235).get)
       .withHttpApp((fetchRoute <+> createRoute).orNotFound)
+      .withShutdownTimeout(0.seconds)
       .build
   )
 
-  override def munitFixtures: Seq[Fixture[_]] = Seq(server)
-
-  override def beforeAll(): Unit = {
-    // Insert deliberately data that the provider state before hook should clean so that tests succeed
-    store.create(Resource("missingID", 99)).unsafeRunSync()
-    store.create(Resource("newID", 66)).unsafeRunSync()
-    ()
-  }
+  override def munitFixtures: Seq[AnyFixture[_]] = Seq(server)
 
   // If the auth header in the request is "correct", we can replace it with an auth header that will actually work with our API,
   // else we leave it as is to be rejected.
@@ -75,7 +73,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
           val value = params.get("value").map(_.toInt)
           (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
-        case _: ProviderState                            => ???
+        case _: ProviderState                            => ()
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
     )

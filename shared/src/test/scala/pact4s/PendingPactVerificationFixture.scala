@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters._
   * @see
   *   https://github.com/jbwheatley/pact4s/pull/52
   */
-trait PendingPactVerificationFixture { this: PactVerifyResources =>
+trait PendingPactVerificationFixture[F[+_]] { this: PactVerifyResources[F] =>
   val mocks = new Mocks()
   val providerInfo = {
     val providerInfo: ProviderInfo = mocks.providerInfo
@@ -32,7 +32,7 @@ trait PendingPactVerificationFixture { this: PactVerifyResources =>
       verifier: ProviderVerifier,
       providerInfo: ProviderInfo,
       consumer: IConsumerInfo
-  ): VerificationResult = {
+  ): F[VerificationResult] = {
     val _                               = (consumer, providerInfo, verifier)
     val description: String             = "description"
     val verificationDescription: String = "verificationDescription"
@@ -40,6 +40,6 @@ trait PendingPactVerificationFixture { this: PactVerifyResources =>
       Map[String, util.List[VerificationFailureType]]().asJava
     val pending: Boolean                             = true
     val results: util.List[util.Map[String, AnyRef]] = List[util.Map[String, AnyRef]]().asJava
-    new VerificationResult.Failed(description, verificationDescription, failures, pending, results)
+    F(new VerificationResult.Failed(description, verificationDescription, failures, pending, results))
   }
 }

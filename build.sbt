@@ -1,4 +1,4 @@
-import sbt.Keys.{resolvers, testFrameworks}
+import sbt.Keys.*
 
 val scala212         = "2.12.19"
 val scala213         = "2.13.14"
@@ -143,7 +143,8 @@ lazy val exampleProvider =
     .settings(
       name := "example-provider",
       libraryDependencies ++= Dependencies.example,
-      publish / skip := true
+      Test / parallelExecution := false,
+      publish / skip           := true
     )
     .dependsOn(munit % "test", scalaTest % "test")
 

@@ -6,6 +6,7 @@ import cats.effect.IO
 import cats.implicits.catsSyntaxApplicativeId
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import munit.AnyFixture
 import org.http4s._
 import org.http4s.circe.jsonEncoder
 import org.http4s.ember.client.EmberClientBuilder
@@ -27,7 +28,7 @@ class PactForgerSuite extends RequestResponsePactForger {
     EmberClientBuilder.default[IO].build
   )
 
-  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
+  override def additionalMunitFixtures: Seq[AnyFixture[_]] = Seq(client)
 
   pactTest("munit pact test") { server =>
     val request = Request[IO](
