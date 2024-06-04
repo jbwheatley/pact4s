@@ -7,7 +7,7 @@ import pact4s.provider.ProviderInfoBuilder
 import pact4s.weaver.PactVerifier
 import weaver.IOSuite
 
-object PactVerifierFileSuite extends IOSuite with PactVerifier {
+object PactVerifierFileSuite extends IOSuite with PactVerifier[IO] {
   type Res = Server
 
   val mock = new MockProviderServer(49164)
@@ -16,7 +16,7 @@ object PactVerifierFileSuite extends IOSuite with PactVerifier {
 
   override val provider: ProviderInfoBuilder = mock.fileSourceProviderInfo()
 
-  pureTest("Verify pacts for provider `Pact4sProvider`") {
-    succeed(verifyPacts())
+  test("Verify pacts for provider `Pact4sProvider`") {
+    verifyPacts().map(succeed)
   }
 }

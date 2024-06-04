@@ -16,14 +16,6 @@
 
 package pact4s
 
-import java.util.concurrent.Executors
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
-
-private[pact4s] object TimeLimiter {
-  def callWithTimeout[T](thunk: => T, timeoutDuration: FiniteDuration): T = {
-    implicit val executor: ExecutionContextExecutorService =
-      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
-    Await.result(Future(thunk), timeoutDuration)
-  }
+package object effect {
+  type Id[+A] = A
 }

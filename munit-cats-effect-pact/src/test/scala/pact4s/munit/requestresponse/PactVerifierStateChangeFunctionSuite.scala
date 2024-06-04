@@ -1,6 +1,6 @@
 package pact4s.munit.requestresponse
 
-import munit.CatsEffectSuite
+import munit.{AnyFixture, CatsEffectSuite}
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
 import pact4s.provider.ProviderInfoBuilder
@@ -14,7 +14,7 @@ class PactVerifierStateChangeFunctionSuite extends CatsEffectSuite with PactVeri
       stateChangePortOverride = Some(64643)
     )
 
-  override val munitFixtures: Seq[Fixture[_]] = Seq(
+  override val munitFixtures: Seq[AnyFixture[_]] = Seq(
     ResourceSuiteLocalFixture(
       "Mock Provider Server",
       mock.server

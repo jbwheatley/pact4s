@@ -17,9 +17,10 @@
 package pact4s.scalatest
 import org.scalatest.{Assertions, Suite}
 import pact4s.PactVerifyResources
+import pact4s.effect.{Id, MonadLike}
 import sourcecode.{File, FileName, Line}
 
-trait PactVerifier extends Assertions with PactVerifyResources { self: Suite =>
+trait PactVerifier extends Assertions with PactVerifyResources[Id] { self: Suite =>
   override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
     cancel(message)
 
@@ -27,6 +28,8 @@ trait PactVerifier extends Assertions with PactVerifyResources { self: Suite =>
       message: String
   )(implicit fileName: FileName, file: File, line: Line): Nothing =
     fail(message)
+
+  override private[pact4s] implicit val F: MonadLike[Id] = MonadLike.idMonadLike
 
 }
 

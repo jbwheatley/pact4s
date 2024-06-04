@@ -1,7 +1,6 @@
 package pact4s.munit.requestresponse
 
-import cats.effect.IO
-import munit.CatsEffectSuite
+import munit.{AnyFixture, CatsEffectSuite}
 import pact4s.MockProviderServer
 import pact4s.munit.PactVerifier
 import pact4s.provider.{Branch, ConsumerVersionSelectors, ProviderInfoBuilder}
@@ -15,7 +14,7 @@ class PactVerifierBrokerMatchingBranchSuite extends CatsEffectSuite with PactVer
       pendingPactsEnabled = true
     )
 
-  override val munitFixtures: Seq[Fixture[_]] = Seq(
+  override val munitFixtures: Seq[AnyFixture[_]] = Seq(
     ResourceSuiteLocalFixture(
       "Mock Provider Server",
       mock.server
@@ -23,11 +22,9 @@ class PactVerifierBrokerMatchingBranchSuite extends CatsEffectSuite with PactVer
   )
 
   test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, munit") {
-    IO(
-      verifyPacts(
-        Some(
-          Branch("feat/x")
-        )
+    verifyPacts(
+      Some(
+        Branch("feat/x")
       )
     ) *> mock.featureXState.tryGet.assertEquals(Some(true))
   }

@@ -19,8 +19,9 @@ package pact4s.munit
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
+import munit.catseffect.IOFixture
 import munit.internal.PlatformCompat
-import munit.{CatsEffectSuite, Location, TestOptions}
+import munit.{AnyFixture, CatsEffectSuite, Location, TestOptions}
 import pact4s.RequestResponsePactForgerResources
 
 import scala.concurrent.Future
@@ -30,11 +31,11 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
 
   @volatile private var testFailed: Boolean = false
 
-  override def munitFixtures: Seq[Fixture[_]] = serverFixture +: additionalMunitFixtures
+  override def munitFixtures: Seq[AnyFixture[_]] = serverFixture +: additionalMunitFixtures
 
-  def additionalMunitFixtures: Seq[Fixture[_]] = Seq.empty
+  def additionalMunitFixtures: Seq[AnyFixture[_]] = Seq.empty
 
-  private lazy val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
+  private lazy val serverFixture: IOFixture[BaseMockServer] = ResourceSuiteLocalFixture(
     "mockHttpServer",
     serverResource
   )
@@ -72,7 +73,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
       new Test(
         options.name,
         () =>
-          try PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
+          try PlatformCompat.waitAtMost(() => munitValueTransform(body), munitTimeout, munitExecutionContext)
           catch {
             case NonFatal(e) =>
               testFailed = true

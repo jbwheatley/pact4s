@@ -21,7 +21,7 @@ import scala.concurrent.duration.DurationInt
 
 class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactVerifier {
 
-  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO]
+  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO]()
 
   val apiKey: String = "1dcbkjabyge1g273ie1u2"
 
@@ -35,6 +35,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(1234).get)
       .withHttpApp((fetchRoute <+> createRoute).orNotFound)
+      .withShutdownTimeout(0.seconds)
       .build
 
   var cleanUp: IO[Unit] = IO.unit
@@ -81,7 +82,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
           val value = params.get("value").map(_.toInt)
           (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
-        case _                                           => ???
+        case _                                           => ()
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
     )
