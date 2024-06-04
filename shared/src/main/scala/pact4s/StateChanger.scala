@@ -105,12 +105,11 @@ private[pact4s] object StateChanger {
           // Apply before hook
           stateChangeBeforeHook.apply()
           // Apply state change function
-          if (ps.nonEmpty)
-            stateChange
-              .lift(ProviderState(s, ps))
-              .getOrElse(
-                pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
-              )
+          stateChange
+            .lift(ProviderState(s, ps))
+            .getOrElse(
+              pact4sLogger.warn(s"No state change definition was provided for received state $s with parameters $ps")
+            )
         })
         stateChangeMaybeApplied match {
           case Failure(exception) =>

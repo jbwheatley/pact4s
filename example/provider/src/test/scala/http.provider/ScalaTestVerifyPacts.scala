@@ -82,7 +82,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
           val value = params.get("value").map(_.toInt)
           (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
-        case _                                           => ???
+        case _                                           => ()
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
     )
