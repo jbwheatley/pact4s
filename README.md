@@ -54,7 +54,7 @@ We also offer some additional helpers for using JSON encoders directly in your p
 
 | Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
 |---------------------------|----------|-----------|------|-----------------|
-| 0.10.x - 0.12.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
+| 0.10.x - 0.13.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
 | 0.9.x                     | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.8.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
 | 0.7.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
