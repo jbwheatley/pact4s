@@ -30,7 +30,7 @@ object Dependencies {
 
   val _zio = "2.1.6"
 
-  val munitCatsEffect = "2.0.0"
+  val munitCatsEffect = "2.0-5e03bfc"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
