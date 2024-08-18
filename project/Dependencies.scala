@@ -10,7 +10,7 @@ object Dependencies {
 
   val log4s = "1.10.0"
 
-  val logback = "1.5.6"
+  val logback = "1.5.7"
 
   val collectionCompat = "2.12.0"
 
