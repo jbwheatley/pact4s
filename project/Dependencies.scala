@@ -28,7 +28,7 @@ object Dependencies {
 
   val _munit = "1.0.1"
 
-  val _zio = "2.1.8"
+  val _zio = "2.1.9"
 
   val munitCatsEffect = "2.0.0"
 
