@@ -3,7 +3,7 @@ import sbt.Keys.*
 val scala212         = "2.12.20"
 val scala213         = "2.13.14"
 val scala2Versions   = Seq(scala212, scala213)
-val scala3           = "3.3.3"
+val scala3           = "3.3.4"
 val allScalaVersions = Seq(scala212, scala213, scala3)
 
 sonatypeCredentialHost := Sonatype.sonatype01
