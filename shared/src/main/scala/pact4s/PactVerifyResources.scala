@@ -19,7 +19,7 @@ package pact4s
 import au.com.dius.pact.provider._
 import pact4s.effect.MonadLike
 import pact4s.effect.MonadLike._
-import pact4s.provider.StateManagement.StateManagementFunction
+import pact4s.provider.StateManagement.{ProviderUrl, StateManagementFunction}
 import pact4s.provider._
 import sourcecode.{File, FileName, Line}
 
@@ -126,20 +126,20 @@ trait PactVerifyResources[F[+_]] {
     verifier
   }
 
-  private def runWithStateChanger(run: => F[Unit]): F[Unit] = {
-    val stateChanger: StateChanger =
-      provider.stateManagement match {
-        case Some(s: StateManagementFunction) =>
+  private def runWithStateChanger(run: Option[String] => F[Unit]): F[Unit] =
+    provider.getStateManagement match {
+      case Some(s: StateManagementFunction) =>
+        val stateChanger =
           new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
-        case _ => StateChanger.NoOpStateChanger
-      }
 
-    for {
-      _ <- F(stateChanger.start())
-      _ <- run
-      _ <- F(stateChanger.shutdown())
-    } yield ()
-  }
+        for {
+          _ <- F(stateChanger.start())
+          _ <- run(Some(s.url(stateChanger.boundPort)))
+          _ <- F(stateChanger.shutdown())
+        } yield ()
+      case Some(p: ProviderUrl) => run(Some(p.url))
+      case None                 => run(None)
+    }
 
   /** @param providerBranch
     *   the branch of the provider project from which verification is being run. Applicable if using the
@@ -159,12 +159,12 @@ trait PactVerifyResources[F[+_]] {
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
-    runWithStateChanger {
+    runWithStateChanger { stateChangeUrl =>
       val verifier: ProviderVerifier =
         setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
       for {
         // to support deprecated branch settings using PublishVerificationResults
-        providerInfo <- provider.build(providerBranch, responseFactory) match {
+        providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
           case Left(value) =>
             failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
           case Right(value) => F(value)
