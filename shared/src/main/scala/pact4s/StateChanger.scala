@@ -21,7 +21,7 @@ import pact4s.provider.ProviderState
 
 import java.io.ByteArrayOutputStream
 import java.net.InetSocketAddress
-import javax.json.{Json, JsonObject, JsonValue}
+import jakarta.json.{Json, JsonObject, JsonValue}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -44,7 +44,7 @@ private[pact4s] object StateChanger {
       endpoint: String
   ) extends StateChanger {
     private var isShutdown: Boolean = true
-    private var _server: HttpServer = null
+    private var _server: HttpServer = _
 
     def start(): Unit = {
       val server = HttpServer.create(new InetSocketAddress(host, port), 0)
@@ -62,7 +62,7 @@ private[pact4s] object StateChanger {
         isShutdown = true
       }
 
-    object RootHandler extends HttpHandler with Pact4sLogger {
+    private object RootHandler extends HttpHandler with Pact4sLogger {
 
       def handle(t: HttpExchange): Unit = {
         val stateAndResponse: Option[(String, Map[String, String], String)] = Try {

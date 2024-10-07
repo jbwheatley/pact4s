@@ -21,7 +21,7 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
       // -------------------------- FETCH RESOURCE --------------------------
       .`given`(
         "resource exists", // this is a state identifier that is passed to the provider
-        Map("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
+        Map[String, Any]("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
       )
       .uponReceiving("Request to fetch extant resource")
       .method("GET")
@@ -56,7 +56,7 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
       .status(204)
       .`given`(
         "resource exists",
-        Map("id" -> conflictResource.id, "value" -> conflictResource.value)
+        Map[String, Any]("id" -> conflictResource.id, "value" -> conflictResource.value)
       ) // notice we're using the same state, but with different parameters
       .uponReceiving("Request to create resource that already exists")
       .method("POST")

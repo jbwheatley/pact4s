@@ -2,15 +2,13 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "5.13.0"
+  val mockito = "5.14.1"
 
-  val pactJvm = "4.6.13"
+  val pactJvm = "4.6.14"
 
   val http4s = "0.23.28"
 
   val log4s = "1.10.0"
-
-  val logback = "1.5.8"
 
   val collectionCompat = "2.12.0"
 
@@ -32,6 +30,8 @@ object Dependencies {
 
   val munitCatsEffect = "2.0.0"
 
+  val jakartaJson = "2.1.3"
+
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
     "au.com.dius.pact"        % "provider"                % pactJvm,
@@ -41,15 +41,15 @@ object Dependencies {
 
   val shared: Seq[ModuleID] =
     Seq(
-      "org.log4s"     %% "log4s"               % log4s,
-      "ch.qos.logback" % "logback-classic"     % logback % Runtime,
-      "com.lihaoyi"   %% "sourcecode"          % sourcecode,
-      "org.http4s"    %% "http4s-ember-client" % http4s  % Test,
-      "org.http4s"    %% "http4s-dsl"          % http4s  % Test,
-      "org.http4s"    %% "http4s-ember-server" % http4s  % Test,
-      "org.http4s"    %% "http4s-circe"        % http4s  % Test,
-      "io.circe"      %% "circe-core"          % _circe  % Test,
-      "org.mockito"    % "mockito-core"        % mockito % Test
+      "org.log4s"   %% "log4s"               % log4s,
+      "com.lihaoyi" %% "sourcecode"          % sourcecode,
+      "jakarta.json" % "jakarta.json-api"    % jakartaJson,
+      "org.http4s"  %% "http4s-ember-client" % http4s  % Test,
+      "org.http4s"  %% "http4s-dsl"          % http4s  % Test,
+      "org.http4s"  %% "http4s-ember-server" % http4s  % Test,
+      "org.http4s"  %% "http4s-circe"        % http4s  % Test,
+      "io.circe"    %% "circe-core"          % _circe  % Test,
+      "org.mockito"  % "mockito-core"        % mockito % Test
     )
 
   val munit: Seq[ModuleID] = Seq(
@@ -83,7 +83,7 @@ object Dependencies {
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
-    ("io.spray"     %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
+    "io.spray"      %% "spray-json" % _sprayJson,
     "org.scalameta" %% "munit"      % _munit % Test
   )
 
