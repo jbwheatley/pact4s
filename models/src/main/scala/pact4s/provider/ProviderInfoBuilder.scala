@@ -81,7 +81,7 @@ final class ProviderInfoBuilder private (
     port: Int,
     path: String,
     pactSource: PactSource,
-    private[pact4s] val stateManagement: Option[StateManagement],
+    stateManagement: Option[StateManagement],
     verificationSettings: Option[VerificationSettings],
     requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
@@ -106,6 +106,8 @@ final class ProviderInfoBuilder private (
     verificationSettings,
     requestFilter
   )
+
+  private[pact4s] def getStateManagement: Option[StateManagement] = stateManagement
 
   def withProtocol(protocol: String): ProviderInfoBuilder = copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = copy(host = host)

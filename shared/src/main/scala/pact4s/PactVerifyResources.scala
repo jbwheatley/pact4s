@@ -127,7 +127,7 @@ trait PactVerifyResources[F[+_]] {
   }
 
   private def runWithStateChanger(run: Option[String] => F[Unit]): F[Unit] =
-    provider.stateManagement match {
+    provider.getStateManagement match {
       case Some(s: StateManagementFunction) =>
         val stateChanger =
           new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
