@@ -83,7 +83,7 @@ object Dependencies {
   )
 
   val sprayJson: Seq[ModuleID] = Seq(
-    "io.spray"      %% "spray-json" % _sprayJson,
+    ("io.spray"     %% "spray-json" % _sprayJson).cross(CrossVersion.for3Use2_13),
     "org.scalameta" %% "munit"      % _munit % Test
   )
 
