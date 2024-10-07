@@ -23,11 +23,8 @@ import spray.json._
 
 class ImplicitsTests extends FunSuite {
 
-  private def checkJsonRead(json: String, expectedProviderState: ProviderState): Unit = {
-    println(JsonParser(json))
-    println(expectedProviderState)
+  private def checkJsonRead(json: String, expectedProviderState: ProviderState): Unit =
     assertEquals(JsonParser(json).convertTo[ProviderState], expectedProviderState)
-  }
 
   test("ProviderState read no param") {
     checkJsonRead(

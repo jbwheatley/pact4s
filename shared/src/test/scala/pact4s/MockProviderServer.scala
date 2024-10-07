@@ -22,7 +22,7 @@ import pact4s.provider._
 import sourcecode.{File => SCFile}
 
 import java.io.File
-import java.net.URL
+import java.net.URI
 import scala.concurrent.duration.DurationInt
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -132,7 +132,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
     val baseBuilder =
       ProviderInfoBuilder(
         name = providerName,
-        providerUrl = new URL("http://localhost:0/"),
+        providerUrl = new URI("http://localhost:0/").toURL,
         pactSource = FileSource(Map(consumerName -> new File(fileName)))
       ).withPort(port)
         .withOptionalVerificationSettings(verificationSettings)
@@ -141,7 +141,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
     if (useStateChangeFunction) {
       baseBuilder
         .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
-        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.get))
+        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.getOrElse(0)))
     } else baseBuilder.withStateChangeEndpoint("setup")
 
   }

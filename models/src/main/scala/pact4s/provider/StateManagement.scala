@@ -17,12 +17,10 @@
 package pact4s
 package provider
 
-sealed trait StateManagement {
-  private[provider] def url: String
-}
+sealed trait StateManagement
 
 object StateManagement {
-  final case class ProviderUrl(private[provider] val url: String) extends StateManagement
+  final case class ProviderUrl(private[pact4s] val url: String) extends StateManagement
 
   final class StateManagementFunction private (
       private[pact4s] val stateChangeFunc: PartialFunction[ProviderState, Unit],
@@ -47,8 +45,8 @@ object StateManagement {
     def withBeforeEach(beforeHook: () => Unit): StateManagementFunction =
       new StateManagementFunction(stateChangeFunc, beforeHook, host, port, endpoint)
 
-    private val slashedEndpoint       = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
-    private[provider] val url: String = s"http://$host:$port$slashedEndpoint"
+    private val slashedEndpoint                = if (!endpoint.startsWith("/")) "/" + endpoint else endpoint
+    private[pact4s] def url(port: Int): String = s"http://$host:$port$slashedEndpoint"
   }
 
   object StateManagementFunction {
@@ -56,7 +54,7 @@ object StateManagement {
     def apply(
         stateChangeFunc: PartialFunction[ProviderState, Unit]
     ): StateManagementFunction =
-      new StateManagementFunction(stateChangeFunc, () => (), "localhost", 64646, "/pact4s-state-change")
+      new StateManagementFunction(stateChangeFunc, () => (), "localhost", 0, "/pact4s-state-change")
 
   }
 }
