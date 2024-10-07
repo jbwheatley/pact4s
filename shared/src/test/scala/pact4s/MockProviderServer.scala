@@ -141,7 +141,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
     if (useStateChangeFunction) {
       baseBuilder
         .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
-        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.get))
+        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.getOrElse(0)))
     } else baseBuilder.withStateChangeEndpoint("setup")
 
   }

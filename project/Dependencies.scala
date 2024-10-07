@@ -30,7 +30,7 @@ object Dependencies {
 
   val munitCatsEffect = "2.0.0"
 
-  val jakartaJson = "2.1.3"
+  val upickle = "4.0.2"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
@@ -43,7 +43,7 @@ object Dependencies {
     Seq(
       "org.log4s"   %% "log4s"               % log4s,
       "com.lihaoyi" %% "sourcecode"          % sourcecode,
-      "jakarta.json" % "jakarta.json-api"    % jakartaJson,
+      "com.lihaoyi" %% "upickle"             % upickle,
       "org.http4s"  %% "http4s-ember-client" % http4s  % Test,
       "org.http4s"  %% "http4s-dsl"          % http4s  % Test,
       "org.http4s"  %% "http4s-ember-server" % http4s  % Test,

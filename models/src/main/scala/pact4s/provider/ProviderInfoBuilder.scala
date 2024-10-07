@@ -159,7 +159,8 @@ final class ProviderInfoBuilder private (
 
   private[pact4s] def build(
       providerBranch: Option[Branch],
-      responseFactory: Option[String => ResponseBuilder]
+      responseFactory: Option[String => ResponseBuilder],
+      stateChangeUrl: Option[String]
   ): Either[Throwable, ProviderInfo] = {
     val p = new ProviderInfo(name, protocol, host, port, path)
     responseFactory.foreach(_ => p.setVerificationType(PactVerification.RESPONSE_FACTORY))
@@ -167,7 +168,7 @@ final class ProviderInfoBuilder private (
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
-    stateManagement.foreach(s => p.setStateChangeUrl(new URI(s.url).toURL))
+    stateChangeUrl.foreach(s => p.setStateChangeUrl(new URI(s).toURL))
     p.setRequestFilter {
       // because java
       new Consumer[HttpRequest] {

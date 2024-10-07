@@ -24,7 +24,7 @@ trait PendingPactVerificationFixture[F[+_]] { this: PactVerifyResources[F] =>
 
   lazy val provider: ProviderInfoBuilder = {
     val builder: ProviderInfoBuilder = mocks.providerInfoBuilder
-    when(builder.build(None, None)).thenReturn(Right(providerInfo))
+    when(builder.build(None, None, None)).thenReturn(Right(providerInfo))
     builder
   }
 
