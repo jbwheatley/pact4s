@@ -24,7 +24,7 @@ object TestModels extends RequestResponsePactOps with MessagePactOps {
     .method("GET")
     .willRespondWith()
     .status(204)
-    .`given`("bob exists", Map("person" -> "bob", "a" -> 1, "b" -> List("str")))
+    .`given`("bob exists", Map[String, Any]("person" -> "bob", "a" -> 1, "b" -> List("str")))
     .uponReceiving("a request to find a friend")
     .path("/anyone-there/bob")
     .method("GET")

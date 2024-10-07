@@ -10,8 +10,7 @@ class PactVerifierStateChangeFunctionSuite extends CatsEffectSuite with PactVeri
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
-      useStateChangeFunction = true,
-      stateChangePortOverride = Some(64643)
+      useStateChangeFunction = true
     )
 
   override val munitFixtures: Seq[AnyFixture[_]] = Seq(

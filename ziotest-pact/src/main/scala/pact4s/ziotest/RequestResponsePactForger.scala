@@ -23,6 +23,7 @@ import zio.test.{Spec, TestAspect, TestEnvironment, ZIOSpecDefault, assertTrue}
 import zio.{Scope, UIO, ZIO, ZLayer}
 
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.annotation.nowarn
 
 trait RequestResponsePactForger extends ZIOSpecDefault with RequestResponsePactForgerResources {
 
@@ -47,7 +48,7 @@ trait RequestResponsePactForger extends ZIOSpecDefault with RequestResponsePactF
         _ <-
           (beforeWritePacts() *> ZIO
             .attempt(verifyResultAndWritePactFiles(mockServer))
-            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded.get())
+            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded.get()): @nowarn
       } yield ()
     )
   }
