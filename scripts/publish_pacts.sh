@@ -1,4 +1,3 @@
-#!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "$0" )" &> /dev/null && pwd )"
 if [[ ${SCRIPT_DIR} != *scripts ]]; then
   SCRIPT_DIR="${SCRIPT_DIR}/scripts"
