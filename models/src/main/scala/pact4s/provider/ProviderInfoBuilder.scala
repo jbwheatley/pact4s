@@ -281,7 +281,7 @@ object ProviderInfoBuilder {
       requestFilter = _ => None
     )
 
-  /** Auxiliary constructor that provides some common defaults for the the mock provider address
+  /** Auxiliary constructor that provides some common defaults for the mock provider address
     *
     * Example usage:
     * {{{

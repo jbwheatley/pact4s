@@ -495,7 +495,7 @@ val provider: ProviderInfoBuilder =
   } 
 ```
 
-In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server receieves requests to `localhost:64646/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overriden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
+In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server binds to a random port receives requests to `localhost:{port}/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overridden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
 
 It is also possible to define a before hook (`() => Unit`) that will run at each state change before the state-change function:
 
