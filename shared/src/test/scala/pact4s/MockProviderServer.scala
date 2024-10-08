@@ -118,7 +118,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
   def fileSourceMessageProviderInfo: ProviderInfoBuilder = fileSourceProviderInfo(
     consumerName = "Pact4sMessageConsumer",
     providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json"
+    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
+    isHttpPact = false
   )
 
   def fileSourceProviderInfo(
@@ -127,7 +128,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       fileName: String = "./scripts/Pact4sConsumer-Pact4sProvider.json",
       useStateChangeFunction: Boolean = false,
       stateChangePortOverride: Option[Int] = None,
-      verificationSettings: Option[VerificationSettings] = None
+      verificationSettings: Option[VerificationSettings] = None,
+      isHttpPact: Boolean = true
   ): ProviderInfoBuilder = {
     val baseBuilder =
       ProviderInfoBuilder(
@@ -138,33 +140,39 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
         .withOptionalVerificationSettings(verificationSettings)
         .withRequestFiltering(requestFilter)
 
-    if (useStateChangeFunction) {
-      baseBuilder
-        .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
-        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.getOrElse(0)))
-    } else baseBuilder.withStateChangeEndpoint("setup")
+    if (isHttpPact) {
+      if (useStateChangeFunction) {
+        baseBuilder
+          .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
+          .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.getOrElse(0)))
+      } else baseBuilder.withStateChangeEndpoint("setup")
+    } else baseBuilder
 
   }
 
-  def brokerMessageProviderInfo: ProviderInfoBuilder = brokerProviderInfo(providerName = "Pact4sMessageProvider")
-
+  def brokerMessageProviderInfo: ProviderInfoBuilder =
+    brokerProviderInfo(providerName = "Pact4sMessageProvider", isHttpPact = false)
   def brokerProviderInfo(
       providerName: String = "Pact4sProvider",
       verificationSettings: Option[VerificationSettings] = None,
       consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test"),
-      pendingPactsEnabled: Boolean = false
-  ): ProviderInfoBuilder =
-    ProviderInfoBuilder(
-      name = providerName,
-      pactSource = PactBrokerWithSelectors(
-        brokerUrl = "https://test.pactflow.io"
-      ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
-        .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withConsumerVersionSelectors(consumerVersionSelector)
-    ).withPort(port)
-      .withOptionalVerificationSettings(verificationSettings)
-      .withStateChangeEndpoint("setup")
-      .withRequestFiltering(requestFilter)
+      pendingPactsEnabled: Boolean = false,
+      isHttpPact: Boolean = true
+  ): ProviderInfoBuilder = {
+    val baseBuilder =
+      ProviderInfoBuilder(
+        name = providerName,
+        pactSource = PactBrokerWithSelectors(
+          brokerUrl = "https://test.pactflow.io"
+        ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
+          .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+          .withConsumerVersionSelectors(consumerVersionSelector)
+      ).withPort(port)
+        .withOptionalVerificationSettings(verificationSettings)
+        .withRequestFiltering(requestFilter)
+
+    if (isHttpPact) baseBuilder.withStateChangeEndpoint("setup") else baseBuilder
+  }
 }
 
 private[pact4s] final case class Name(name: String)
