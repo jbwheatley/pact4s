@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_DIR="$( cd "$( dirname "$0" )" &> /dev/null && pwd )"
+SCRIPT_DIR="./scripts"
 echo "Running publish_pacts script at $SCRIPT_DIR"
 
 export PACT_BROKER_BASE_URL="https://test.pactflow.io"
