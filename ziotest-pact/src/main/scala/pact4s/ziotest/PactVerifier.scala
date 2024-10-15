@@ -29,8 +29,3 @@ trait PactVerifier extends PactVerifyResources[Id] {
   override private[pact4s] implicit val F: MonadLike[Id] = MonadLike.idMonadLike
 
 }
-
-trait MessagePactVerifier extends PactVerifier {
-  def messages: ResponseFactory
-  override def responseFactory: Option[ResponseFactory] = Some(messages)
-}
