@@ -32,7 +32,7 @@ trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =
   def beforeWritePacts(): Effect[Unit]
 
   private[pact4s] trait InlineRequestResponsePactForger extends RequestResponsePactForgerResources {
-    override private[pact4s] type Effect[_] = Id[_]
+    override private[pact4s] type Effect[A] = Id[A]
 
     override def beforeWritePacts(): Effect[Unit] = ()
   }
