@@ -58,9 +58,9 @@ trait InlineRequestResponsePactForging extends CatsEffectSuite with InlineReques
             _ <- self.beforeWritePacts()
             _ <- verifyResultAndWritePactFiles(server).liftTo[IO]
           } yield ()
-        }.onError(_ =>
+        }.onError(e =>
           IO(
-            pact4sLogger.error(
+            pact4sLogger.error(e)(
               notWritingPactMessage(pact)
             )
           )
@@ -68,7 +68,7 @@ trait InlineRequestResponsePactForging extends CatsEffectSuite with InlineReques
       }
     }
 
-  override private[pact4s] type Effect[_] = IO[_]
+  override private[pact4s] type Effect[A] = IO[A]
 
   def beforeWritePacts(): IO[Unit] = IO.unit
 }

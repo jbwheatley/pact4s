@@ -35,7 +35,7 @@ trait InlineRequestResponsePactForging[F[_]] extends MutableFSuite[F] with Inlin
           _ <- F.delay(server.start())
           _ <- F.delay(server.waitForServer())
         } yield server
-      }.onError(_ => F.delay(server.stop()))
+      }.onError { case _: Throwable => F.delay(server.stop()) }
     } { s =>
       F.delay(s.stop())
     }
@@ -60,17 +60,17 @@ trait InlineRequestResponsePactForging[F[_]] extends MutableFSuite[F] with Inlin
               _   <- self.beforeWritePacts()
               _   <- verifyResultAndWritePactFiles(server).liftTo[F]
             } yield res
-          }.onError(_ =>
+          }.onError { case e: Throwable =>
             F.delay(
-              pact4sLogger.error(
+              pact4sLogger.error(e)(
                 notWritingPactMessage(pact)
               )
             )
-          )
+          }
       }
     }
 
-  override private[pact4s] type Effect[_] = F[_]
+  override private[pact4s] type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
