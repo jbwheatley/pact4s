@@ -63,7 +63,7 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
     }
   }
 
-  type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }
