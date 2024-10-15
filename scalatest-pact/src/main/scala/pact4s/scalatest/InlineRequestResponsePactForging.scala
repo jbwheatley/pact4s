@@ -49,7 +49,7 @@ trait InlineRequestResponsePactForging extends InlineRequestResponsePactResource
         } catch {
           case e: Throwable =>
             server.stop()
-            pact4sLogger.error(
+            pact4sLogger.error(e)(
               notWritingPactMessage(pact)
             )
             throw e
@@ -57,7 +57,7 @@ trait InlineRequestResponsePactForging extends InlineRequestResponsePactResource
       }
     }
 
-  override private[pact4s] type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[A] = Either[Throwable, A]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }

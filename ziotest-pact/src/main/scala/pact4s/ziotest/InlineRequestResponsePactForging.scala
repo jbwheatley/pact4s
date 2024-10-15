@@ -19,8 +19,8 @@ package pact4s.ziotest
 import au.com.dius.pact.consumer.{BaseMockServer, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import pact4s.{InlineRequestResponsePactResources, RequestResponsePactForgerResources}
-import zio.test.{TestResult, ZIOSpecDefault}
 import zio._
+import zio.test.{TestResult, ZIOSpecDefault}
 
 trait InlineRequestResponsePactForging extends ZIOSpecDefault with InlineRequestResponsePactResources { self =>
   private def serverResource(
@@ -52,26 +52,16 @@ trait InlineRequestResponsePactForging extends ZIOSpecDefault with InlineRequest
 
       override def apply(test: BaseMockServer => Task[TestResult]): Task[TestResult] = ZIO.scoped {
         serverResource(this).flatMap { server =>
-          {
-            for {
-              res <- test(server)
-              _   <- self.beforeWritePacts()
-              _   <- ZIO.fromEither(verifyResultAndWritePactFiles(server))
-            } yield res
-          }.onError(e =>
-            ZIO.scoped(
-              ZIO.attempt(
-                pact4sLogger.error(e.squashWith(identity))(
-                  notWritingPactMessage(pact)
-                )
-              )
-            )
-          )
+          for {
+            res <- test(server)
+            _   <- self.beforeWritePacts()
+            _   <- ZIO.fromEither(verifyResultAndWritePactFiles(server))
+          } yield res
         }
       }
     }
 
-  override private[pact4s] type Effect[_] = UIO[_]
+  override private[pact4s] type Effect[A] = UIO[A]
 
   def beforeWritePacts(): UIO[Unit] = ZIO.unit
 }
