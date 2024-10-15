@@ -22,11 +22,15 @@ import cats.implicits._
 import pact4s.RequestResponsePactForgerResources
 import weaver.{MutableFSuite, TestOutcome}
 
+/** When no additional resources need to be specified
+  */
 trait SimpleRequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBase[F] {
   override type Res = BaseMockServer
   override def sharedResource: Resource[F, BaseMockServer] = serverResource
 }
 
+/** When additional resources to the mock server need to be specified, e.g. a http client
+  */
 trait RequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBase[F] {
 
   type Resources
@@ -38,7 +42,9 @@ trait RequestResponsePactForger[F[_]] extends WeaverRequestResponsePactForgerBas
     (additionalSharedResource, serverResource).tupled
 }
 
-trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with RequestResponsePactForgerResources {
+sealed trait WeaverRequestResponsePactForgerBase[F[_]]
+    extends MutableFSuite[F]
+    with RequestResponsePactForgerResources {
   private val F = effect
 
   @volatile private var testFailed: Boolean = false
@@ -73,7 +79,7 @@ trait WeaverRequestResponsePactForgerBase[F[_]] extends MutableFSuite[F] with Re
     case _                                  => F.unit
   }
 
-  type Effect[A] = F[A]
+  override private[pact4s] type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
