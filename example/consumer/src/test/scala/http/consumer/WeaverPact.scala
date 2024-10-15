@@ -16,7 +16,7 @@
 
 package http.consumer
 
-import au.com.dius.pact.consumer.{BaseMockServer, ConsumerPactBuilder, PactTestExecutionContext}
+import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import io.circe.Json
@@ -96,7 +96,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
   /*
   we should use these tests to ensure that our client class correctly handles responses from the provider - i.e. decoding, error mapping, validation
    */
-  test("handle fetch request for extant resource") { res: (Client[IO], BaseMockServer) =>
+  test("handle fetch request for extant resource") { res =>
     val (client, mockServer) = res
     new ProviderClientImpl[IO](
       client,
@@ -107,7 +107,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
       .map(r => expect(r == Some(Resource(testID, 123))))
   }
 
-  test("handle fetch request for missing resource") { res: (Client[IO], BaseMockServer) =>
+  test("handle fetch request for missing resource") { res =>
     val (client, mockServer) = res
     new ProviderClientImpl[IO](
       client,
@@ -118,7 +118,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
       .map(r => expect(r == None))
   }
 
-  test("handle fetch request with incorrect auth") { res: (Client[IO], BaseMockServer) =>
+  test("handle fetch request with incorrect auth") { res =>
     val (client, mockServer) = res
 
     new ProviderClientImpl[IO](
@@ -131,7 +131,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
       .map(r => matches(r) { case Left(_: InvalidCredentials.type) => expect(true) })
   }
 
-  test("handle create request for new resource") { res: (Client[IO], BaseMockServer) =>
+  test("handle create request for new resource") { res =>
     val (client, mockServer) = res
     new ProviderClientImpl[IO](
       client,
@@ -142,7 +142,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
       .map(succeed)
   }
 
-  test("handle create request for existing resource") { res: (Client[IO], BaseMockServer) =>
+  test("handle create request for existing resource") { res =>
     val (client, mockServer) = res
     new ProviderClientImpl[IO](
       client,
