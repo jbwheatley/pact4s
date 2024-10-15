@@ -1,6 +1,6 @@
 package http.consumer
 
-import au.com.dius.pact.consumer.ConsumerPactBuilder
+import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
@@ -12,7 +12,9 @@ import org.scalatest.matchers.should.Matchers
 import pact4s.circe.implicits._
 import pact4s.scalatest.RequestResponsePactForger
 
-class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons with RequestResponsePactForger {
+class ScalaTestPact extends AnyFlatSpec with Matchers with ExamplePactCommons with RequestResponsePactForger {
+
+  override val pactTestExecutionContext: PactTestExecutionContext = executionContext
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
@@ -21,7 +23,10 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
       // -------------------------- FETCH RESOURCE --------------------------
       .`given`(
         "resource exists", // this is a state identifier that is passed to the provider
-        Map[String, Any]("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
+        Map[String, Any](
+          "id"    -> testID,
+          "value" -> 123
+        ) // we can use parameters to specify details about the provider state
       )
       .uponReceiving("Request to fetch extant resource")
       .method("GET")

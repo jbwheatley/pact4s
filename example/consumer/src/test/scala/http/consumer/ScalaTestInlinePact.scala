@@ -1,7 +1,8 @@
 package http
 package consumer
 
-import au.com.dius.pact.consumer.ConsumerPactBuilder
+import au.com.dius.pact.consumer.dsl.PactDslWithProvider
+import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
 import io.circe.Json
@@ -15,10 +16,12 @@ import pact4s.scalatest.InlineRequestResponsePactForging
 class ScalaTestInlinePact
     extends AnyFlatSpec
     with Matchers
-    with ScalaTestPactCommons
+    with ExamplePactCommons
     with InlineRequestResponsePactForging {
 
-  private def pact =
+  override val pactTestExecutionContext: PactTestExecutionContext = executionContext
+
+  private def pact: PactDslWithProvider =
     ConsumerPactBuilder
       .consumer("scalatest-consumer")
       .hasPactWith("scalatest-provider")
@@ -32,7 +35,10 @@ class ScalaTestInlinePact
         // -------------------------- FETCH RESOURCE --------------------------
         .`given`(
           "resource exists", // this is a state identifier that is passed to the provider
-          Map[String, Any]("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
+          Map[String, Any](
+            "id"    -> testID,
+            "value" -> 123
+          ) // we can use parameters to specify details about the provider state
         )
         .uponReceiving("Request to fetch extant resource")
         .method("GET")
