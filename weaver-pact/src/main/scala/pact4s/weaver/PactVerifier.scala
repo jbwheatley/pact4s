@@ -60,8 +60,3 @@ trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
       case None => verify.map(Right(_))
     }
 }
-
-trait MessagePactVerifier[F[+_]] extends PactVerifier[F] {
-  def messages: ResponseFactory
-  override def responseFactory: Option[ResponseFactory] = Some(messages)
-}

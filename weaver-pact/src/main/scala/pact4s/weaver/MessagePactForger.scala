@@ -39,7 +39,7 @@ trait MessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
     (additionalSharedResource, messagesResource).tupled
 }
 
-trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePactForgerResources {
+sealed trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePactForgerResources {
   private val F = effect
 
   @volatile private var testFailed: Boolean = false
@@ -65,7 +65,7 @@ trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePac
     case _                                  => F.unit
   }
 
-  type Effect[A] = F[A]
+  override private[pact4s] type Effect[A] = F[A]
 
   def beforeWritePacts(): F[Unit] = F.unit
 }
