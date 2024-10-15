@@ -39,6 +39,7 @@ trait RequestResponsePactForger extends ZIOSpecDefault with RequestResponsePactF
   def mockServer: ZLayer[Scope, Throwable, BaseMockServer] = ZLayer.fromZIO {
     ZIO.acquireRelease(
       for {
+        _          <- ZIO.fromEither(validatePactVersion(mockProviderConfig.getPactVersion))
         mockServer <- ZIO.attempt(createServer)
         _          <- ZIO.attempt(mockServer.start())
       } yield mockServer
