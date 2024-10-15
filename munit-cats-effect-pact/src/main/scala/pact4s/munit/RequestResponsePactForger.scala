@@ -66,7 +66,8 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
     }
   }
 
-  def pactTest(name: String)(test: BaseMockServer => Any): Unit = this.test(name)(test(serverFixture.apply()))
+  def pactTest(name: String)(test: BaseMockServer => Any)(implicit loc: Location): Unit =
+    this.test(name)(test(serverFixture.apply()))
 
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(
@@ -84,7 +85,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
       )
     )
 
-  type Effect[_] = IO[_]
+  override private[pact4s] type Effect[_] = IO[_]
 
   def beforeWritePacts(): IO[Unit] = IO.unit
 }
