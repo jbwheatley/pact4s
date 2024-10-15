@@ -59,8 +59,3 @@ trait PactVerifier extends PactVerifyResources[IO] with Pact4sLogger { self: Cat
       case None => verify.map(Right(_))
     }
 }
-
-trait MessagePactVerifier extends PactVerifier { self: CatsEffectSuite =>
-  def messages: ResponseFactory
-  override def responseFactory: Option[ResponseFactory] = Some(messages)
-}

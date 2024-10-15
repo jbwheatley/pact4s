@@ -55,7 +55,6 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
   override def afterAll(): Unit = {
     super.afterAll()
     if (testFailed) {
-
       pact4sLogger.error(
         notWritingPactMessage(pact)
       )
@@ -69,7 +68,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
     }
   }
 
-  type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }
