@@ -87,7 +87,7 @@ class MunitVerifyPacts extends CatsEffectSuite with PactVerifier {
         case ProviderState("resource exists", params) =>
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
-          (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
+          (id, value).mapN(ProviderResource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
         case _: ProviderState                            => ()
       }
