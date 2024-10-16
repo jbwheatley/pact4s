@@ -42,6 +42,6 @@ object PactVerifierSuite extends ZIOSpecDefault with PactVerifier {
 
   override def spec: Spec[TestEnvironment with Scope, Any] =
     test("Verify pacts for provider `Pact4sProvider`, zio-test") {
-      ZIO.attempt(verifyPacts()).as(assertTrue(true))
+      verifyPacts().as(assertTrue(true))
     }.provideLayerShared(mockLayer)
 }
