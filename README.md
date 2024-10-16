@@ -258,9 +258,10 @@ def verify(interaction: RequestResponseInteraction): Result = interaction.getDes
 Upon completion of this test suite (and if all tests have passed) the pact will be written to the file defined in `pactTestExecutionContext`. **N.B.** The pact file will not be written unless the mock server has received a request for every interaction that you have defined in your pact. 
 
 Examples:
-- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
-- [scalatest](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
-- [weaver](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
+- [munit-cats-effect](./example/consumer/src/test/scala/http/consumer/MunitPact.scala)
+- [scalatest](./example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
+- [weaver](./example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
+- [ziotest](./example/consumer/src/test/scala/http/consumer/ZiotestPact.scala)
 
 #### Choosing a port
 
