@@ -146,10 +146,11 @@ lazy val exampleProvider =
       name := "example-provider",
       libraryDependencies ++= Dependencies.example,
       testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
       Test / parallelExecution := false,
       publish / skip           := true
     )
-    .dependsOn(munit % Test, scalaTest % Test, weaver % "test->test")
+    .dependsOn(munit % Test, scalaTest % Test, weaver % "test->test", zioTest % Test)
 
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)

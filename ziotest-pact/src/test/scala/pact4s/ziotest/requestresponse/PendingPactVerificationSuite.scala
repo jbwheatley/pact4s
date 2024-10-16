@@ -18,12 +18,12 @@ package pact4s.ziotest.requestresponse
 
 import pact4s.PendingPactVerificationFixture
 import pact4s.ziotest.PactVerifier
+import zio.Task
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
-import zio.{Task, ZIO}
 
 object PendingPactVerificationSuite extends ZIOSpecDefault with PactVerifier with PendingPactVerificationFixture[Task] {
   override def spec: Spec[Any, Throwable] = test("pending pact failure") {
-    ZIO.attempt(verifyPacts()).as(assertTrue(true))
+    verifyPacts().as(assertTrue(true))
   }
 
 }
