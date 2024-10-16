@@ -21,14 +21,14 @@ import cats.effect.IO
 import cats.implicits._
 import munit.internal.console.Printers
 import munit.{CatsEffectSuite, Location}
+import pact4s.PactVerifyResources
 import pact4s.effect.MonadLike
-import pact4s.{Pact4sLogger, PactVerifyResources}
 import sourcecode.{File, FileName, Line}
 
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.FiniteDuration
 
-trait PactVerifier extends PactVerifyResources[IO] with Pact4sLogger { self: CatsEffectSuite =>
+trait PactVerifier extends PactVerifyResources[IO] { self: CatsEffectSuite =>
   override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): IO[Unit] = {
     implicit val loc = new Location(file.value, line.value)
     Printers.log(message)

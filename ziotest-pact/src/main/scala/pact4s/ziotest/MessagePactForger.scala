@@ -18,6 +18,7 @@ package pact4s.ziotest
 
 import au.com.dius.pact.core.model.messaging.Message
 import pact4s.MessagePactForgerResources
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import zio.test.{Spec, TestAspect, TestEnvironment, ZIOSpecDefault, assertTrue}
 import zio.{Scope, UIO, ZIO}
 
@@ -29,7 +30,7 @@ trait MessagePactForger extends ZIOSpecDefault with MessagePactForgerResources {
 
   def messages: List[Message] = pact.getMessages.asScala.toList
 
-  @volatile private var testFailed = false
+  private var testFailed = false
 
   def verify(message: Message): Spec[Any, Nothing] = message.getDescription match {
     case description => test(s"Missing verification for message: '$description'")(assertTrue(false))

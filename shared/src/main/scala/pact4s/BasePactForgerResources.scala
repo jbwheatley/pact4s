@@ -23,7 +23,7 @@ import pact4s.syntax.PactOps
 
 import scala.jdk.CollectionConverters._
 
-trait BasePactForgerResources[Pact <: BasePact] extends Pact4sLogger with PactOps {
+trait BasePactForgerResources[Pact <: BasePact] extends PactOps {
   def pact: Pact
 
   def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()

@@ -32,9 +32,9 @@ import org.typelevel.ci.{CIString, CIStringSyntax}
 import pact4s.TestModels
 import pact4s.ziotest.RequestResponsePactForger
 import zio.ZIO
-import zio.test.{Spec, ZIOSpecDefault, assertTrue}
+import zio.test.{Spec, assertTrue}
 
-object PactForgerSuite extends ZIOSpecDefault with RequestResponsePactForger {
+object PactForgerSuite extends RequestResponsePactForger {
 
   val client: Client[IO] = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
 
