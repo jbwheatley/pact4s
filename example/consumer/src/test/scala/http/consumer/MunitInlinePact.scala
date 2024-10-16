@@ -79,7 +79,7 @@ class MunitInlinePact extends InlineRequestResponsePactForging with ExamplePactC
         BasicCredentials("user", "pass")
       )
         .fetchResource(testID)
-        .assertEquals(Some(Resource(testID, 123)))
+        .assertEquals(Some(ProviderResource(testID, 123)))
     }
   }
 

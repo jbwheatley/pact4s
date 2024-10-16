@@ -35,8 +35,8 @@ trait ExamplePactCommons {
 
   protected val testID           = "testID"
   protected val missingID        = "missingID"
-  protected val newResource      = Resource("newID", 234)
-  protected val conflictResource = Resource("conflict", 234)
+  protected val newResource      = ProviderResource("newID", 234)
+  protected val conflictResource = ProviderResource("conflict", 234)
 
   protected def mkAuthHeader(pass: String) = s"Basic ${Base64.getEncoder.encodeToString(s"user:$pass".getBytes)}"
 

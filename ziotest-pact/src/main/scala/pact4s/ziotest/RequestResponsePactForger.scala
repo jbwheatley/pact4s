@@ -18,25 +18,42 @@ package pact4s.ziotest
 
 import au.com.dius.pact.consumer.BaseMockServer
 import au.com.dius.pact.core.model.RequestResponseInteraction
+import izumi.reflect.Tag
 import pact4s.RequestResponsePactForgerResources
 import zio.test.{Spec, TestAspect, TestEnvironment, ZIOSpecDefault, assertTrue}
 import zio.{Scope, UIO, ZIO, ZLayer}
 
-import java.util.concurrent.atomic.AtomicBoolean
 import scala.annotation.nowarn
 
-trait RequestResponsePactForger extends ZIOSpecDefault with RequestResponsePactForgerResources {
+/** For when additional layers are required, e.g. a http client
+  */
+abstract class RequestResponsePactForgerWith[Resources: Tag]
+    extends RequestResponsePactForgerBase[Resources with BaseMockServer] {
+  def resources: ZLayer[Scope, Throwable, Resources]
+
+  override private[pact4s] def _resources: ZLayer[Scope, Throwable, Resources with BaseMockServer] =
+    resources ++ mockServer
+
+}
+
+trait RequestResponsePactForger extends RequestResponsePactForgerBase[BaseMockServer] {
+  override private[pact4s] def _resources: ZLayer[Scope, Throwable, BaseMockServer] = mockServer
+}
+
+abstract class RequestResponsePactForgerBase[Resources: Tag]
+    extends ZIOSpecDefault
+    with RequestResponsePactForgerResources {
 
   def specName: String = s"Pact: ${pact.getConsumer.getName} - ${pact.getProvider.getName}"
 
-  private val allTestsSucceeded: AtomicBoolean = new AtomicBoolean(false)
+  private var allTestsSucceeded: Boolean = false
 
-  def verify(interaction: RequestResponseInteraction): Spec[BaseMockServer, Nothing] =
+  def verify(interaction: RequestResponseInteraction): Spec[Resources, Nothing] =
     interaction.getDescription match {
       case description => test(s"Missing verification for message: '$description'")(assertTrue(false))
     }
 
-  def mockServer: ZLayer[Scope, Throwable, BaseMockServer] = ZLayer.fromZIO {
+  private[pact4s] def mockServer: ZLayer[Scope, Throwable, BaseMockServer] = ZLayer.fromZIO {
     ZIO.acquireRelease(
       for {
         _          <- ZIO.fromEither(validatePactVersion(mockProviderConfig.getPactVersion))
@@ -49,16 +66,18 @@ trait RequestResponsePactForger extends ZIOSpecDefault with RequestResponsePactF
         _ <-
           (beforeWritePacts() *> ZIO
             .attempt(verifyResultAndWritePactFiles(mockServer))
-            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded.get()): @nowarn
+            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded): @nowarn
       } yield ()
     )
   }
 
-  def tests: Seq[Spec[BaseMockServer, Nothing]] = interactions.map(verify)
+  private[pact4s] def _resources: ZLayer[Scope, Throwable, Resources]
+
+  def tests: Seq[Spec[Resources, Nothing]] = interactions.map(verify)
 
   override def spec: Spec[TestEnvironment with Scope, Any] =
-    (suite(specName)(tests) @@ TestAspect.afterAllSuccess(ZIO.succeed(allTestsSucceeded.set(true))))
-      .provideSomeLayerShared[TestEnvironment with Scope](mockServer)
+    (suite(specName)(tests) @@ TestAspect.afterAllSuccess(ZIO.succeed { allTestsSucceeded = true }))
+      .provideSomeLayerShared[TestEnvironment with Scope](_resources)
 
   override private[pact4s] type Effect[A] = ZIO[Any, Throwable, A]
 

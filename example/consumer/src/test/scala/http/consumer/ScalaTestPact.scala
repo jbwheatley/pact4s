@@ -94,7 +94,7 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ExamplePactCommons wi
   it should "handle fetch request for extant resource" in {
     new ProviderClientImpl[IO](client, Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
       .fetchResource(testID)
-      .unsafeRunSync() shouldBe Some(Resource(testID, 123))
+      .unsafeRunSync() shouldBe Some(ProviderResource(testID, 123))
   }
 
   it should "handle fetch request for missing resource" in {

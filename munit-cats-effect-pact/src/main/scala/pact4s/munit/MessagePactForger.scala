@@ -20,6 +20,7 @@ import au.com.dius.pact.core.model.messaging.Message
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
 import pact4s.MessagePactForgerResources
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -27,7 +28,7 @@ import scala.util.control.NonFatal
 
 trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources {
 
-  @volatile private var testFailed = false
+  private var testFailed = false
 
   def messages: List[Message] = pact.getMessages.asScala.toList
 

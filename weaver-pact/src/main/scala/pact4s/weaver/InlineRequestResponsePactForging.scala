@@ -20,6 +20,7 @@ import au.com.dius.pact.consumer.{BaseMockServer, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.Resource
 import cats.syntax.all._
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.{InlineRequestResponsePactResources, RequestResponsePactForgerResources}
 import weaver.{Expectations, MutableFSuite}
 

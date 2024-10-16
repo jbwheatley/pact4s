@@ -17,15 +17,27 @@
 package pact4s.ziotest
 
 import pact4s.PactVerifyResources
-import pact4s.effect.{Id, MonadLike}
+import pact4s.effect.MonadLike
 import sourcecode.{File, FileName, Line}
+import zio.{Task, ZIO}
 
-trait PactVerifier extends PactVerifyResources[Id] {
-  override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit = ()
+trait PactVerifier extends PactVerifyResources[Task] {
+  override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Task[Unit] =
+    ZIO.logInfo(message)
 
-  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
-    throw new RuntimeException(message)
+  override private[pact4s] def failure(
+      message: String
+  )(implicit fileName: FileName, file: File, line: Line): Task[Nothing] =
+    ZIO.fail(new RuntimeException(message))
 
-  override private[pact4s] implicit val F: MonadLike[Id] = MonadLike.idMonadLike
+  override private[pact4s] implicit val F: MonadLike[Task] = new MonadLike[Task] {
+    override def apply[A](a: => A): Task[A] = ZIO.succeed(a)
+
+    override def map[A, B](a: => Task[A])(f: A => B): Task[B] = a.map(f)
+
+    override def flatMap[A, B](a: => Task[A])(f: A => Task[B]): Task[B] = a.flatMap(f)
+
+    override def foreach[A](as: List[A])(f: A => Task[Unit]): Task[Unit] = ZIO.foreachDiscard(as)(f)
+  }
 
 }

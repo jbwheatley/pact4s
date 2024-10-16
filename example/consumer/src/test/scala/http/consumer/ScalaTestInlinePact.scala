@@ -72,7 +72,7 @@ class ScalaTestInlinePact
     ) { mockServer =>
       new ProviderClientImpl[IO](client, Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
         .fetchResource(testID)
-        .unsafeRunSync() shouldBe Some(Resource(testID, 123))
+        .unsafeRunSync() shouldBe Some(ProviderResource(testID, 123))
     }
   }
 

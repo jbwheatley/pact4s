@@ -40,7 +40,7 @@ trait InlineRequestResponsePactForging extends ZIOSpecDefault with InlineRequest
   }
 
   sealed abstract class ForgerImpl extends InlineRequestResponsePactForger {
-    def apply(test: BaseMockServer => Task[TestResult]): Task[TestResult]
+    def apply[S](test: BaseMockServer => ZIO[S, Throwable, TestResult]): ZIO[S, Throwable, TestResult]
   }
 
   override private[pact4s] type Forger = ForgerImpl
@@ -50,15 +50,16 @@ trait InlineRequestResponsePactForging extends ZIOSpecDefault with InlineRequest
       override val pact: RequestResponsePact                          = aPact
       override val pactTestExecutionContext: PactTestExecutionContext = self.pactTestExecutionContext
 
-      override def apply(test: BaseMockServer => Task[TestResult]): Task[TestResult] = ZIO.scoped {
-        serverResource(this).flatMap { server =>
-          for {
-            res <- test(server)
-            _   <- self.beforeWritePacts()
-            _   <- ZIO.fromEither(verifyResultAndWritePactFiles(server))
-          } yield res
+      override def apply[S](test: BaseMockServer => ZIO[S, Throwable, TestResult]): ZIO[S, Throwable, TestResult] =
+        ZIO.scoped {
+          serverResource(this).flatMap { server =>
+            for {
+              res <- test(server)
+              _   <- self.beforeWritePacts()
+              _   <- ZIO.fromEither(verifyResultAndWritePactFiles(server))
+            } yield res
+          }
         }
-      }
     }
 
   override private[pact4s] type Effect[A] = UIO[A]
