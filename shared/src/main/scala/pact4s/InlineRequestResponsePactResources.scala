@@ -21,6 +21,9 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import pact4s.effect.Id
 import pact4s.syntax.RequestResponsePactOps
 
+/** Allows pacts to be split up into one interaction per test, instead of having one big Pact at the top of the test
+  * suite. The file writer combines all the pacts between the same consumer and provider into a single file.
+  */
 trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =>
   def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
 
@@ -29,11 +32,13 @@ trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =
   def withPact(aPact: RequestResponsePact): Forger
 
   private[pact4s] type Effect[_]
+
+  /** This effect runs after each consumer pact test are run, but before they get written to a file.
+    */
   def beforeWritePacts(): Effect[Unit]
 
   private[pact4s] trait InlineRequestResponsePactForger extends RequestResponsePactForgerResources {
     override private[pact4s] type Effect[A] = Id[A]
-
     override def beforeWritePacts(): Effect[Unit] = ()
   }
 }

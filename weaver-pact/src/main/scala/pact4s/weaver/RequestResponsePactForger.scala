@@ -19,6 +19,7 @@ package pact4s.weaver
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.Resource
 import cats.implicits._
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.RequestResponsePactForgerResources
 import weaver.{MutableFSuite, TestOutcome}
 
@@ -47,7 +48,7 @@ sealed trait WeaverRequestResponsePactForgerBase[F[_]]
     with RequestResponsePactForgerResources {
   private val F = effect
 
-  @volatile private var testFailed: Boolean = false
+  private var testFailed: Boolean = false
 
   private[weaver] def serverResource: Resource[F, BaseMockServer] = {
     val server = createServer

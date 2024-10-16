@@ -21,6 +21,7 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import munit.CatsEffectSuite
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.{InlineRequestResponsePactResources, RequestResponsePactForgerResources}
 
 trait InlineRequestResponsePactForging extends CatsEffectSuite with InlineRequestResponsePactResources { self =>

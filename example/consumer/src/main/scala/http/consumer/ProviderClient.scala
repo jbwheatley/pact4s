@@ -26,26 +26,26 @@ import org.http4s.client.Client
 import org.http4s.headers.Authorization
 
 trait ProviderClient[F[_]] {
-  def fetchResource(id: String): F[Option[Resource]]
+  def fetchResource(id: String): F[Option[ProviderResource]]
 
-  def createResource(resource: Resource): F[Unit]
+  def createResource(resource: ProviderResource): F[Unit]
 }
 
 class ProviderClientImpl[F[_]: Concurrent](client: Client[F], baseUrl: Uri, creds: BasicCredentials)
     extends ProviderClient[F] {
-  def fetchResource(id: String): F[Option[Resource]] = {
+  def fetchResource(id: String): F[Option[ProviderResource]] = {
     val request = Request[F](uri = baseUrl / "resource" / id).withHeaders(Authorization(creds))
     client.run(request).use { resp =>
       resp.status match {
-        case Status.Ok           => resp.as[Resource].map(_.some)
-        case Status.NotFound     => none[Resource].pure[F]
+        case Status.Ok           => resp.as[ProviderResource].map(_.some)
+        case Status.NotFound     => none[ProviderResource].pure[F]
         case Status.Unauthorized => InvalidCredentials.raiseError
         case _                   => UnknownError.raiseError
       }
     }
   }
 
-  def createResource(resource: Resource): F[Unit] = {
+  def createResource(resource: ProviderResource): F[Unit] = {
     val request = Request[F](method = Method.POST, uri = baseUrl / "resource")
       .withHeaders(Authorization(creds))
       .withEntity(resource)
@@ -59,21 +59,21 @@ class ProviderClientImpl[F[_]: Concurrent](client: Client[F], baseUrl: Uri, cred
   }
 }
 
-final case class Resource(id: String, value: Int)
+final case class ProviderResource(id: String, value: Int)
 
-object Resource {
-  implicit val encoder: Encoder[Resource] = Encoder.instance { res =>
+object ProviderResource {
+  implicit val encoder: Encoder[ProviderResource] = Encoder.instance { res =>
     Json.obj(
       "id"    -> res.id.asJson,
       "value" -> res.value.asJson
     )
   }
 
-  implicit def entityEncoder[F[_]]: EntityEncoder[F, Resource] = jsonEncoderOf[F, Resource]
+  implicit def entityEncoder[F[_]]: EntityEncoder[F, ProviderResource] = jsonEncoderOf[F, ProviderResource]
 
-  implicit val decoder: Decoder[Resource] = Decoder.forProduct2("id", "value")(Resource.apply)
+  implicit val decoder: Decoder[ProviderResource] = Decoder.forProduct2("id", "value")(ProviderResource.apply)
 
-  implicit def entityDecoder[F[_]: Concurrent]: EntityDecoder[F, Resource] = jsonOf[F, Resource]
+  implicit def entityDecoder[F[_]: Concurrent]: EntityDecoder[F, ProviderResource] = jsonOf[F, ProviderResource]
 }
 
 case object InvalidCredentials extends Exception

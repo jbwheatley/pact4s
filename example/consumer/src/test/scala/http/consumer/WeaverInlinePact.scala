@@ -18,7 +18,7 @@ package http.consumer
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import io.circe.Json
 import io.circe.syntax._
 import org.http4s.client.Client
@@ -32,7 +32,7 @@ object WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO
 
   override type Res = Client[IO]
 
-  override def sharedResource: cats.effect.Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+  override def sharedResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "../resources/pacts"
@@ -77,7 +77,7 @@ object WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO
         BasicCredentials("user", "pass")
       )
         .fetchResource(testID)
-        .map(r => expect(r == Some(Resource(testID, 123))))
+        .map(r => expect(r == Some(ProviderResource(testID, 123))))
     }
   }
 

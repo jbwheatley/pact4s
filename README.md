@@ -260,6 +260,7 @@ Upon completion of this test suite (and if all tests have passed) the pact will 
 Examples:
 - [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
 - [scalatest](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
+- [weaver](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
 
 #### Choosing a port
 
@@ -272,11 +273,11 @@ override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpCon
 
 #### 'Inline' Style of Processing Request/Response Pacts
 
-Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForger` (currently only available for ScalaTest) and the method `withPact` that it provides.
+Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForging` and the method `withPact` that it provides.
 
-An example ScalaTest using `InlineRequestResponsePactForger` is shown below.
+An example ScalaTest using `InlineRequestResponsePactForging` is shown below.
 ```scala
-class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestResponsePactForger {
+class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestResponsePactForging {
 
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./my-sub-project/target/pacts" //this is where the pact file gets written to. It defaults to ./target/pacts (relative to the project base)
@@ -328,7 +329,8 @@ class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestRespons
 }
 ```
 
-This style may be useful when it is impractical to write all interactions for all test cases in one single pact. Note, however, that for this approach, the `BaseMockServer` is created and started for each test case individually, which has a performance drawback.
+This style may be useful when it is impractical to write all interactions for all test cases in one single pact. While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
+appear to have a noticeable performance impact.
 
 ### Message Pacts
 
@@ -545,7 +547,7 @@ the following checklist:
 - Scaladocs are included where necessary - e.g. where methods or fields have been added.
 - Broken or invalidated methods/fields have had a deprecation tag applied.
 - Tests for your new feature or bugfix have been included.
-- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreate` to add headers to new files. 
+- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreateAll` to add headers to new files. 
 - You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
 - Feature parity between the various library implementations is maintained. 
 

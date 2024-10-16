@@ -18,7 +18,7 @@ package http.consumer
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import io.circe.Json
 import io.circe.syntax._
 import org.http4s.client.Client
@@ -35,7 +35,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
 
   override type Resources = Client[IO]
 
-  override def additionalSharedResource: cats.effect.Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+  override def additionalSharedResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
@@ -104,7 +104,7 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
       BasicCredentials("user", "pass")
     )
       .fetchResource(testID)
-      .map(r => expect(r == Some(Resource(testID, 123))))
+      .map(r => expect(r == Some(ProviderResource(testID, 123))))
   }
 
   test("handle fetch request for missing resource") { res =>
