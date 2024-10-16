@@ -60,8 +60,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     val (_, shutdown) = server.allocated.unsafeRunSync()
     cleanUp = shutdown
     // Insert deliberately data that the provider state before hook should clean so that tests succeed
-    store.create(Resource("missingID", 99)).unsafeRunSync()
-    store.create(Resource("newID", 66)).unsafeRunSync()
+    store.create(ProviderResource("missingID", 99)).unsafeRunSync()
+    store.create(ProviderResource("newID", 66)).unsafeRunSync()
     ()
   }
 
@@ -96,7 +96,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
         case ProviderState("resource exists", params) =>
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
-          (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
+          (id, value).mapN(ProviderResource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
         case _                                           => ()
       }

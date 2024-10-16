@@ -22,19 +22,19 @@ import io.circe.{Decoder, Encoder, Json}
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
 
-final case class Resource(id: String, value: Int)
+final case class ProviderResource(id: String, value: Int)
 
-object Resource {
-  implicit val encoder: Encoder[Resource] = Encoder.instance { res =>
+object ProviderResource {
+  implicit val encoder: Encoder[ProviderResource] = Encoder.instance { res =>
     Json.obj(
       "id"    -> res.id.asJson,
       "value" -> res.value.asJson
     )
   }
 
-  implicit def entityEncoder[F[_]]: EntityEncoder[F, Resource] = jsonEncoderOf[F, Resource]
+  implicit def entityEncoder[F[_]]: EntityEncoder[F, ProviderResource] = jsonEncoderOf[F, ProviderResource]
 
-  implicit val decoder: Decoder[Resource] = Decoder.forProduct2("id", "value")(Resource.apply)
+  implicit val decoder: Decoder[ProviderResource] = Decoder.forProduct2("id", "value")(ProviderResource.apply)
 
-  implicit def entityDecoder[F[_]: Concurrent]: EntityDecoder[F, Resource] = jsonOf[F, Resource]
+  implicit def entityDecoder[F[_]: Concurrent]: EntityDecoder[F, ProviderResource] = jsonOf[F, ProviderResource]
 }

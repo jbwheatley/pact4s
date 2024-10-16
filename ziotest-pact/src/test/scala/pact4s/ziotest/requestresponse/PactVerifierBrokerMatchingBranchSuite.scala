@@ -48,7 +48,7 @@ object PactVerifierBrokerMatchingBranchSuite extends ZIOSpecDefault with PactVer
   override def spec: Spec[TestEnvironment with Scope, Any] =
     test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, zio-test")(
       for {
-        _ <- ZIO.attempt(verifyPacts(Some(Branch("feat/x"))))
+        _ <- verifyPacts(Some(Branch("feat/x")))
         featureXState = mock.featureXState.get.unsafeRunTimed(10.seconds)
       } yield assertTrue(featureXState.contains(true))
     ).provideLayerShared(mockLayer)

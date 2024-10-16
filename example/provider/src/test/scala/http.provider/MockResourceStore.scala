@@ -22,9 +22,9 @@ import cats.effect.kernel.Sync
 import cats.implicits._
 
 class MockResourceStore[F[_]: Functor](ref: Ref[F, Map[String, Int]]) {
-  def fetch(id: String): F[Option[Resource]] = ref.get.map(_.get(id).map(i => Resource(id, i)))
+  def fetch(id: String): F[Option[ProviderResource]] = ref.get.map(_.get(id).map(i => ProviderResource(id, i)))
 
-  def create(r: Resource): F[Int] = ref.modify(rs =>
+  def create(r: ProviderResource): F[Int] = ref.modify(rs =>
     rs.get(r.id) match {
       case Some(_) => (rs, 0)
       case None    => (rs + (r.id -> r.value), 1)

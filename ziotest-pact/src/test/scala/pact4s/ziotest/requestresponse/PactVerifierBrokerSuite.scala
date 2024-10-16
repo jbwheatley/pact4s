@@ -43,7 +43,7 @@ object PactVerifierBrokerSuite extends ZIOSpecDefault with PactVerifier {
   override def spec: Spec[TestEnvironment with Scope, Any] =
     test("Verify pacts for provider `Pact4sProvider`, zio-test")(
       for {
-        _ <- ZIO.attempt(verifyPacts(Some(Branch.MAIN)))
+        _ <- verifyPacts(Some(Branch.MAIN))
         featureXState = mock.featureXState.tryGet.unsafeRunSync()
       } yield assertTrue(featureXState.isEmpty)
     ).provideLayerShared(mockLayer)
