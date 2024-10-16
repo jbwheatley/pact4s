@@ -20,6 +20,7 @@ import au.com.dius.pact.core.model.messaging.Message
 import cats.effect.Resource
 import cats.implicits._
 import pact4s.MessagePactForgerResources
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import weaver.{MutableFSuite, TestOutcome}
 
 import scala.jdk.CollectionConverters._
@@ -42,7 +43,7 @@ trait MessagePactForger[F[_]] extends WeaverMessagePactForgerBase[F] {
 sealed trait WeaverMessagePactForgerBase[F[_]] extends MutableFSuite[F] with MessagePactForgerResources {
   private val F = effect
 
-  @volatile private var testFailed: Boolean = false
+  private var testFailed: Boolean = false
 
   private[weaver] def messagesResource: Resource[F, List[Message]] = Resource.make[F, List[Message]] {
     validatePactVersion(pactSpecVersion).liftTo[F].as {

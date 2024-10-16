@@ -17,6 +17,7 @@
 package pact4s
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
+import pact4s.Pact4sLogger.pact4sLogger
 import pact4s.provider.ProviderState
 import ujson.Value
 import upickle.core.LinkedHashMap
@@ -37,8 +38,7 @@ private[pact4s] object StateChanger {
       host: String,
       port: Int,
       endpoint: String
-  ) extends StateChanger
-      with Pact4sLogger {
+  ) extends StateChanger {
     private var isShutdown: Boolean = true
     private var _server: HttpServer = _
     var boundPort: Int              = _
@@ -63,7 +63,7 @@ private[pact4s] object StateChanger {
         pact4sLogger.info(s"Shutting down state change server")
       }
 
-    private object RootHandler extends HttpHandler with Pact4sLogger {
+    private object RootHandler extends HttpHandler {
 
       def handle(t: HttpExchange): Unit = {
         val stateAndResponse: Try[(String, Map[String, String], String)] = Try {

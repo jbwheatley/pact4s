@@ -108,7 +108,7 @@ class MunitPact extends RequestResponsePactForger with ExamplePactCommons {
       BasicCredentials("user", "pass")
     )
       .fetchResource(testID)
-      .assertEquals(Some(Resource(testID, 123)))
+      .assertEquals(Some(ProviderResource(testID, 123)))
   }
 
   pactTest("handle fetch request for missing resource") { mockServer =>

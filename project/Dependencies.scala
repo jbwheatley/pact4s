@@ -32,6 +32,8 @@ object Dependencies {
 
   val upickle = "4.0.2"
 
+  val zioCats = "23.1.0.2"
+
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
     "au.com.dius.pact"        % "provider"                % pactJvm,
@@ -93,6 +95,9 @@ object Dependencies {
     "org.http4s"    %% "http4s-ember-server" % http4s,
     "org.http4s"    %% "http4s-circe"        % http4s,
     "io.circe"      %% "circe-core"          % _circe,
+    "dev.zio"       %% "zio-interop-cats"    % zioCats         % Test,
+    "dev.zio"       %% "zio-test"            % _zio            % Test,
+    "dev.zio"       %% "zio-managed"         % _zio            % Test,
     "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )

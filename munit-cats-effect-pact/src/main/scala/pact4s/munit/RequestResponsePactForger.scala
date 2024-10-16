@@ -22,6 +22,7 @@ import cats.syntax.all._
 import munit.catseffect.IOFixture
 import munit.internal.PlatformCompat
 import munit.{AnyFixture, CatsEffectSuite, Location, TestOptions}
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.RequestResponsePactForgerResources
 
 import scala.concurrent.Future
@@ -29,7 +30,7 @@ import scala.util.control.NonFatal
 
 trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePactForgerResources {
 
-  @volatile private var testFailed: Boolean = false
+  private var testFailed: Boolean = false
 
   override def munitFixtures: Seq[AnyFixture[_]] = serverFixture +: additionalMunitFixtures
 
