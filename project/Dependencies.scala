@@ -32,7 +32,7 @@ object Dependencies {
 
   val upickle = "4.0.2"
 
-  val zioCats = "23.1.0.2"
+  val zioCats = "23.1.0.3"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
