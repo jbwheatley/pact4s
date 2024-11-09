@@ -16,7 +16,6 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.RequestResponsePact
 import pact4s.effect.Id
 import pact4s.syntax.RequestResponsePactOps
@@ -24,9 +23,8 @@ import pact4s.syntax.RequestResponsePactOps
 /** Allows pacts to be split up into one interaction per test, instead of having one big Pact at the top of the test
   * suite. The file writer combines all the pacts between the same consumer and provider into a single file.
   */
-trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =>
-  def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
-
+trait InlineRequestResponsePactResources extends BasePactResources with RequestResponsePactOps {
+  self =>
   private[pact4s] type Forger <: InlineRequestResponsePactForger
 
   def withPact(aPact: RequestResponsePact): Forger
