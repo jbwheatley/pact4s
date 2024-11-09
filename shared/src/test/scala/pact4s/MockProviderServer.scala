@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 io.github.jbwheatley
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package pact4s
 
 import cats.data.Kleisli
@@ -22,7 +38,7 @@ import pact4s.provider._
 import sourcecode.{File => SCFile}
 
 import java.io.File
-import java.net.URL
+import java.net.URI
 import scala.concurrent.duration.DurationInt
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -36,7 +52,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(port).get)
       .withHttpApp(middleware(app))
-      .withShutdownTimeout(1.seconds)
+      .withShutdownTimeout(0.seconds)
       .build
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = jsonOf
@@ -118,7 +134,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
   def fileSourceMessageProviderInfo: ProviderInfoBuilder = fileSourceProviderInfo(
     consumerName = "Pact4sMessageConsumer",
     providerName = "Pact4sMessageProvider",
-    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json"
+    fileName = "./scripts/Pact4sMessageConsumer-Pact4sMessageProvider.json",
+    isHttpPact = false
   )
 
   def fileSourceProviderInfo(
@@ -127,44 +144,51 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       fileName: String = "./scripts/Pact4sConsumer-Pact4sProvider.json",
       useStateChangeFunction: Boolean = false,
       stateChangePortOverride: Option[Int] = None,
-      verificationSettings: Option[VerificationSettings] = None
+      verificationSettings: Option[VerificationSettings] = None,
+      isHttpPact: Boolean = true
   ): ProviderInfoBuilder = {
     val baseBuilder =
       ProviderInfoBuilder(
         name = providerName,
-        providerUrl = new URL("http://localhost:0/"),
+        providerUrl = new URI("http://localhost:0/").toURL,
         pactSource = FileSource(Map(consumerName -> new File(fileName)))
       ).withPort(port)
         .withOptionalVerificationSettings(verificationSettings)
         .withRequestFiltering(requestFilter)
 
-    if (useStateChangeFunction) {
-      baseBuilder
-        .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
-        .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.get))
-    } else baseBuilder.withStateChangeEndpoint("setup")
+    if (isHttpPact) {
+      if (useStateChangeFunction) {
+        baseBuilder
+          .withStateChangeFunction(state => stateChangeFunction(state).unsafeRunSync())
+          .withStateChangeFunctionConfigOverrides(_.withOverrides(portOverride = stateChangePortOverride.getOrElse(0)))
+      } else baseBuilder.withStateChangeEndpoint("setup")
+    } else baseBuilder
 
   }
 
-  def brokerMessageProviderInfo: ProviderInfoBuilder = brokerProviderInfo(providerName = "Pact4sMessageProvider")
-
+  def brokerMessageProviderInfo: ProviderInfoBuilder =
+    brokerProviderInfo(providerName = "Pact4sMessageProvider", isHttpPact = false)
   def brokerProviderInfo(
       providerName: String = "Pact4sProvider",
       verificationSettings: Option[VerificationSettings] = None,
       consumerVersionSelector: ConsumerVersionSelectors = ConsumerVersionSelectors().latestTag("pact4s-test"),
-      pendingPactsEnabled: Boolean = false
-  ): ProviderInfoBuilder =
-    ProviderInfoBuilder(
-      name = providerName,
-      pactSource = PactBrokerWithSelectors(
-        brokerUrl = "https://test.pactflow.io"
-      ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
-        .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
-        .withConsumerVersionSelectors(consumerVersionSelector)
-    ).withPort(port)
-      .withOptionalVerificationSettings(verificationSettings)
-      .withStateChangeEndpoint("setup")
-      .withRequestFiltering(requestFilter)
+      pendingPactsEnabled: Boolean = false,
+      isHttpPact: Boolean = true
+  ): ProviderInfoBuilder = {
+    val baseBuilder =
+      ProviderInfoBuilder(
+        name = providerName,
+        pactSource = PactBrokerWithSelectors(
+          brokerUrl = "https://test.pactflow.io"
+        ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
+          .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+          .withConsumerVersionSelectors(consumerVersionSelector)
+      ).withPort(port)
+        .withOptionalVerificationSettings(verificationSettings)
+        .withRequestFiltering(requestFilter)
+
+    if (isHttpPact) baseBuilder.withStateChangeEndpoint("setup") else baseBuilder
+  }
 }
 
 private[pact4s] final case class Name(name: String)

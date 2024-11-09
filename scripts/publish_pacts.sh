@@ -1,5 +1,7 @@
-#!/bin/bash
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "$0" )" &> /dev/null && pwd )"
+if [[ ${SCRIPT_DIR} != *scripts ]]; then
+  SCRIPT_DIR="${SCRIPT_DIR}/scripts"
+fi
 echo "Running publish_pacts script at $SCRIPT_DIR"
 
 export PACT_BROKER_BASE_URL="https://test.pactflow.io"

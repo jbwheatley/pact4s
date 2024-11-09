@@ -23,7 +23,7 @@ import org.http4s.headers.{Authorization, `WWW-Authenticate`}
 import org.http4s.{BasicCredentials, Challenge, HttpRoutes}
 
 object FetchRoute {
-  def apply[F[_]: Monad](getResource: String => F[Option[Resource]], apiKey: String): HttpRoutes[F] = {
+  def apply[F[_]: Monad](getResource: String => F[Option[ProviderResource]], apiKey: String): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of { case req @ GET -> Root / "resource" / id =>

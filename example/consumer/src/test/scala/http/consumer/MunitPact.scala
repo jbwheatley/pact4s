@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 io.github.jbwheatley
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package http.consumer
 
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
@@ -5,28 +21,16 @@ import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import io.circe.Json
 import io.circe.syntax._
+import munit.AnyFixture
+import munit.catseffect.IOFixture
 import org.http4s.client.Client
-import org.http4s.{BasicCredentials, Uri}
 import org.http4s.ember.client.EmberClientBuilder
-import pact4s.munit.RequestResponsePactForger
+import org.http4s.{BasicCredentials, Uri}
 import pact4s.circe.implicits._
+import pact4s.munit.RequestResponsePactForger
 
-import java.util.Base64
-
-class MunitPact extends RequestResponsePactForger {
-  /*
-  we can define the folder that the pact contracts get written to upon completion of this test suite.
-   */
-  override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
-    "./example/resources/pacts"
-  )
-
-  val testID           = "testID"
-  val missingID        = "missingID"
-  val newResource      = Resource("newID", 234)
-  val conflictResource = Resource("conflict", 234)
-
-  def mkAuthHeader(pass: String) = s"Basic ${Base64.getEncoder.encodeToString(s"user:$pass".getBytes)}"
+class MunitPact extends RequestResponsePactForger with ExamplePactCommons {
+  override val pactTestExecutionContext: PactTestExecutionContext = executionContext
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
@@ -35,7 +39,10 @@ class MunitPact extends RequestResponsePactForger {
       // -------------------------- FETCH RESOURCE --------------------------
       .`given`(
         "resource exists", // this is a state identifier that is passed to the provider
-        Map("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
+        Map[String, Any](
+          "id"    -> testID,
+          "value" -> 123
+        ) // we can use parameters to specify details about the provider state
       )
       .uponReceiving("Request to fetch extant resource")
       .method("GET")
@@ -70,7 +77,7 @@ class MunitPact extends RequestResponsePactForger {
       .status(204)
       .`given`(
         "resource exists",
-        Map("id" -> conflictResource.id, "value" -> conflictResource.value)
+        Map[String, Any]("id" -> conflictResource.id, "value" -> conflictResource.value)
       ) // notice we're using the same state, but with different parameters
       .uponReceiving("Request to create resource that already exists")
       .method("POST")
@@ -81,7 +88,7 @@ class MunitPact extends RequestResponsePactForger {
       .status(409)
       .toPact
 
-  val client: Fixture[Client[IO]] = ResourceSuiteLocalFixture(
+  val clientFixture: IOFixture[Client[IO]] = ResourceSuiteLocalFixture(
     "httpClient",
     EmberClientBuilder.default[IO].build
   )
@@ -90,37 +97,56 @@ class MunitPact extends RequestResponsePactForger {
   As pact4s uses an munit fixture to manage the mock provider that it uses to run these tests against,
   any additional fixtures must be specified by overriding this method, rather than `munitFixtures`
    */
-  override def additionalMunitFixtures: Seq[Fixture[_]] = Seq(client)
-
+  override def additionalMunitFixtures: Seq[AnyFixture[_]] = Seq(clientFixture)
   /*
   we should use these tests to ensure that our client class correctly handles responses from the provider - i.e. decoding, error mapping, validation
    */
   pactTest("handle fetch request for extant resource") { mockServer =>
-    new ProviderClientImpl[IO](client(), Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
+    new ProviderClientImpl[IO](
+      clientFixture(),
+      Uri.unsafeFromString(mockServer.getUrl),
+      BasicCredentials("user", "pass")
+    )
       .fetchResource(testID)
-      .assertEquals(Some(Resource(testID, 123)))
+      .assertEquals(Some(ProviderResource(testID, 123)))
   }
 
   pactTest("handle fetch request for missing resource") { mockServer =>
-    new ProviderClientImpl[IO](client(), Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
+    new ProviderClientImpl[IO](
+      clientFixture(),
+      Uri.unsafeFromString(mockServer.getUrl),
+      BasicCredentials("user", "pass")
+    )
       .fetchResource(missingID)
       .assertEquals(None)
   }
 
   pactTest("handle fetch request with incorrect auth") { mockServer =>
-    new ProviderClientImpl[IO](client(), Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "wrong"))
+    new ProviderClientImpl[IO](
+      clientFixture(),
+      Uri.unsafeFromString(mockServer.getUrl),
+      BasicCredentials("user", "wrong")
+    )
       .fetchResource(testID)
       .intercept[InvalidCredentials.type]
   }
 
   pactTest("handle create request for new resource") { mockServer =>
-    new ProviderClientImpl[IO](client(), Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
+    new ProviderClientImpl[IO](
+      clientFixture(),
+      Uri.unsafeFromString(mockServer.getUrl),
+      BasicCredentials("user", "pass")
+    )
       .createResource(newResource)
       .assert
   }
 
   pactTest("handle create request for existing resource") { mockServer =>
-    new ProviderClientImpl[IO](client(), Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
+    new ProviderClientImpl[IO](
+      clientFixture(),
+      Uri.unsafeFromString(mockServer.getUrl),
+      BasicCredentials("user", "pass")
+    )
       .createResource(conflictResource)
       .intercept[UserAlreadyExists.type]
   }
