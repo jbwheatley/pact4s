@@ -5,9 +5,7 @@ on:
       - main
   pull_request:
     types: [opened, edited, reopened, synchronize]
-    
-env:
-  JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           cache: sbt
+      - uses: sbt/setup-sbt@v1 #https://eed3si9n.com/setup-sbt/
       - run: sbt ${{ matrix.command }}

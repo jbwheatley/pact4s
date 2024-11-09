@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 io.github.jbwheatley
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package http.provider
 
 import cats.effect
@@ -21,7 +37,7 @@ import scala.concurrent.duration.DurationInt
 
 class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactVerifier {
 
-  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO]
+  val store: MockResourceStore[IO] = MockResourceStore.unsafe[IO]()
 
   val apiKey: String = "1dcbkjabyge1g273ie1u2"
 
@@ -35,6 +51,7 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
       .withHost(Host.fromString("localhost").get)
       .withPort(Port.fromInt(1234).get)
       .withHttpApp((fetchRoute <+> createRoute).orNotFound)
+      .withShutdownTimeout(0.seconds)
       .build
 
   var cleanUp: IO[Unit] = IO.unit
@@ -43,8 +60,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     val (_, shutdown) = server.allocated.unsafeRunSync()
     cleanUp = shutdown
     // Insert deliberately data that the provider state before hook should clean so that tests succeed
-    store.create(Resource("missingID", 99)).unsafeRunSync()
-    store.create(Resource("newID", 66)).unsafeRunSync()
+    store.create(ProviderResource("missingID", 99)).unsafeRunSync()
+    store.create(ProviderResource("newID", 66)).unsafeRunSync()
     ()
   }
 
@@ -79,9 +96,9 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
         case ProviderState("resource exists", params) =>
           val id    = params.get("id")
           val value = params.get("value").map(_.toInt)
-          (id, value).mapN(Resource.apply).traverse_(store.create).unsafeRunSync()
+          (id, value).mapN(ProviderResource.apply).traverse_(store.create).unsafeRunSync()
         case ProviderState("resource does not exist", _) => () // Nothing to do
-        case _                                           => ???
+        case _                                           => ()
       }
         .withBeforeEach(() => store.empty.unsafeRunSync())
     )

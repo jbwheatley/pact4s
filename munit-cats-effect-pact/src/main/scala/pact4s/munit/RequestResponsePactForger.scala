@@ -19,8 +19,10 @@ package pact4s.munit
 import au.com.dius.pact.consumer.BaseMockServer
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
+import munit.catseffect.IOFixture
 import munit.internal.PlatformCompat
-import munit.{CatsEffectSuite, Location, TestOptions}
+import munit.{AnyFixture, CatsEffectSuite, Location, TestOptions}
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.RequestResponsePactForgerResources
 
 import scala.concurrent.Future
@@ -28,13 +30,13 @@ import scala.util.control.NonFatal
 
 trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePactForgerResources {
 
-  @volatile private var testFailed: Boolean = false
+  private var testFailed: Boolean = false
 
-  override def munitFixtures: Seq[Fixture[_]] = serverFixture +: additionalMunitFixtures
+  override def munitFixtures: Seq[AnyFixture[_]] = serverFixture +: additionalMunitFixtures
 
-  def additionalMunitFixtures: Seq[Fixture[_]] = Seq.empty
+  def additionalMunitFixtures: Seq[AnyFixture[_]] = Seq.empty
 
-  private lazy val serverFixture: Fixture[BaseMockServer] = ResourceSuiteLocalFixture(
+  private lazy val serverFixture: IOFixture[BaseMockServer] = ResourceSuiteLocalFixture(
     "mockHttpServer",
     serverResource
   )
@@ -65,14 +67,15 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
     }
   }
 
-  def pactTest(name: String)(test: BaseMockServer => Any): Unit = this.test(name)(test(serverFixture.apply()))
+  def pactTest(name: String)(test: BaseMockServer => Any)(implicit loc: Location): Unit =
+    this.test(name)(test(serverFixture.apply()))
 
   override def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit =
     munitTestsBuffer += munitTestTransform(
       new Test(
         options.name,
         () =>
-          try PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
+          try PlatformCompat.waitAtMost(() => munitValueTransform(body), munitTimeout, munitExecutionContext)
           catch {
             case NonFatal(e) =>
               testFailed = true
@@ -83,7 +86,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
       )
     )
 
-  type Effect[_] = IO[_]
+  override private[pact4s] type Effect[_] = IO[_]
 
   def beforeWritePacts(): IO[Unit] = IO.unit
 }

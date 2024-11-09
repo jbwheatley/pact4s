@@ -19,6 +19,7 @@ package pact4s.scalatest
 import au.com.dius.pact.core.model.messaging.Message
 import org.scalatest._
 import pact4s.MessagePactForgerResources
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 
 import scala.jdk.CollectionConverters._
 
@@ -26,7 +27,7 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
 
   def messages: List[Message] = pact.getMessages.asScala.toList
 
-  @volatile private var testFailed = false
+  private var testFailed = false
 
   abstract override def run(testName: Option[String], args: Args): Status =
     if (expectedTestCount(args.filter) == 0) {
@@ -53,7 +54,7 @@ trait MessagePactForger extends MessagePactForgerResources with SuiteMixin { sel
         }
     }
 
-  type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }

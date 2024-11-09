@@ -1,6 +1,22 @@
+/*
+ * Copyright 2021 io.github.jbwheatley
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package http.consumer
 
-import au.com.dius.pact.consumer.ConsumerPactBuilder
+import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
@@ -12,7 +28,9 @@ import org.scalatest.matchers.should.Matchers
 import pact4s.circe.implicits._
 import pact4s.scalatest.RequestResponsePactForger
 
-class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons with RequestResponsePactForger {
+class ScalaTestPact extends AnyFlatSpec with Matchers with ExamplePactCommons with RequestResponsePactForger {
+
+  override val pactTestExecutionContext: PactTestExecutionContext = executionContext
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
@@ -21,7 +39,10 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
       // -------------------------- FETCH RESOURCE --------------------------
       .`given`(
         "resource exists", // this is a state identifier that is passed to the provider
-        Map("id" -> testID, "value" -> 123) // we can use parameters to specify details about the provider state
+        Map[String, Any](
+          "id"    -> testID,
+          "value" -> 123
+        ) // we can use parameters to specify details about the provider state
       )
       .uponReceiving("Request to fetch extant resource")
       .method("GET")
@@ -56,7 +77,7 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
       .status(204)
       .`given`(
         "resource exists",
-        Map("id" -> conflictResource.id, "value" -> conflictResource.value)
+        Map[String, Any]("id" -> conflictResource.id, "value" -> conflictResource.value)
       ) // notice we're using the same state, but with different parameters
       .uponReceiving("Request to create resource that already exists")
       .method("POST")
@@ -73,7 +94,7 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ScalaTestPactCommons 
   it should "handle fetch request for extant resource" in {
     new ProviderClientImpl[IO](client, Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
       .fetchResource(testID)
-      .unsafeRunSync() shouldBe Some(Resource(testID, 123))
+      .unsafeRunSync() shouldBe Some(ProviderResource(testID, 123))
   }
 
   it should "handle fetch request for missing resource" in {

@@ -2,35 +2,37 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "5.12.0"
+  val mockito = "5.14.2"
 
-  val pactJvm = "4.6.9"
+  val pactJvm = "4.6.15"
 
-  val http4s = "0.23.27"
+  val http4s = "0.23.29"
 
   val log4s = "1.10.0"
 
-  val logback = "1.5.6"
-
   val collectionCompat = "2.12.0"
 
-  val sourcecode = "0.4.1"
+  val sourcecode = "0.4.2"
 
-  val _circe = "0.14.7"
+  val _circe = "0.14.10"
 
-  val _playJson = "3.0.3"
+  val _playJson = "3.0.4"
 
   val _sprayJson = "1.3.6"
 
   val _weaver = "0.8.4"
 
-  val _scalatest = "3.2.18"
+  val _scalatest = "3.2.19"
 
-  val _munit = "0.7.29"
+  val _munit = "1.0.2"
 
-  val _zio = "2.0.22"
+  val _zio = "2.1.11"
 
-  val munitCatsEffect = "1.0.7"
+  val munitCatsEffect = "2.0.0"
+
+  val upickle = "4.0.2"
+
+  val zioCats = "23.1.0.3"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
@@ -41,19 +43,19 @@ object Dependencies {
 
   val shared: Seq[ModuleID] =
     Seq(
-      "org.log4s"     %% "log4s"               % log4s,
-      "ch.qos.logback" % "logback-classic"     % logback % Runtime,
-      "com.lihaoyi"   %% "sourcecode"          % sourcecode,
-      "org.http4s"    %% "http4s-ember-client" % http4s  % Test,
-      "org.http4s"    %% "http4s-dsl"          % http4s  % Test,
-      "org.http4s"    %% "http4s-ember-server" % http4s  % Test,
-      "org.http4s"    %% "http4s-circe"        % http4s  % Test,
-      "io.circe"      %% "circe-core"          % _circe  % Test,
-      "org.mockito"    % "mockito-core"        % mockito % Test
+      "org.log4s"   %% "log4s"               % log4s,
+      "com.lihaoyi" %% "sourcecode"          % sourcecode,
+      "com.lihaoyi" %% "upickle"             % upickle,
+      "org.http4s"  %% "http4s-ember-client" % http4s  % Test,
+      "org.http4s"  %% "http4s-dsl"          % http4s  % Test,
+      "org.http4s"  %% "http4s-ember-server" % http4s  % Test,
+      "org.http4s"  %% "http4s-circe"        % http4s  % Test,
+      "io.circe"    %% "circe-core"          % _circe  % Test,
+      "org.mockito"  % "mockito-core"        % mockito % Test
     )
 
   val munit: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Provided
+    "org.typelevel" %% "munit-cats-effect" % munitCatsEffect % Provided
   )
 
   val scalatest: Seq[ModuleID] = Seq(
@@ -93,7 +95,10 @@ object Dependencies {
     "org.http4s"    %% "http4s-ember-server" % http4s,
     "org.http4s"    %% "http4s-circe"        % http4s,
     "io.circe"      %% "circe-core"          % _circe,
-    "org.typelevel" %% "munit-cats-effect-3" % munitCatsEffect % Test,
+    "dev.zio"       %% "zio-interop-cats"    % zioCats         % Test,
+    "dev.zio"       %% "zio-test"            % _zio            % Test,
+    "dev.zio"       %% "zio-managed"         % _zio            % Test,
+    "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
 

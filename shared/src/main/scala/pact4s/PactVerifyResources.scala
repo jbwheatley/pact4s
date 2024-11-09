@@ -17,7 +17,9 @@
 package pact4s
 
 import au.com.dius.pact.provider._
-import pact4s.provider.StateManagement.StateManagementFunction
+import pact4s.effect.MonadLike
+import pact4s.effect.MonadLike._
+import pact4s.provider.StateManagement.{ProviderUrl, StateManagementFunction}
 import pact4s.provider._
 import sourcecode.{File, FileName, Line}
 
@@ -27,8 +29,10 @@ import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
-trait PactVerifyResources {
+trait PactVerifyResources[F[+_]] {
   type ResponseFactory = String => ResponseBuilder
+
+  private[pact4s] implicit def F: MonadLike[F]
 
   def provider: ProviderInfoBuilder
 
@@ -37,53 +41,58 @@ trait PactVerifyResources {
   private val failures: ListBuffer[String]        = new ListBuffer[String]()
   private val pendingFailures: ListBuffer[String] = new ListBuffer[String]()
 
-  private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit
-  private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing
+  private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): F[Unit]
+  private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): F[Nothing]
 
   private[pact4s] def runWithTimeout(
-      verify: () => VerificationResult,
+      verify: => F[VerificationResult],
       timeout: Option[FiniteDuration]
-  ): Either[Throwable, VerificationResult] = timeout match {
+  ): F[Either[Throwable, VerificationResult]] = timeout match {
     case Some(timeout) =>
       try
-        Right(
-          TimeLimiter.callWithTimeout(verify, timeout)
-        )
+        TimeLimiter.callWithTimeout[F[VerificationResult]](verify, timeout).map(Right(_))
       catch {
-        case NonFatal(e) => Left(e)
+        case NonFatal(e) => F(Left(e))
       }
-    case None => Right(verify())
+    case None => verify.map(Right(_))
   }
 
   private def verifySingleConsumer(
       providerInfo: ProviderInfo,
       verifier: ProviderVerifier,
       timeout: Option[FiniteDuration]
-  )(consumer: IConsumerInfo): Unit =
-    runWithTimeout(() => runVerification(verifier, providerInfo, consumer), timeout) match {
+  )(consumer: IConsumerInfo): F[Unit] =
+    runWithTimeout(runVerification(verifier, providerInfo, consumer), timeout).flatMap {
       case Right(failed: VerificationResult.Failed) =>
-        verifier.displayFailures(List(failed).asJava)
+        F(verifier.displayFailures(List(failed).asJava))
         // Don't fail the build if the pact is pending.
         val pending = failed.getPending
         val message =
           s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
               " [PENDING]"
             else ""}: '${failed.getDescription}'"
-        if (pending) pendingFailures += message else failures += message
-      case Right(_: VerificationResult.Ok) => ()
-      case Right(_)                        => ???
+        if (pending) F(pendingFailures += message)
+        else F(failures += message)
+      case Right(_: VerificationResult.Ok) => F(())
+      case Right(_)                        => failure("unexpected result type")
       case Left(_: TimeoutException) =>
-        failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
+        F {
+          failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
+        }
       case Left(e) =>
-        failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed due to: ${e.getMessage}"
+        F {
+          failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed due to: ${e.getMessage}"
+        }
     }
 
   private[pact4s] def runVerification(
       verifier: ProviderVerifier,
       providerInfo: ProviderInfo,
       consumer: IConsumerInfo
-  ): VerificationResult =
-    verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
+  ): F[VerificationResult] =
+    F {
+      verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
+    }
 
   private def resolveProperty(properties: Map[String, String], name: String): Option[String] =
     properties.get(name).orElse(Option(System.getProperty(name)))
@@ -117,17 +126,20 @@ trait PactVerifyResources {
     verifier
   }
 
-  private def runWithStateChanger(run: => Unit): Unit = {
-    val stateChanger: StateChanger =
-      provider.stateManagement match {
-        case Some(s: StateManagementFunction) =>
+  private def runWithStateChanger(run: Option[String] => F[Unit]): F[Unit] =
+    provider.getStateManagement match {
+      case Some(s: StateManagementFunction) =>
+        val stateChanger =
           new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
-        case _ => StateChanger.NoOpStateChanger
-      }
-    stateChanger.start()
-    try run
-    finally stateChanger.shutdown()
-  }
+
+        for {
+          _ <- F(stateChanger.start())
+          _ <- run(Some(s.url(stateChanger.boundPort)))
+          _ <- F(stateChanger.shutdown())
+        } yield ()
+      case Some(p: ProviderUrl) => run(Some(p.url))
+      case None                 => run(None)
+    }
 
   /** @param providerBranch
     *   the branch of the provider project from which verification is being run. Applicable if using the
@@ -146,31 +158,30 @@ trait PactVerifyResources {
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
       verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
-  )(implicit fileName: FileName, file: File, line: Line): Unit = {
-    runWithStateChanger {
-      val verifier =
+  )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
+    runWithStateChanger { stateChangeUrl =>
+      val verifier: ProviderVerifier =
         setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
-      // to support deprecated branch settings using PublishVerificationResults
-      val providerInfo =
-        provider.build(providerBranch, responseFactory) match {
+      for {
+        // to support deprecated branch settings using PublishVerificationResults
+        providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
           case Left(value) =>
             failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
-          case Right(value) => value
+          case Right(value) => F(value)
         }
-
-      verifier.initialiseReporters(providerInfo)
-
-      val consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
-      if (consumers.isEmpty) {
-        verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo))
-      }
-
-      consumers.foreach(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
+        _ <- F(verifier.initialiseReporters(providerInfo))
+        consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
+        _ <-
+          if (consumers.isEmpty) {
+            F(verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo)))
+          } else F(())
+        _ <- F.foreach(consumers.toList)(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
+        failedMessages  = failures.toList
+        pendingMessages = pendingFailures.toList
+        _ <-
+          if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
+          else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
+          else F(())
+      } yield ()
     }
-
-    val failedMessages  = failures.toList
-    val pendingMessages = pendingFailures.toList
-    if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
-    if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
-  }
 }

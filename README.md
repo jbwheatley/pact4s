@@ -52,15 +52,15 @@ We also offer some additional helpers for using JSON encoders directly in your p
 
 ### Compatibility matrix
 
-| Pact4s version            | Pact JVM | Pact Spec | JDK  | Scala           |
-|---------------------------|----------|-----------|------|-----------------|
-| 0.10.x - 0.12.x           | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
-| 0.9.x                     | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
-| 0.8.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
-| 0.7.x                     | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
-| 0.6.x                     | 4.3      | V4        | 11+  | 2.12, 2.13, 3.2 |
-| 0.4.x - 0.5.x             | 4.3      | V4        | 11+  | 2.12, 2.13, 3.1 |
-| 0.1.x - 0.3.x             | 4.3      | V4        | 11+  | 2.12, 2.13      |
+| Pact4s version  | Pact JVM | Pact Spec | JDK  | Scala           |
+|-----------------|----------|-----------|------|-----------------|
+| 0.10.x - 0.14.x | 4.6      | V4        | 17+  | 2.12, 2.13, 3.3 |
+| 0.9.x           | 4.5      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.8.x           | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.7.x           | 4.4      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.6.x           | 4.3      | V4        | 11+  | 2.12, 2.13, 3.2 |
+| 0.4.x - 0.5.x   | 4.3      | V4        | 11+  | 2.12, 2.13, 3.1 |
+| 0.1.x - 0.3.x   | 4.3      | V4        | 11+  | 2.12, 2.13      |
 
 See also [Pact JVM Compatibility Matrix](https://github.com/pact-foundation/pact-jvm/blob/master/README.md).
 
@@ -258,8 +258,10 @@ def verify(interaction: RequestResponseInteraction): Result = interaction.getDes
 Upon completion of this test suite (and if all tests have passed) the pact will be written to the file defined in `pactTestExecutionContext`. **N.B.** The pact file will not be written unless the mock server has received a request for every interaction that you have defined in your pact. 
 
 Examples:
-- [munit-cats-effect](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/MunitPact.scala)
-- [scalatest](https://github.com/jbwheatley/pact4s/blob/main/example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
+- [munit-cats-effect](./example/consumer/src/test/scala/http/consumer/MunitPact.scala)
+- [scalatest](./example/consumer/src/test/scala/http/consumer/ScalaTestPact.scala)
+- [weaver](./example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
+- [ziotest](./example/consumer/src/test/scala/http/consumer/ZiotestPact.scala)
 
 #### Choosing a port
 
@@ -272,11 +274,11 @@ override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpCon
 
 #### 'Inline' Style of Processing Request/Response Pacts
 
-Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForger` (currently only available for ScalaTest) and the method `withPact` that it provides.
+Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForging` and the method `withPact` that it provides.
 
-An example ScalaTest using `InlineRequestResponsePactForger` is shown below.
+An example ScalaTest using `InlineRequestResponsePactForging` is shown below.
 ```scala
-class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestResponsePactForger {
+class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestResponsePactForging {
 
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./my-sub-project/target/pacts" //this is where the pact file gets written to. It defaults to ./target/pacts (relative to the project base)
@@ -328,7 +330,8 @@ class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestRespons
 }
 ```
 
-This style may be useful when it is impractical to write all interactions for all test cases in one single pact. Note, however, that for this approach, the `BaseMockServer` is created and started for each test case individually, which has a performance drawback.
+This style may be useful when it is impractical to write all interactions for all test cases in one single pact. While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
+appear to have a noticeable performance impact.
 
 ### Message Pacts
 
@@ -495,7 +498,7 @@ val provider: ProviderInfoBuilder =
   } 
 ```
 
-In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server receieves requests to `localhost:64646/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overriden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
+In this case, under the hood `pact4s` creates its own http server with an endpoint that receives the state-change requests from `pact-jvm`. By default, this server binds to a random port receives requests to `localhost:{port}/pact4s-state-change`. In case this clashes with any other server you are running, the url components can be overridden with `ProviderInfoBuilder#withStateChangeFunctionConfigOverrides`.
 
 It is also possible to define a before hook (`() => Unit`) that will run at each state change before the state-change function:
 
@@ -545,7 +548,7 @@ the following checklist:
 - Scaladocs are included where necessary - e.g. where methods or fields have been added.
 - Broken or invalidated methods/fields have had a deprecation tag applied.
 - Tests for your new feature or bugfix have been included.
-- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreate` to add headers to new files. 
+- You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreateAll` to add headers to new files. 
 - You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
 - Feature parity between the various library implementations is maintained. 
 
