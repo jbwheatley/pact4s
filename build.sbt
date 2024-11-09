@@ -1,9 +1,9 @@
-import sbt.Keys.{resolvers, testFrameworks}
+import sbt.Keys.*
 
-val scala212         = "2.12.19"
-val scala213         = "2.13.14"
+val scala212         = "2.12.20"
+val scala213         = "2.13.15"
 val scala2Versions   = Seq(scala212, scala213)
-val scala3           = "3.3.3"
+val scala3           = "3.3.4"
 val allScalaVersions = Seq(scala212, scala213, scala3)
 
 sonatypeCredentialHost := Sonatype.sonatype01
@@ -133,9 +133,11 @@ lazy val exampleConsumer =
     .settings(
       name := "example-consumer",
       libraryDependencies ++= Dependencies.example,
+      testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
       publish / skip := true
     )
-    .dependsOn(circe % "test", munit % "test", scalaTest % "test")
+    .dependsOn(circe % Test, munit % Test, scalaTest % Test, weaver % "test->test", zioTest % Test)
 
 lazy val exampleProvider =
   (project in file("example/provider"))
@@ -143,9 +145,12 @@ lazy val exampleProvider =
     .settings(
       name := "example-provider",
       libraryDependencies ++= Dependencies.example,
-      publish / skip := true
+      testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
+      Test / parallelExecution := false,
+      publish / skip           := true
     )
-    .dependsOn(munit % "test", scalaTest % "test")
+    .dependsOn(munit % Test, scalaTest % Test, weaver % "test->test", zioTest % Test)
 
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)

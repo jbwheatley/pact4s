@@ -16,19 +16,47 @@
 
 package pact4s.weaver
 
+import au.com.dius.pact.provider.VerificationResult
 import cats.data.NonEmptyList
+import cats.implicits._
 import pact4s.PactVerifyResources
+import pact4s.effect.MonadLike
 import sourcecode.{File, FileName, Line}
-import weaver.{AssertionException, CanceledException, SourceLocation}
+import weaver.{AssertionException, CanceledException, MutableFSuite, SourceLocation}
 
-trait PactVerifier extends PactVerifyResources {
-  override private[pact4s] def skip(message: String)(implicit fileName: FileName, file: File, line: Line): Unit =
-    throw new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value))
-  override private[pact4s] def failure(message: String)(implicit fileName: FileName, file: File, line: Line): Nothing =
-    throw AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
-}
+import scala.concurrent.TimeoutException
+import scala.concurrent.duration.FiniteDuration
 
-trait MessagePactVerifier extends PactVerifier {
-  def messages: ResponseFactory
-  override def responseFactory: Option[ResponseFactory] = Some(messages)
+trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
+  override private[pact4s] def skip(
+      message: String
+  )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
+    effect.raiseError(new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value)))
+  override private[pact4s] def failure(
+      message: String
+  )(implicit fileName: FileName, file: File, line: Line): F[Nothing] =
+    effect.raiseError(
+      AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value)))
+    )
+
+  override private[pact4s] implicit def F: MonadLike[F] = new MonadLike[F] {
+    override def apply[A](a: => A): F[A]                           = effect.delay(a)
+    override def map[A, B](a: => F[A])(f: A => B): F[B]            = a.map(f)
+    override def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]     = a.flatMap(f)
+    override def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit] = as.traverse_(f)
+  }
+
+  override private[pact4s] def runWithTimeout(
+      verify: => F[VerificationResult],
+      timeout: Option[FiniteDuration]
+  ): F[Either[TimeoutException, VerificationResult]] =
+    timeout match {
+      case Some(timeout) =>
+        effect.timeoutTo(
+          verify.map(Right(_)),
+          timeout,
+          effect.delay(Left(new TimeoutException(s"verifying pacts timed out after $timeout")))
+        )
+      case None => verify.map(Right(_))
+    }
 }

@@ -18,14 +18,15 @@ package pact4s.scalatest
 
 import au.com.dius.pact.consumer.BaseMockServer
 import org.scalatest._
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 import pact4s.RequestResponsePactForgerResources
 
 trait RequestResponsePactForger extends RequestResponsePactForgerResources with SuiteMixin { self: Suite =>
 
   def mockServer: BaseMockServer = allocatedServer.get
 
-  @volatile private var testFailed                              = false
-  @volatile private var allocatedServer: Option[BaseMockServer] = None
+  private var testFailed                              = false
+  private var allocatedServer: Option[BaseMockServer] = None
 
   abstract override def run(testName: Option[String], args: Args): Status = {
     val server = createServer
@@ -63,7 +64,7 @@ trait RequestResponsePactForger extends RequestResponsePactForgerResources with 
     }
   }
 
-  type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }

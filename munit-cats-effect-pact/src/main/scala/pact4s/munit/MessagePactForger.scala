@@ -20,6 +20,7 @@ import au.com.dius.pact.core.model.messaging.Message
 import munit.internal.PlatformCompat
 import munit.{CatsEffectSuite, Location, TestOptions}
 import pact4s.MessagePactForgerResources
+import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -27,7 +28,7 @@ import scala.util.control.NonFatal
 
 trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources {
 
-  @volatile private var testFailed = false
+  private var testFailed = false
 
   def messages: List[Message] = pact.getMessages.asScala.toList
 
@@ -36,7 +37,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
       new Test(
         options.name,
         () =>
-          try PlatformCompat.waitAtMost(munitValueTransform(body), munitTimeout)
+          try PlatformCompat.waitAtMost(() => munitValueTransform(body), munitTimeout, munitExecutionContext)
           catch {
             case NonFatal(e) =>
               testFailed = true
@@ -55,7 +56,6 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
   override def afterAll(): Unit = {
     super.afterAll()
     if (testFailed) {
-
       pact4sLogger.error(
         notWritingPactMessage(pact)
       )
@@ -69,7 +69,7 @@ trait MessagePactForger extends CatsEffectSuite with MessagePactForgerResources 
     }
   }
 
-  type Effect[_] = Either[Throwable, _]
+  override private[pact4s] type Effect[_] = Either[Throwable, _]
 
   def beforeWritePacts(): Either[Throwable, Unit] = Right(())
 }

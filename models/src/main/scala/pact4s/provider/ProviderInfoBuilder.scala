@@ -81,7 +81,7 @@ final class ProviderInfoBuilder private (
     port: Int,
     path: String,
     pactSource: PactSource,
-    private[pact4s] val stateManagement: Option[StateManagement],
+    stateManagement: Option[StateManagement],
     verificationSettings: Option[VerificationSettings],
     requestFilter: ProviderRequest => Option[ProviderRequestFilter]
 ) {
@@ -106,6 +106,8 @@ final class ProviderInfoBuilder private (
     verificationSettings,
     requestFilter
   )
+
+  private[pact4s] def getStateManagement: Option[StateManagement] = stateManagement
 
   def withProtocol(protocol: String): ProviderInfoBuilder = copy(protocol = protocol)
   def withHost(host: String): ProviderInfoBuilder         = copy(host = host)
@@ -159,7 +161,8 @@ final class ProviderInfoBuilder private (
 
   private[pact4s] def build(
       providerBranch: Option[Branch],
-      responseFactory: Option[String => ResponseBuilder]
+      responseFactory: Option[String => ResponseBuilder],
+      stateChangeUrl: Option[String]
   ): Either[Throwable, ProviderInfo] = {
     val p = new ProviderInfo(name, protocol, host, port, path)
     responseFactory.foreach(_ => p.setVerificationType(PactVerification.RESPONSE_FACTORY))
@@ -167,7 +170,7 @@ final class ProviderInfoBuilder private (
       p.setVerificationType(PactVerification.ANNOTATED_METHOD)
       p.setPackagesToScan(packagesToScan.asJava)
     }
-    stateManagement.foreach(s => p.setStateChangeUrl(new URI(s.url).toURL))
+    stateChangeUrl.foreach(s => p.setStateChangeUrl(new URI(s).toURL))
     p.setRequestFilter {
       // because java
       new Consumer[HttpRequest] {
@@ -278,7 +281,7 @@ object ProviderInfoBuilder {
       requestFilter = _ => None
     )
 
-  /** Auxiliary constructor that provides some common defaults for the the mock provider address
+  /** Auxiliary constructor that provides some common defaults for the mock provider address
     *
     * Example usage:
     * {{{
