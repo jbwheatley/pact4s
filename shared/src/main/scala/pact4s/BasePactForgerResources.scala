@@ -16,17 +16,15 @@
 
 package pact4s
 
-import au.com.dius.pact.consumer.PactTestExecutionContext
 import au.com.dius.pact.core.model.{BasePact, PactSpecVersion}
 import au.com.dius.pact.core.support.V4PactFeaturesException
 import pact4s.syntax.{PactDslPartOps, PactOps}
 
 import scala.jdk.CollectionConverters._
 
-trait BasePactForgerResources[Pact <: BasePact] extends PactOps with PactDslPartOps {
-  def pact: Pact
+trait BasePactForgerResources[Pact <: BasePact] extends BasePactResources with PactOps with PactDslPartOps {
 
-  def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
+  def pact: Pact
 
   private[pact4s] def validatePactVersion(version: PactSpecVersion): Either[Throwable, Unit] = {
     val errors: List[String] = pact.validateForVersion(version).asScala.toList
