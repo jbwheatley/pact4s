@@ -549,11 +549,8 @@ the following checklist:
 - Broken or invalidated methods/fields have had a deprecation tag applied.
 - Tests for your new feature or bugfix have been included.
 - You've run `sbt scalafmtAll` to format your new code and run `sbt headerCreateAll` to add headers to new files. 
-- You've run `sbt commitCheck` to check formatting, headers, and run all the test suites. 
-- Feature parity between the various library implementations is maintained. 
-
-*N.B.* `sbt commitCheck` takes a while to run because we need to run each test suite in serial as there is networking involved. 
-You can save some time locally by using `sbt quickCommitCheck` which doesn't do any cross-building for different scala versions. 
+- You've run `sbt commitCheck` to check formatting, headers, and run all the test suites across all scala versions. 
+- Feature parity between the various library implementations is maintained.
 
 ---
 

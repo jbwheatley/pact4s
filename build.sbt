@@ -261,29 +261,20 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "quickCommitCheck",
-  List(
-    "clean",
-    "scalafmtCheck",
-    "headerCheck",
-    "compile:doc",
-    "test:compile",
-    "deletePactFiles",
-    "project munit",
-    "test",
-    "project weaver",
-    "test",
-    "project zioTest",
-    "test",
-    "project scalaTest",
-    "test",
-    "project circe",
-    "test",
-    "project playJson",
-    "test",
-    "project sprayJson",
-    "test",
-    "project /"
-  )
+  "commitCheck",
+  (List("clean", "deletePactFiles", "scalafmtCheck", "headerCheck", "+compile:doc", "+test:compile") ++
+    List(
+      "models",
+      "munit",
+      "scalaTest",
+      "weaver",
+      "zioTest",
+      "shared",
+      "circe",
+      "playJson",
+      "sprayJson",
+      "exampleConsumer",
+      "exampleProvider"
+    ).flatMap(p => List(s"project $p", "+test")))
     .mkString(";", ";", "")
 )
