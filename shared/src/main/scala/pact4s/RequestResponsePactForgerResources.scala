@@ -16,6 +16,7 @@
 
 package pact4s
 
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{BaseMockServer, MockHttpServerKt, PactVerificationResult}
 import au.com.dius.pact.core.model.{RequestResponseInteraction, RequestResponsePact}
 import pact4s.syntax.RequestResponsePactOps
@@ -25,6 +26,7 @@ import scala.jdk.CollectionConverters._
 trait RequestResponsePactForgerResources
     extends BasePactForgerResources[RequestResponsePact]
     with RequestResponsePactOps {
+  val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
   def interactions: List[RequestResponseInteraction] =
     // This seems to be the only reliable way to access RequestResponseInteraction across JDK versions
