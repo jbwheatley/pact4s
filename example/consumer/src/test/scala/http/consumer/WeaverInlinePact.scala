@@ -17,6 +17,7 @@
 package http.consumer
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import cats.effect.{IO, Resource}
 import io.circe.Json
@@ -37,6 +38,8 @@ object WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "../resources/pacts"
   )
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
 
   private def pact: PactDslWithProvider =
     ConsumerPactBuilder

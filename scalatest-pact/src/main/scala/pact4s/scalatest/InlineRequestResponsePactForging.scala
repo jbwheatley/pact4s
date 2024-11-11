@@ -17,7 +17,6 @@
 package pact4s
 package scalatest
 
-import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{BaseMockServer, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import org.scalatest.{Suite, SuiteMixin}
@@ -25,8 +24,6 @@ import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 
 trait InlineRequestResponsePactForging extends InlineRequestResponsePactResources with SuiteMixin { self: Suite =>
   sealed abstract class ForgerImpl extends InlineRequestResponsePactForger() {
-    override protected val mockProviderConfig: MockProviderConfig =
-      InlineRequestResponsePactForging.this.mockProviderConfig
     def apply[A](test: BaseMockServer => A): A
   }
 
