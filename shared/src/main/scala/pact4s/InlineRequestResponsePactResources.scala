@@ -27,6 +27,7 @@ import pact4s.syntax.RequestResponsePactOps
   */
 trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =>
   def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
+  protected val mockProviderConfig: MockProviderConfig   = MockProviderConfig.createDefault()
 
   private[pact4s] type Forger <: InlineRequestResponsePactForger
 

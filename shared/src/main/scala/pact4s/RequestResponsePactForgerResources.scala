@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters._
 trait RequestResponsePactForgerResources
     extends BasePactForgerResources[RequestResponsePact]
     with RequestResponsePactOps {
-  val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
+  protected val mockProviderConfig: MockProviderConfig = MockProviderConfig.createDefault()
 
   def interactions: List[RequestResponseInteraction] =
     // This seems to be the only reliable way to access RequestResponseInteraction across JDK versions
