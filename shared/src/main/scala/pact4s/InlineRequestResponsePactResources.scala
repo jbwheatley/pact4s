@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.consumer.PactTestExecutionContext
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.core.model.RequestResponsePact
 import pact4s.effect.Id
 import pact4s.syntax.RequestResponsePactOps
@@ -26,6 +27,7 @@ import pact4s.syntax.RequestResponsePactOps
   */
 trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =>
   def pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext()
+  protected val mockProviderConfig: MockProviderConfig   = MockProviderConfig.createDefault()
 
   private[pact4s] type Forger <: InlineRequestResponsePactForger
 
@@ -39,6 +41,7 @@ trait InlineRequestResponsePactResources extends RequestResponsePactOps { self =
 
   private[pact4s] trait InlineRequestResponsePactForger extends RequestResponsePactForgerResources {
     override private[pact4s] type Effect[A] = Id[A]
-    override def beforeWritePacts(): Effect[Unit] = ()
+    override def beforeWritePacts(): Effect[Unit]       = ()
+    override val mockProviderConfig: MockProviderConfig = self.mockProviderConfig
   }
 }

@@ -17,6 +17,7 @@
 package http.consumer
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import io.circe.Json
 import io.circe.syntax._
@@ -34,6 +35,8 @@ import scala.annotation.nowarn
 object ZiotestInlinePact extends InlineRequestResponsePactForging with ExamplePactCommons {
 
   override val pactTestExecutionContext: PactTestExecutionContext = executionContext
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
 
   private def pact: PactDslWithProvider =
     ConsumerPactBuilder
