@@ -23,7 +23,7 @@ import org.scalatest.{Suite, SuiteMixin}
 import pact4s.Pact4sLogger.{notWritingPactMessage, pact4sLogger}
 
 trait InlineRequestResponsePactForging extends InlineRequestResponsePactResources with SuiteMixin { self: Suite =>
-  sealed abstract class ForgerImpl extends InlineRequestResponsePactForger() {
+  sealed abstract class ForgerImpl extends InlineRequestResponsePactForger {
     def apply[A](test: BaseMockServer => A): A
   }
 
