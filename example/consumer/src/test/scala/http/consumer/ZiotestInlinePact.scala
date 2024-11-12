@@ -27,16 +27,24 @@ import org.http4s.{BasicCredentials, Uri}
 import pact4s.circe.implicits._
 import pact4s.ziotest.InlineRequestResponsePactForging
 import zio.interop.catz._
-import zio.test.{Spec, TestEnvironment, assertTrue}
+import zio.test.{Spec, TestAspect, TestEnvironment, assertTrue}
 import zio.{Scope, Task, ZIO, ZLayer}
 
 import scala.annotation.nowarn
 
-object ZiotestInlinePact extends InlineRequestResponsePactForging with ExamplePactCommons {
+object ZiotestInlinePactParallel extends ZiotestInlinePact {
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
+}
+
+object ZiotestInlinePactSequential extends ZiotestInlinePact {
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
+
+  override def spec: Spec[TestEnvironment with Scope, Any] = super.spec @@ TestAspect.sequential
+}
+
+abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with ExamplePactCommons {
 
   override val pactTestExecutionContext: PactTestExecutionContext = executionContext
-
-  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
 
   private def pact: PactDslWithProvider =
     ConsumerPactBuilder

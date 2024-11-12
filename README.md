@@ -16,7 +16,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Using Pact Matching DSL](#using-pact-matching-dsl)
       - [Using JSON bodies](#using-json-bodies)
     + [Request/Response Pacts](#requestresponse-pacts)
-      - [Choosing a port](#choosing-a-port)
+      - [Choosing an address and/or port](#choosing-an-address-andor-port)
       - ['Inline' Style of Processing Request/Response Pacts](#inline-style-of-processing-requestresponse-pacts)
     + [Message Pacts](#message-pacts)
     + [Mixed Pacts](#mixed-pacts)
@@ -263,14 +263,18 @@ Examples:
 - [weaver](./example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
 - [ziotest](./example/consumer/src/test/scala/http/consumer/ZiotestPact.scala)
 
-#### Choosing a port
+#### Choosing an address and/or port
 
-If your consumer test need that the provider mock server runs on a specific port, you can override `mockProviderConfig` from `RequestResponsePactForger` like:
+If your consumer test needs the provider mock server to run on a specific address and/or port, you can override `mockProviderConfig` from `RequestResponsePactForger` like:
 
 ```scala
-// Mock server will run on port 9003
+// Mock server will run on localhost, port 9003
 override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 9003)
 ```
+
+Note that if you want to set a specific port, you have to disable parallel test execution, as the same port cannot be
+used by multiple parallel instances of the mock server.
+See [ZiotestInlinePactSequential](./example/consumer/src/test/scala/http/consumer/ZiotestInlinePact.scala)
 
 #### 'Inline' Style of Processing Request/Response Pacts
 
