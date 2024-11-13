@@ -272,10 +272,6 @@ If your consumer test needs the provider mock server to run on a specific addres
 override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 9003)
 ```
 
-Note that if you want to set a specific port, you have to disable parallel test execution, as the same port cannot be
-used by multiple parallel instances of the mock server.
-See [ZiotestInlinePactSequential](./example/consumer/src/test/scala/http/consumer/ZiotestInlinePact.scala)
-
 #### 'Inline' Style of Processing Request/Response Pacts
 
 Instead of defining one pact for the whole test class, containing all interactions for all test cases, you may want to define for each test case only the relevant partial pact. This can be done using the trait `InlineRequestResponsePactForging` and the method `withPact` that it provides.
@@ -334,8 +330,15 @@ class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestRespons
 }
 ```
 
-This style may be useful when it is impractical to write all interactions for all test cases in one single pact. While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
+This style may be useful when it is impractical to write all interactions for all test cases in one single pact.
+While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
 appear to have a noticeable performance impact.
+
+Note that if you want to set a specific port while using the "inline" style, you cannot use parallel test execution, as
+the same port cannot be used by multiple parallel instances of the mock server.
+See e.g. [WeaverInlinePactSequential](./example/consumer/src/test/scala/http/consumer/WeaverInlinePact.scala) and [ZiotestInlinePactSequential](./example/consumer/src/test/scala/http/consumer/ZiotestInlinePact.scala)
+(MUnit and ScalaTest execute tests sequentially by default).
+
 
 ### Message Pacts
 
