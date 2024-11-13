@@ -28,17 +28,18 @@ trait InlineRequestResponsePactForging[F[_]] extends MutableFSuite[F] with Inlin
   private val F = effect
   private[weaver] def serverResource(self: RequestResponsePactForgerResources): Resource[F, BaseMockServer] = {
     import self._
-    val server = createServer
-    Resource.make[F, BaseMockServer] {
-      {
-        for {
-          _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[F]
-          _ <- F.delay(server.start())
-          _ <- F.delay(server.waitForServer())
-        } yield server
-      }.onError { case _: Throwable => F.delay(server.stop()) }
-    } { s =>
-      F.delay(s.stop())
+    Resource.eval(F.delay(createServer)).flatMap { server =>
+      Resource.make[F, BaseMockServer] {
+        {
+          for {
+            _ <- validatePactVersion(mockProviderConfig.getPactVersion).liftTo[F]
+            _ <- F.delay(server.start())
+            _ <- F.delay(server.waitForServer())
+          } yield server
+        }.onError { case _: Throwable => F.delay(server.stop()) }
+      } { s =>
+        F.delay(s.stop())
+      }
     }
   }
 
