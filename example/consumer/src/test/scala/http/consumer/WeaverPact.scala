@@ -16,6 +16,7 @@
 
 package http.consumer
 
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.{IO, Resource}
@@ -32,6 +33,8 @@ object WeaverPact extends IOSuite with RequestResponsePactForger[IO] with Exampl
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "../resources/pacts"
   )
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
 
   override type Resources = Client[IO]
 
