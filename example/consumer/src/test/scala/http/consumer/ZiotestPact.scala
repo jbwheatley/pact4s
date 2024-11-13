@@ -16,6 +16,7 @@
 
 package http.consumer
 
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{BaseMockServer, ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import io.circe.Json
@@ -33,6 +34,8 @@ import scala.annotation.nowarn
 
 object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with ExamplePactCommons {
   override val pactTestExecutionContext: PactTestExecutionContext = executionContext
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
