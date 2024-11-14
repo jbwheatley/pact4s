@@ -16,7 +16,7 @@ Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/
       - [Using Pact Matching DSL](#using-pact-matching-dsl)
       - [Using JSON bodies](#using-json-bodies)
     + [Request/Response Pacts](#requestresponse-pacts)
-      - [Choosing a port](#choosing-a-port)
+      - [Choosing an address and/or port](#choosing-an-address-andor-port)
       - ['Inline' Style of Processing Request/Response Pacts](#inline-style-of-processing-requestresponse-pacts)
     + [Message Pacts](#message-pacts)
     + [Mixed Pacts](#mixed-pacts)
@@ -263,12 +263,12 @@ Examples:
 - [weaver](./example/consumer/src/test/scala/http/consumer/WeaverPact.scala)
 - [ziotest](./example/consumer/src/test/scala/http/consumer/ZiotestPact.scala)
 
-#### Choosing a port
+#### Choosing an address and/or port
 
-If your consumer test need that the provider mock server runs on a specific port, you can override `mockProviderConfig` from `RequestResponsePactForger` like:
+If your consumer test needs the provider mock server to run on a specific address and/or port, you can override `mockProviderConfig` from `RequestResponsePactForger` like:
 
 ```scala
-// Mock server will run on port 9003
+// Mock server will run on localhost, port 9003
 override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 9003)
 ```
 
@@ -330,8 +330,15 @@ class TestWithInlinePactDefinitions extends AnyFunSpec with InlineRequestRespons
 }
 ```
 
-This style may be useful when it is impractical to write all interactions for all test cases in one single pact. While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
+This style may be useful when it is impractical to write all interactions for all test cases in one single pact.
+While in this approach the `BaseMockServer` is created and started for each test case individually, it does not
 appear to have a noticeable performance impact.
+
+Note that if you want to set a specific port while using the "inline" style, you cannot use parallel test execution, as
+the same port cannot be used by multiple parallel instances of the mock server.
+See e.g. [WeaverInlinePactSequential](./example/consumer/src/test/scala/http/consumer/WeaverInlinePact.scala) and [ZiotestInlinePactSequential](./example/consumer/src/test/scala/http/consumer/ZiotestInlinePact.scala)
+(MUnit and ScalaTest execute tests sequentially by default).
+
 
 ### Message Pacts
 
