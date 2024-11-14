@@ -16,6 +16,7 @@
 
 package http.consumer
 
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
@@ -31,6 +32,8 @@ import pact4s.munit.RequestResponsePactForger
 
 class MunitPact extends RequestResponsePactForger with ExamplePactCommons {
   override val pactTestExecutionContext: PactTestExecutionContext = executionContext
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder

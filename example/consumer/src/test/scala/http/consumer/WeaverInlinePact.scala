@@ -29,7 +29,17 @@ import pact4s.circe.implicits._
 import pact4s.weaver.InlineRequestResponsePactForging
 import weaver.IOSuite
 
-object WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO] with ExamplePactCommons {
+object WeaverInlinePactParallel extends WeaverInlinePact {
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
+}
+
+object WeaverInlinePactSequential extends WeaverInlinePact {
+  override def maxParallelism = 1
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
+}
+
+abstract class WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO] with ExamplePactCommons {
 
   override type Res = Client[IO]
 
@@ -38,8 +48,6 @@ object WeaverInlinePact extends IOSuite with InlineRequestResponsePactForging[IO
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "../resources/pacts"
   )
-
-  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost")
 
   private def pact: PactDslWithProvider =
     ConsumerPactBuilder

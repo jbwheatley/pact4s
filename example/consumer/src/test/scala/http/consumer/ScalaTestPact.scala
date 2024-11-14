@@ -16,6 +16,7 @@
 
 package http.consumer
 
+import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactBuilder, PactTestExecutionContext}
 import au.com.dius.pact.core.model.RequestResponsePact
 import cats.effect.IO
@@ -29,8 +30,9 @@ import pact4s.circe.implicits._
 import pact4s.scalatest.RequestResponsePactForger
 
 class ScalaTestPact extends AnyFlatSpec with Matchers with ExamplePactCommons with RequestResponsePactForger {
-
   override val pactTestExecutionContext: PactTestExecutionContext = executionContext
+
+  override val mockProviderConfig: MockProviderConfig = MockProviderConfig.httpConfig("localhost", 1234)
 
   val pact: RequestResponsePact =
     ConsumerPactBuilder
