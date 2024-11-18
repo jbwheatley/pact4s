@@ -5,7 +5,7 @@
 
 Mostly dependency-free wrapper of [pact-jvm](https://github.com/pact-foundation/pact-jvm) for commonly used scala testing frameworks. To find out more about consumer-driven contract testing, visit the Pact Foundation website [here](https://docs.pact.io/)! Supported scala versions are 2.12, 2.13 and 3. 
 
-`pact4s` is still in the early stages of development! Please consider helping us out by contributing or raising issues :)
+Please consider helping us out by contributing or raising issues :)
 
 - [pact4s](#pact4s)
   * [Getting Started](#getting-started)
