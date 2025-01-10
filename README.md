@@ -520,6 +520,19 @@ val provider: ProviderInfoBuilder =
   )
 ```
 
+It is also possible to return values from state change function in order to inject them into pact generator's expressions:
+
+```scala
+val provider: ProviderInfoBuilder =
+  ProviderInfoBuilder().withStateChangeFunctionAndResponse {
+    case ProviderState("state", params) =>
+      val id: String = doSomething()
+      Map("someId" -> result)
+
+    case _ => Map.empty
+  }
+```
+
 ## Logging 
 
 - For consumer tests (forging pacts), you can enable additional logging from `pact-jvm` with the logger `au.com.dius.pact.consumer`.
