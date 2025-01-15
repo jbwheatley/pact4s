@@ -32,7 +32,7 @@ import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.Server
 import pact4s.circe.implicits._
-import pact4s.provider.Authentication.BasicAuth
+import pact4s.provider.Authentication.TokenAuth
 import pact4s.provider.PactSource.{FileSource, PactBrokerWithSelectors}
 import pact4s.provider._
 import sourcecode.{File => SCFile}
@@ -181,7 +181,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
         pactSource = PactBrokerWithSelectors(
           brokerUrl = "https://test.pactflow.io"
         ).pipe(b => if (pendingPactsEnabled) b.withPendingPactsEnabled else b.withPendingPactsDisabled)
-          .withAuth(BasicAuth("dXfltyFMgNOFZAxr8io9wJ37iUpY42M", "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"))
+          .withAuth(TokenAuth("129cCdfCWhMzcC9pFwb4bw"))
           .withConsumerVersionSelectors(consumerVersionSelector)
       ).withPort(port)
         .withOptionalVerificationSettings(verificationSettings)
