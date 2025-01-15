@@ -89,7 +89,7 @@ private[pact4s] object StateChanger {
                   }
                   .getOrElse(Map.empty[String, String])
               // Apply state change function
-              val result =
+              val result: Map[String, String] =
                 stateChange
                   .lift(ProviderState(s, params))
                   .getOrElse {
@@ -98,8 +98,8 @@ private[pact4s] object StateChanger {
                     )
                     Map.empty
                   }
-              val results: Map[String, Value] = result.map { case (k, v) => (k, ujson.Str(v)) }
-              maybeParams.fold(results)(_.toMap ++ results)
+              val jsonResult: Map[String, Value] = result.map { case (k, v) => (k, ujson.Str(v)) }
+              maybeParams.fold(jsonResult)(_.toMap ++ jsonResult)
             }
           }
         stateChangeMaybeApplied match {
