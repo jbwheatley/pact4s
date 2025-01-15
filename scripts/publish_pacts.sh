@@ -5,15 +5,13 @@ fi
 echo "Running publish_pacts script at $SCRIPT_DIR"
 
 export PACT_BROKER_BASE_URL="https://test.pactflow.io"
-export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
-export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+export PACT_BROKER_TOKEN="129cCdfCWhMzcC9pFwb4bw"
 
 docker run --rm \
  -w ${SCRIPT_DIR} \
  -v ${SCRIPT_DIR}:${SCRIPT_DIR} \
  -e PACT_BROKER_BASE_URL \
- -e PACT_BROKER_USERNAME \
- -e PACT_BROKER_PASSWORD \
+ -e PACT_BROKER_TOKEN \
   pactfoundation/pact-cli \
   publish \
   ${SCRIPT_DIR} \
@@ -25,8 +23,7 @@ docker run --rm \
  -w "${SCRIPT_DIR}/feature" \
  -v "${SCRIPT_DIR}/feature":"${SCRIPT_DIR}/feature" \
  -e PACT_BROKER_BASE_URL \
- -e PACT_BROKER_USERNAME \
- -e PACT_BROKER_PASSWORD \
+ -e PACT_BROKER_TOKEN \
   pactfoundation/pact-cli \
   publish \
   "${SCRIPT_DIR}/feature" \
