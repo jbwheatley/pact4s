@@ -24,13 +24,13 @@ object Dependencies {
 
   val _scalatest = "3.2.19"
 
-  val _munit = "1.0.3"
+  val _munit = "1.0.4"
 
   val _zio = "2.1.14"
 
   val munitCatsEffect = "2.0.0"
 
-  val upickle = "4.0.2"
+  val upickle = "4.1.0"
 
   val zioCats = "23.1.0.3"
 
