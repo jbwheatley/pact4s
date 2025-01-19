@@ -54,21 +54,20 @@ trait InlineRequestResponsePactForging[F[_]] extends MutableFSuite[F] with Inlin
       override val pact: RequestResponsePact                          = aPact
       override val pactTestExecutionContext: PactTestExecutionContext = self.pactTestExecutionContext
 
-      override def apply(test: BaseMockServer => F[Expectations]): F[Expectations] = serverResource(this).use {
-        server =>
-          {
-            for {
-              res <- test(server)
-              _   <- self.beforeWritePacts()
-              _   <- verifyResultAndWritePactFiles(server).liftTo[F]
-            } yield res
-          }.onError { case e: Throwable =>
-            F.delay(
-              pact4sLogger.error(e)(
-                notWritingPactMessage(pact)
-              )
+      override def apply(test: BaseMockServer => F[Expectations]): F[Expectations] = serverResource(this).use { server =>
+        {
+          for {
+            res <- test(server)
+            _   <- self.beforeWritePacts()
+            _   <- verifyResultAndWritePactFiles(server).liftTo[F]
+          } yield res
+        }.onError { case e: Throwable =>
+          F.delay(
+            pact4sLogger.error(e)(
+              notWritingPactMessage(pact)
             )
-          }
+          )
+        }
       }
     }
 
