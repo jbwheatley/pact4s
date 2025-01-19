@@ -28,7 +28,7 @@ class PactVerifierBrokerSuite extends AnyFlatSpec with MessagePactVerifier {
   def messages: ResponseFactory     = MessagesProvider.messages
   def provider: ProviderInfoBuilder = mock.brokerMessageProviderInfo
 
-  it should "Verify pacts for provider `MessageProvider`" in {
+  it should "Verify pacts for provider `MessageProvider`" in
     verifyPacts(
       publishVerificationResults = Some(
         PublishVerificationResults(
@@ -36,5 +36,4 @@ class PactVerifierBrokerSuite extends AnyFlatSpec with MessagePactVerifier {
         )
       )
     )
-  }
 }

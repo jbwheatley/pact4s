@@ -134,7 +134,7 @@ class ScalaTestInlinePact
     }
   }
 
-  it should "handle create request for existing resource" in {
+  it should "handle create request for existing resource" in
     withPact(
       pact
         .`given`(
@@ -155,5 +155,4 @@ class ScalaTestInlinePact
         .attempt
         .unsafeRunSync() shouldBe Left(UserAlreadyExists)
     }
-  }
 }

@@ -43,7 +43,6 @@ class PactVerifierStateChangeFunctionSuite extends AnyFlatSpec with PactVerifier
   override def afterAll(): Unit =
     cleanUp.unsafeRunSync()
 
-  it should "Verify pacts for provider `Pact4sProvider`" in {
+  it should "Verify pacts for provider `Pact4sProvider`" in
     verifyPacts()
-  }
 }

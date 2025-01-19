@@ -28,7 +28,6 @@ class PactVerifierFileSuite extends AnyFlatSpec with MessagePactVerifier {
   def messages: ResponseFactory     = MessagesProvider.messages
   def provider: ProviderInfoBuilder = mock.fileSourceMessageProviderInfo
 
-  it should "Verify pacts for provider `MessageProvider`" in {
+  it should "Verify pacts for provider `MessageProvider`" in
     verifyPacts()
-  }
 }

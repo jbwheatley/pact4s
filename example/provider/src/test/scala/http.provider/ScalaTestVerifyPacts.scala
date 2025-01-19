@@ -117,11 +117,10 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     )
     .withRequestFiltering(requestFilter)
 
-  it should "Verify pacts" in {
+  it should "Verify pacts" in
     verifyPacts(
       publishVerificationResults = None,
       providerVerificationOptions = Nil,
       verificationTimeout = Some(10.seconds)
     )
-  }
 }

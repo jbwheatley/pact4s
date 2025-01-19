@@ -72,12 +72,11 @@ class ReproducerSuite extends AnyFlatSpec with PactVerifier with BeforeAndAfterA
   override def beforeAll(): Unit =
     metadata = Map("hi" -> "there")
 
-  it should "verify pacts" in {
+  it should "verify pacts" in
     verifyPacts(
       // Issue #19
       // If the declaring class of the annotated method has mutable properties, we must ensure the verifier uses the same
       // instance is used when invoking the method, otherwise the state of the property will be wrong.
       providerMethodInstance = Some(this)
     )
-  }
 }
