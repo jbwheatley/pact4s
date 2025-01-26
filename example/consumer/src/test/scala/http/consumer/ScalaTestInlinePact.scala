@@ -48,7 +48,7 @@ class ScalaTestInlinePact
   /*
   we should use these tests to ensure that our client class correctly handles responses from the provider - i.e. decoding, error mapping, validation
    */
-  it should "handle fetch request for extant resource" in {
+  it should "handle fetch request for extant resource" in
     withPact(
       pact
         // -------------------------- FETCH RESOURCE --------------------------
@@ -77,9 +77,8 @@ class ScalaTestInlinePact
         .fetchResource(testID)
         .unsafeRunSync() shouldBe Some(ProviderResource(testID, 123))
     }
-  }
 
-  it should "handle fetch request for missing resource" in {
+  it should "handle fetch request for missing resource" in
     withPact(
       pact
         .`given`("resource does not exist")
@@ -95,9 +94,8 @@ class ScalaTestInlinePact
         .fetchResource(missingID)
         .unsafeRunSync() shouldBe None
     }
-  }
 
-  it should "handle fetch request with incorrect auth" in {
+  it should "handle fetch request with incorrect auth" in
     withPact(
       pact
         .uponReceiving("Request to fetch resource with wrong auth")
@@ -113,9 +111,8 @@ class ScalaTestInlinePact
         .attempt
         .unsafeRunSync() shouldBe Left(InvalidCredentials)
     }
-  }
 
-  it should "handle create request for new resource" in {
+  it should "handle create request for new resource" in
     withPact(
       pact
         .`given`("resource does not exist")
@@ -132,7 +129,6 @@ class ScalaTestInlinePact
         .createResource(newResource)
         .unsafeRunSync()
     }
-  }
 
   it should "handle create request for existing resource" in
     withPact(

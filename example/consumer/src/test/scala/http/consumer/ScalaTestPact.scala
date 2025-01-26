@@ -112,11 +112,10 @@ class ScalaTestPact extends AnyFlatSpec with Matchers with ExamplePactCommons wi
       .unsafeRunSync() shouldBe Left(InvalidCredentials)
   }
 
-  it should "handle create request for new resource" in {
+  it should "handle create request for new resource" in
     new ProviderClientImpl[IO](client, Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
       .createResource(newResource)
       .unsafeRunSync()
-  }
 
   it should "handle create request for existing resource" in {
     new ProviderClientImpl[IO](client, Uri.unsafeFromString(mockServer.getUrl), BasicCredentials("user", "pass"))
