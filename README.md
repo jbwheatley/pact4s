@@ -421,13 +421,11 @@ verifyPacts(
       // Normally this would be a version supplied by the build system, e.g. the Git commit hash, or a semantic version
       // like "1.0.0". See: https://docs.pact.io/getting_started/versioning_in_the_pact_broker
       providerVersion = "SNAPSHOT",
-      // Normally this would be the git branch, e.g. "main" or "master"
-      // See: https://docs.pact.io/pact_broker/tags/
-      providerTags = Nil,
       //how long each interaction has to run before the test timeouts. 
       verificationTimeout = Some(30.seconds)
     )
-  )
+  ),
+  providerBranch = Some(Branch("mybranch"))
 )
 ```
 
