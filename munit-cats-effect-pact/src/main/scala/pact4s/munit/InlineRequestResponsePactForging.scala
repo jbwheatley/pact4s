@@ -35,7 +35,7 @@ trait InlineRequestResponsePactForging extends CatsEffectSuite with InlineReques
           _ <- IO(server.start())
           _ <- IO(server.waitForServer())
         } yield server
-      }.onError(_ => IO(server.stop()))
+      }.onError { case _: Throwable => IO(server.stop()) }
     } { s =>
       IO(s.stop())
     }
@@ -59,13 +59,13 @@ trait InlineRequestResponsePactForging extends CatsEffectSuite with InlineReques
             _ <- self.beforeWritePacts()
             _ <- verifyResultAndWritePactFiles(server).liftTo[IO]
           } yield ()
-        }.onError(e =>
+        }.onError { case e: Throwable =>
           IO(
             pact4sLogger.error(e)(
               notWritingPactMessage(pact)
             )
           )
-        )
+        }
       }
     }
 

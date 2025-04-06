@@ -44,8 +44,10 @@ trait PactVerifier extends PactVerifyResources[IO] { self: CatsEffectSuite =>
 
   override private[pact4s] def failure(
       message: String
-  )(implicit fileName: FileName, file: File, line: Line): IO[Nothing] =
-    IO(fail(message)(new Location(file.value, line.value)))
+  )(implicit fileName: FileName, file: File, line: Line): IO[Nothing] = {
+    implicit val loc: Location = new Location(file.value, line.value)
+    IO(fail(message))
+  }
 
   override private[pact4s] def runWithTimeout(
       verify: => IO[VerificationResult],
