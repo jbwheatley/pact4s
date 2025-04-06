@@ -50,7 +50,7 @@ trait RequestResponsePactForger extends CatsEffectSuite with RequestResponsePact
           _ <- IO(server.start())
           _ <- IO(server.waitForServer())
         } yield server
-      }.onError { case _: Throwable => IO(server.stop()) }
+      }.onError({ case _: Throwable => IO(server.stop()) }: PartialFunction[Throwable, IO[Unit]])
     } { s =>
       IO(s.stop()) >> {
         if (testFailed) {
