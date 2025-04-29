@@ -6,7 +6,7 @@ val scala2Versions   = Seq(scala212, scala213)
 val scala3           = "3.3.5"
 val allScalaVersions = Seq(scala212, scala213, scala3)
 
-sonatypeCredentialHost := Sonatype.sonatype01
+sonatypeCredentialHost := Sonatype.sonatypeCentralHost
 
 inThisBuild(
   List(
