@@ -20,7 +20,7 @@ object Dependencies {
 
   val _sprayJson = "1.3.6"
 
-  val _weaver = "0.8.4"
+  val _weaver = "0.9.0"
 
   val _scalatest = "3.2.19"
 
@@ -63,8 +63,8 @@ object Dependencies {
   )
 
   val weaver: Seq[ModuleID] = Seq(
-    "com.disneystreaming" %% "weaver-core" % _weaver % Provided,
-    "com.disneystreaming" %% "weaver-cats" % _weaver % Test
+    "org.typelevel" %% "weaver-core" % _weaver % Provided,
+    "org.typelevel" %% "weaver-cats" % _weaver % Test
   )
 
   val zioTest: Seq[ModuleID] = Seq(
