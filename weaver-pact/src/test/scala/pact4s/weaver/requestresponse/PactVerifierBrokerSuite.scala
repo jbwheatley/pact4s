@@ -39,6 +39,6 @@ object PactVerifierBrokerSuite extends IOSuite with PactVerifier[IO] {
         Some(Branch.MAIN)
       ).map(succeed)
       x <- mock.featureXState.tryGet
-    } yield a && assert(x.isEmpty)
+    } yield a && expect(x.isEmpty)
   }
 }
