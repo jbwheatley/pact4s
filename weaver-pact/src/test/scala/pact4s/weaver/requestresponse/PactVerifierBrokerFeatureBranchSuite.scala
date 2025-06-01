@@ -42,6 +42,6 @@ object PactVerifierBrokerFeatureBranchSuite extends IOSuite with PactVerifier[IO
           )
         ).map(succeed)
       x <- mock.featureXState.tryGet
-    } yield a && assert(x.contains(true))
+    } yield a && expect(x.contains(true))
   }
 }
