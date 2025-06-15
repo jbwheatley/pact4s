@@ -14,7 +14,7 @@ object Dependencies {
 
   val sourcecode = "0.4.2"
 
-  val _circe = "0.14.13"
+  val _circe = "0.14.14"
 
   val _playJson = "3.0.4"
 
