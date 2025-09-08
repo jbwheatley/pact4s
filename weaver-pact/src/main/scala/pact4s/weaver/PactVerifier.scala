@@ -31,7 +31,9 @@ trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
   override private[pact4s] def skip(
       message: String
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
-    effect.raiseError(new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value, None)))
+    effect.raiseError(
+      new CanceledException(Some(message), SourceLocation(file.value, fileName.value, line.value, None))
+    )
   override private[pact4s] def failure(
       message: String
   )(implicit fileName: FileName, file: File, line: Line): F[Nothing] =
