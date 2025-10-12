@@ -16,7 +16,7 @@ object Dependencies {
 
   val _circe = "0.14.15"
 
-  val _playJson = "3.0.5"
+  val _playJson = "3.0.6"
 
   val _sprayJson = "1.3.6"
 
