@@ -23,8 +23,8 @@ import java.net.URI
   * with [[ProviderRequestFilter]] in [[ProviderInfoBuilder.withRequestFiltering]]
   */
 final class ProviderRequest private (val method: String, val uri: URI, val headers: List[(String, String)]) {
-  def containsHeaders(name: String): Boolean           = headers.exists(_._1 == name)
-  def getHeaders(name: String): List[(String, String)] = headers.filter(_._1 == name)
+  def containsHeaders(name: String): Boolean                 = headers.exists(_._1 == name)
+  def getHeaders(name: String): List[(String, String)]       = headers.filter(_._1 == name)
   def getFirstHeader(name: String): Option[(String, String)] = headers.collectFirst {
     case (n, value) if n == name => (n, value)
   }

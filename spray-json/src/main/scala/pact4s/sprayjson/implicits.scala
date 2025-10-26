@@ -50,7 +50,7 @@ object implicits {
 
     override def read(value: JsValue): ProviderState = {
       val provideStateFields = value.asJsObject.fields
-      val stringParams = provideStateFields
+      val stringParams       = provideStateFields
         .get("params")
         .map(
           _.convertTo[JsObject].fields

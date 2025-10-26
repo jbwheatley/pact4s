@@ -109,10 +109,10 @@ final class ProviderInfoBuilder private (
 
   private[pact4s] def getStateManagement: Option[StateManagement] = stateManagement
 
-  def withProtocol(protocol: String): ProviderInfoBuilder = copy(protocol = protocol)
-  def withHost(host: String): ProviderInfoBuilder         = copy(host = host)
-  def withPort(port: Int): ProviderInfoBuilder            = copy(port = port)
-  def withPath(path: String): ProviderInfoBuilder         = copy(path = path)
+  def withProtocol(protocol: String): ProviderInfoBuilder                           = copy(protocol = protocol)
+  def withHost(host: String): ProviderInfoBuilder                                   = copy(host = host)
+  def withPort(port: Int): ProviderInfoBuilder                                      = copy(port = port)
+  def withPath(path: String): ProviderInfoBuilder                                   = copy(path = path)
   def withVerificationSettings(settings: VerificationSettings): ProviderInfoBuilder =
     copy(verificationSettings = Some(settings))
   def withOptionalVerificationSettings(settings: Option[VerificationSettings]): ProviderInfoBuilder =
@@ -185,7 +185,7 @@ final class ProviderInfoBuilder private (
     }
     pactSource match {
       case broker: PactBroker => applyBrokerSourceToProvider(p, broker, providerBranch)
-      case f: FileSource =>
+      case f: FileSource      =>
         f.consumers.foreach { case (consumer, file) =>
           p.hasPactWith(
             consumer,
@@ -209,7 +209,7 @@ final class ProviderInfoBuilder private (
       case p: PactBrokerWithSelectors =>
         p.validate(providerBranch) match {
           case Left(value) => Left(value)
-          case Right(_) =>
+          case Right(_)    =>
             val pactJvmAuth: Auth = p.auth match {
               case None                        => Auth.None.INSTANCE
               case Some(TokenAuth(token))      => new Auth.BearerAuthentication(token, Auth.DEFAULT_AUTH_HEADER)

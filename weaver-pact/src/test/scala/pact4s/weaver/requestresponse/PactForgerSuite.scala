@@ -44,8 +44,8 @@ object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
   override def additionalSharedResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 
   test("weaver pact test") { resources =>
-    val client = resources._1
-    val server = resources._2
+    val client  = resources._1
+    val server  = resources._2
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(server.getUrl + "/hello"),
@@ -59,8 +59,8 @@ object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
   }
 
   test("another weaver pact test") { resources =>
-    val client = resources._1
-    val server = resources._2
+    val client  = resources._1
+    val server  = resources._2
     val request = Request[IO](
       uri = Uri.unsafeFromString(server.getUrl + "/goodbye"),
       headers = Headers(`Content-Type`(MediaType.application.json))
@@ -89,8 +89,8 @@ object PactForgerSuite extends IOSuite with RequestResponsePactForger[IO] {
   }
 
   test("test with generated auth header") { resources =>
-    val client = resources._1
-    val server = resources._2
+    val client  = resources._1
+    val server  = resources._2
     val request = Request[IO](uri = Uri.unsafeFromString(server.getUrl + "/authorized"))
       .putHeaders(headers.Authorization(Credentials.Token(ci"Bearer", "super-secure")))
     client

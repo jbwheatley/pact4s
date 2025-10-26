@@ -10,7 +10,7 @@ inThisBuild(
   List(
     organization := "io.github.jbwheatley",
     homepage     := Some(url("https://github.com/jbwheatley/pact4s")),
-    developers := List(
+    developers   := List(
       Developer(
         "jbwheatley",
         "jbwheatley",

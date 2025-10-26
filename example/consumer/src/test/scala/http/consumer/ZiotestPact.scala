@@ -108,7 +108,7 @@ object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with Exam
       for {
         mockServer <- ZIO.service[BaseMockServer]
         client     <- ZIO.service[Client[Task]]
-        res <- new ProviderClientImpl[Task](
+        res        <- new ProviderClientImpl[Task](
           client,
           Uri.unsafeFromString(mockServer.getUrl),
           BasicCredentials("user", "pass")
@@ -119,7 +119,7 @@ object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with Exam
       for {
         mockServer <- ZIO.service[BaseMockServer]
         client     <- ZIO.service[Client[Task]]
-        res <- new ProviderClientImpl[Task](
+        res        <- new ProviderClientImpl[Task](
           client,
           Uri.unsafeFromString(mockServer.getUrl),
           BasicCredentials("user", "pass")
@@ -130,7 +130,7 @@ object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with Exam
       for {
         mockServer <- ZIO.service[BaseMockServer]
         client     <- ZIO.service[Client[Task]]
-        res <- new ProviderClientImpl[Task](
+        res        <- new ProviderClientImpl[Task](
           client,
           Uri.unsafeFromString(mockServer.getUrl),
           BasicCredentials("user", "wrong")
@@ -143,7 +143,7 @@ object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with Exam
       for {
         mockServer <- ZIO.service[BaseMockServer]
         client     <- ZIO.service[Client[Task]]
-        _ <- new ProviderClientImpl[Task](
+        _          <- new ProviderClientImpl[Task](
           client,
           Uri.unsafeFromString(mockServer.getUrl),
           BasicCredentials("user", "pass")
@@ -154,7 +154,7 @@ object ZiotestPact extends RequestResponsePactForgerWith[Client[Task]] with Exam
       for {
         mockServer <- ZIO.service[BaseMockServer]
         client     <- ZIO.service[Client[Task]]
-        res <- new ProviderClientImpl[Task](
+        res        <- new ProviderClientImpl[Task](
           client,
           Uri.unsafeFromString(mockServer.getUrl),
           BasicCredentials("user", "pass")

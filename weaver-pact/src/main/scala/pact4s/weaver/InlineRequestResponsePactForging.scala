@@ -25,7 +25,7 @@ import pact4s.{InlineRequestResponsePactResources, RequestResponsePactForgerReso
 import weaver.{Expectations, MutableFSuite}
 
 trait InlineRequestResponsePactForging[F[_]] extends MutableFSuite[F] with InlineRequestResponsePactResources { self =>
-  private val F = effect
+  private val F                                                                                             = effect
   private[weaver] def serverResource(self: RequestResponsePactForgerResources): Resource[F, BaseMockServer] = {
     import self._
     Resource.eval(F.delay(createServer)).flatMap { server =>

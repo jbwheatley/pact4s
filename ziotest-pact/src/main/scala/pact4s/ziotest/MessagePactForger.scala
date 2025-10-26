@@ -41,7 +41,7 @@ trait MessagePactForger extends ZIOSpecDefault with MessagePactForgerResources {
   override def spec: Spec[TestEnvironment with Scope, Throwable] = suite(specName)(tests) @@ TestAspect.aroundAllWith(
     for {
       validationPactVersion <- ZIO.attempt(validatePactVersion(pactSpecVersion))
-      _ <- ZIO.foreachDiscard(validationPactVersion.left.toSeq)(e =>
+      _                     <- ZIO.foreachDiscard(validationPactVersion.left.toSeq)(e =>
         ZIO.logError(s"failed to validate pact version: $e")
       )
     } yield validationPactVersion.isRight

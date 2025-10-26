@@ -54,7 +54,7 @@ object implicits {
         case jsonObject: JsObject => Some(Json.stringify(jsonObject))
       }
 
-    val state = (JsPath \ "state").read[String]
+    val state  = (JsPath \ "state").read[String]
     val params = (JsPath \ "params")
       .readNullable[JsObject]
       .map(obj =>
