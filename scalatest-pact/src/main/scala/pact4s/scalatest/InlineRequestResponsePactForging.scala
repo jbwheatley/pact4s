@@ -33,7 +33,7 @@ trait InlineRequestResponsePactForging extends InlineRequestResponsePactResource
     new ForgerImpl {
       override val pact: RequestResponsePact                          = aPact
       override val pactTestExecutionContext: PactTestExecutionContext = self.pactTestExecutionContext
-      def apply[A](test: BaseMockServer => A): A = {
+      def apply[A](test: BaseMockServer => A): A                      = {
         val server = createServer
         validatePactVersion(mockProviderConfig.getPactVersion).left.foreach(throw _)
         server.start()

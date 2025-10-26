@@ -38,7 +38,7 @@ object PactForgerSuite extends RequestResponsePactForger {
 
   val client: Client[IO] = EmberClientBuilder.default[IO].build.allocated.unsafeRunSync()._1
 
-  override def pact: RequestResponsePact = TestModels.requestResponsePact
+  override def pact: RequestResponsePact                          = TestModels.requestResponsePact
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./ziotest-pact/target/pacts"
   )

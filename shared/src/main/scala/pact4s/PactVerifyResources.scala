@@ -75,7 +75,7 @@ trait PactVerifyResources[F[+_]] {
         else F(failures += message)
       case Right(_: VerificationResult.Ok) => F(())
       case Right(_)                        => failure("unexpected result type")
-      case Left(_: TimeoutException) =>
+      case Left(_: TimeoutException)       =>
         F {
           failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
         }
@@ -103,7 +103,7 @@ trait PactVerifyResources[F[+_]] {
       providerMethodInstance: Option[AnyRef],
       providerVerificationOptions: List[ProviderVerificationOption]
   ): ProviderVerifier = {
-    val verifier = new ProviderVerifier()
+    val verifier   = new ProviderVerifier()
     val properties =
       publishVerificationResults
         .fold(providerVerificationOptions)(_ =>

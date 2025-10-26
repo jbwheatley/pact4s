@@ -26,7 +26,7 @@ import zio.ZIO
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
 
 object PactForgerSuite extends ZIOSpecDefault with MessagePactForger {
-  override def pact: MessagePact = TestModels.messagePact
+  override def pact: MessagePact                                  = TestModels.messagePact
   override val pactTestExecutionContext: PactTestExecutionContext = new PactTestExecutionContext(
     "./ziotest-pact/target/pacts"
   )

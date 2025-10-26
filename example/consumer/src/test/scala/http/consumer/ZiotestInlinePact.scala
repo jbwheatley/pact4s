@@ -87,7 +87,7 @@ abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with E
       ) { mockServer =>
         for {
           client <- ZIO.service[Client[Task]]
-          res <- new ProviderClientImpl[Task](
+          res    <- new ProviderClientImpl[Task](
             client,
             Uri.unsafeFromString(mockServer.getUrl),
             BasicCredentials("user", "pass")
@@ -109,7 +109,7 @@ abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with E
       ) { mockServer =>
         for {
           client <- ZIO.service[Client[Task]]
-          res <- new ProviderClientImpl[Task](
+          res    <- new ProviderClientImpl[Task](
             client,
             Uri.unsafeFromString(mockServer.getUrl),
             BasicCredentials("user", "pass")
@@ -130,7 +130,7 @@ abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with E
       ) { mockServer =>
         for {
           client <- ZIO.service[Client[Task]]
-          res <- new ProviderClientImpl[Task](
+          res    <- new ProviderClientImpl[Task](
             client,
             Uri.unsafeFromString(mockServer.getUrl),
             BasicCredentials("user", "wrong")
@@ -155,7 +155,7 @@ abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with E
       ) { mockServer =>
         for {
           client <- ZIO.service[Client[Task]]
-          _ <- new ProviderClientImpl[Task](
+          _      <- new ProviderClientImpl[Task](
             client,
             Uri.unsafeFromString(mockServer.getUrl),
             BasicCredentials("user", "pass")
@@ -181,7 +181,7 @@ abstract class ZiotestInlinePact extends InlineRequestResponsePactForging with E
       ) { mockServer =>
         for {
           client <- ZIO.service[Client[Task]]
-          res <- new ProviderClientImpl[Task](
+          res    <- new ProviderClientImpl[Task](
             client,
             Uri.unsafeFromString(mockServer.getUrl),
             BasicCredentials("user", "pass")

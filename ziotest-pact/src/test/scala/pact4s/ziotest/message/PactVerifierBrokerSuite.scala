@@ -26,8 +26,8 @@ import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}
 object PactVerifierBrokerSuite extends ZIOSpecDefault with MessagePactVerifier {
   lazy val mock = new MockProviderServer(49156)
 
-  def messages: ResponseFactory     = MessagesProvider.messages
-  def provider: ProviderInfoBuilder = mock.brokerMessageProviderInfo
+  def messages: ResponseFactory                            = MessagesProvider.messages
+  def provider: ProviderInfoBuilder                        = mock.brokerMessageProviderInfo
   override def spec: Spec[TestEnvironment with Scope, Any] =
     test("Verify pacts for provider `MessageProvider`, zio-test")(
       ZIO
