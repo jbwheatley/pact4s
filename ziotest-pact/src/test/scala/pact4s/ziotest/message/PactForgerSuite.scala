@@ -59,12 +59,13 @@ object PactForgerSuite extends ZIOSpecDefault with MessagePactForger {
     case "A message with a json array as content" =>
       test("A message with a json array should be responded to with (1, true)")(for {
         _ <- ZIO.unit
-        res = for {
-          json <- message.as[Json]
-          acur = json.hcursor.downArray
-          int  <- acur.get[Int]("a")
-          bool <- acur.right.get[Boolean]("b")
-        } yield (int, bool)
+        res =
+          for {
+            json <- message.as[Json]
+            acur = json.hcursor.downArray
+            int  <- acur.get[Int]("a")
+            bool <- acur.right.get[Boolean]("b")
+          } yield (int, bool)
       } yield assertTrue(res.isRight && res.getOrElse((0, false)).equals((1, true))))
 
     case description => test(s"Missing verification for message: '$description'")(assertTrue(false))
