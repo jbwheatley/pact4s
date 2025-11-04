@@ -132,11 +132,12 @@ trait PactVerifyResources[F[+_]] {
         val stateChanger =
           new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
 
-        for {
+        val program = for {
           _ <- F(stateChanger.start())
           _ <- run(Some(s.url(stateChanger.boundPort)))
           _ <- F(stateChanger.shutdown())
         } yield ()
+        program.onError(_ => F(stateChanger.shutdown()))
       case Some(p: ProviderUrl) => run(Some(p.url))
       case None                 => run(None)
     }
@@ -176,12 +177,12 @@ trait PactVerifyResources[F[+_]] {
             F(verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo)))
           } else F(())
         _ <- F.foreach(consumers.toList)(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
-        failedMessages  = failures.toList
-        pendingMessages = pendingFailures.toList
-        _ <-
-          if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
-          else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
-          else F(())
       } yield ()
+    }.flatMap { _ =>
+      val failedMessages  = failures.toList
+      val pendingMessages = pendingFailures.toList
+      if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
+      else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
+      else F(())
     }
 }

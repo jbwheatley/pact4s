@@ -20,6 +20,7 @@ import cats.data.Kleisli
 import cats.effect.kernel.{Deferred, Ref}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
+import cats.implicits._
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
@@ -42,7 +43,9 @@ import java.net.URI
 import scala.concurrent.duration.DurationInt
 import scala.util.chaining.scalaUtilChainingOps
 
-class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file: SCFile) {
+class MockProviderServer(port: Int, hasFeatureX: Boolean = false, enableRequestLogging: Boolean = false)(implicit
+    file: SCFile
+) {
 
   val featureXState: Deferred[IO, Boolean] = Deferred.unsafe
 
@@ -77,7 +80,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
             s"\n[PACT4S TEST INFO] Request(method=${req.method}, uri=${req.uri}, headers=${req.headers})\n[PACT4S TEST INFO] ${resp
                 .toString()}\n[PACT4S TEST INFO] Duration: ${time.toMillis} millis" +
             Console.WHITE
-        ).as(resp)
+        ).whenA(enableRequestLogging)
+          .as(resp)
       }
     }
   }

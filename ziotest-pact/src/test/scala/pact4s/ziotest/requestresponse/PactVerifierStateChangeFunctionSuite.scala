@@ -30,6 +30,7 @@ object PactVerifierStateChangeFunctionSuite extends ZIOSpecDefault with PactVeri
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
       useStateChangeFunction = true,
+      fileName = "./scripts/Pact4sConsumer-Pact4sProvider-StateChange.json",
       stateChangePortOverride = Some(64645)
     )
 
