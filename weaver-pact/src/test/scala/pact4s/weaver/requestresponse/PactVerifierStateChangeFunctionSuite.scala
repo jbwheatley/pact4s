@@ -32,9 +32,7 @@ object PactVerifierStateChangeFunctionSuite extends IOSuite with PactVerifier[IO
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
-      consumerName = "Pact4sConsumer",
-      providerName = "Pact4sProvider",
-      fileName = "./scripts/Pact4sConsumer-Pact4sProvider.json",
+      fileName = "./scripts/Pact4sConsumer-Pact4sProvider-StateChange.json",
       useStateChangeFunction = true,
       stateChangePortOverride = Some(64640)
     )

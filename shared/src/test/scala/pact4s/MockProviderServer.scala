@@ -20,6 +20,7 @@ import cats.data.Kleisli
 import cats.effect.kernel.{Deferred, Ref}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
+import cats.implicits._
 import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
@@ -42,7 +43,9 @@ import java.net.URI
 import scala.concurrent.duration.DurationInt
 import scala.util.chaining.scalaUtilChainingOps
 
-class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file: SCFile) {
+class MockProviderServer(port: Int, hasFeatureX: Boolean = false, enableRequestLogging: Boolean = false)(implicit
+    file: SCFile
+) {
 
   val featureXState: Deferred[IO, Boolean] = Deferred.unsafe
 
@@ -54,6 +57,20 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
       .withHttpApp(middleware(app))
       .withShutdownTimeout(0.seconds)
       .build
+      .evalTap(s =>
+        IO.println(
+          Console.CYAN +
+            s"Server started in test suite ${file.value.split("/").takeRight(3).mkString("/")} on port ${s.baseUri.port.orNull}" +
+            Console.WHITE
+        )
+      )
+      .onFinalize(
+        IO.println(
+          Console.CYAN +
+            s"Server in test suite ${file.value.split("/").takeRight(3).mkString("/")} shutdown." +
+            Console.WHITE
+        )
+      )
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = jsonOf
 
@@ -77,7 +94,8 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
             s"\n[PACT4S TEST INFO] Request(method=${req.method}, uri=${req.uri}, headers=${req.headers})\n[PACT4S TEST INFO] ${resp
                 .toString()}\n[PACT4S TEST INFO] Duration: ${time.toMillis} millis" +
             Console.WHITE
-        ).as(resp)
+        ).whenA(enableRequestLogging)
+          .as(resp)
       }
     }
   }
@@ -85,6 +103,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false)(implicit file:
   private def app: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
+        case GET -> Root / "ping"    => Ok("pong")
         case GET -> Root / "goodbye" =>
           NoContent()
         case req @ POST -> Root / "hello" =>
