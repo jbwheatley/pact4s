@@ -116,15 +116,15 @@
         }
       ],
       "request": {
-        "headers": {
-          "Authorization": "Basic dXNlcjpwYXNz"
-        },
         "generators": {
           "path": {
             "dataType": "STRING",
             "expression": "/resource/${resourceId}",
             "type": "ProviderState"
           }
+        },
+        "headers": {
+          "Authorization": "Basic dXNlcjpwYXNz"
         },
         "method": "GET",
         "path": "/resource/testID"
@@ -166,7 +166,7 @@
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.6.15"
+      "version": "4.6.17"
     },
     "pactSpecification": {
       "version": "3.0.0"

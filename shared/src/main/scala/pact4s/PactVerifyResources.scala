@@ -158,21 +158,23 @@ trait PactVerifyResources[F[+_]] {
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
-      verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
+      verificationTimeout: Option[FiniteDuration] = Some(10.seconds)
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
     runWithStateChanger { stateChangeUrl =>
-      val verifier: ProviderVerifier =
-        setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
       for {
+        verifier <- F(
+          setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+        )
         // to support deprecated branch settings using PublishVerificationResults
-        providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
+        maybeProviderInfo <- F(provider.build(providerBranch, responseFactory, stateChangeUrl))
+        providerInfo      <- maybeProviderInfo match {
           case Left(value) =>
             failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
           case Right(value) => F(value)
         }
-        _ <- F(verifier.initialiseReporters(providerInfo))
-        consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
-        _ <-
+        _         <- F(verifier.initialiseReporters(providerInfo))
+        consumers <- F(providerInfo.getConsumers.asScala.filter(verifier.filterConsumers))
+        _         <-
           if (consumers.isEmpty) {
             F(verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo)))
           } else F(())
@@ -185,4 +187,5 @@ trait PactVerifyResources[F[+_]] {
       else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
       else F(())
     }
+
 }

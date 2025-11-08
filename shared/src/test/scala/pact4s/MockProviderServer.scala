@@ -57,6 +57,20 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false, enableRequestL
       .withHttpApp(middleware(app))
       .withShutdownTimeout(0.seconds)
       .build
+      .evalTap(s =>
+        IO.println(
+          Console.CYAN +
+            s"Server started in test suite ${file.value.split("/").takeRight(3).mkString("/")} on port ${s.baseUri.port.orNull}" +
+            Console.WHITE
+        )
+      )
+      .onFinalize(
+        IO.println(
+          Console.CYAN +
+            s"Server in test suite ${file.value.split("/").takeRight(3).mkString("/")} shutdown." +
+            Console.WHITE
+        )
+      )
 
   private implicit val entityDecoder: EntityDecoder[IO, ProviderState] = jsonOf
 
@@ -89,6 +103,7 @@ class MockProviderServer(port: Int, hasFeatureX: Boolean = false, enableRequestL
   private def app: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
+        case GET -> Root / "ping"    => Ok("pong")
         case GET -> Root / "goodbye" =>
           NoContent()
         case req @ POST -> Root / "hello" =>
