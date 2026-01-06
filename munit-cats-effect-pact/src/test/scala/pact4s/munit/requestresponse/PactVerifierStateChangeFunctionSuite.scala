@@ -26,6 +26,7 @@ class PactVerifierStateChangeFunctionSuite extends CatsEffectSuite with PactVeri
 
   override val provider: ProviderInfoBuilder = mock
     .fileSourceProviderInfo(
+      fileName = "./scripts/Pact4sConsumer-Pact4sProvider-StateChange.json",
       useStateChangeFunction = true
     )
 

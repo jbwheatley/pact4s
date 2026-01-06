@@ -39,7 +39,7 @@ class PactVerifierBrokerMatchingBranchSuite extends CatsEffectSuite with PactVer
 
   test("Verify pacts for provider `Pact4sProvider` with a feature branch and matching branch selector, munit") {
     verifyPacts(
-      Some(
+      providerBranch = Some(
         Branch("feat/x")
       )
     ) *> mock.featureXState.tryGet.assertEquals(Some(true))
