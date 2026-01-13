@@ -22,7 +22,7 @@ import cats.implicits._
 import pact4s.PactVerifyResources
 import pact4s.effect.MonadLike
 import sourcecode.{File, FileName, Line}
-import weaver.{AssertionException, CanceledException, MutableFSuite, SourceLocation}
+import weaver.{ExpectationFailed, CanceledException, MutableFSuite, SourceLocation}
 
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.FiniteDuration
@@ -38,7 +38,7 @@ trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
       message: String
   )(implicit fileName: FileName, file: File, line: Line): F[Nothing] =
     effect.raiseError(
-      AssertionException(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value, None)))
+      new ExpectationFailed(message, NonEmptyList.of(SourceLocation(file.value, fileName.value, line.value, None)))
     )
 
   override private[pact4s] implicit def F: MonadLike[F] = new MonadLike[F] {
