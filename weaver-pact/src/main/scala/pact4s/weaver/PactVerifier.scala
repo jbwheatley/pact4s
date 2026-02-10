@@ -42,10 +42,13 @@ trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
     )
 
   override private[pact4s] implicit def F: MonadLike[F] = new MonadLike[F] {
-    override def apply[A](a: => A): F[A]                           = effect.delay(a)
-    override def map[A, B](a: => F[A])(f: A => B): F[B]            = a.map(f)
-    override def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]     = a.flatMap(f)
-    override def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit] = as.traverse_(f)
+    override def apply[A](a: => A): F[A]                             = effect.delay(a)
+    override def map[A, B](a: => F[A])(f: A => B): F[B]              = a.map(f)
+    override def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]       = a.flatMap(f)
+    override def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit]   = as.traverse_(f)
+    override def onError[A](fa: F[A])(f: Throwable => F[Unit]): F[A] = fa.onError {
+      { case (e: Throwable) => f(e) }: PartialFunction[Throwable, F[Unit]]
+    }
   }
 
   override private[pact4s] def runWithTimeout(

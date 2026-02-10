@@ -36,10 +36,14 @@ trait PactVerifier extends PactVerifyResources[IO] { self: CatsEffectSuite =>
   }
 
   override private[pact4s] implicit def F: MonadLike[IO] = new MonadLike[IO] {
-    override def apply[A](a: => A): IO[A]                            = IO(a)
-    override def map[A, B](a: => IO[A])(f: A => B): IO[B]            = a.map(f)
-    override def flatMap[A, B](a: => IO[A])(f: A => IO[B]): IO[B]    = a.flatMap(f)
-    override def foreach[A](as: List[A])(f: A => IO[Unit]): IO[Unit] = as.traverse_(f)
+    override def apply[A](a: => A): IO[A]                               = IO(a)
+    override def map[A, B](a: => IO[A])(f: A => B): IO[B]               = a.map(f)
+    override def flatMap[A, B](a: => IO[A])(f: A => IO[B]): IO[B]       = a.flatMap(f)
+    override def foreach[A](as: List[A])(f: A => IO[Unit]): IO[Unit]    = as.traverse_(f)
+    override def onError[A](fa: IO[A])(f: Throwable => IO[Unit]): IO[A] = fa.onError {
+      { case (e: Throwable) => f(e) }: PartialFunction[Throwable, IO[Unit]]
+    }
+
   }
 
   override private[pact4s] def failure(

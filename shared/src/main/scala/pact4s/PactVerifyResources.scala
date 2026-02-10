@@ -132,11 +132,12 @@ trait PactVerifyResources[F[+_]] {
         val stateChanger =
           new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
 
-        for {
+        val program = for {
           _ <- F(stateChanger.start())
           _ <- run(Some(s.url(stateChanger.boundPort)))
           _ <- F(stateChanger.shutdown())
         } yield ()
+        program.onError(_ => F(stateChanger.shutdown()))
       case Some(p: ProviderUrl) => run(Some(p.url))
       case None                 => run(None)
     }
@@ -157,31 +158,34 @@ trait PactVerifyResources[F[+_]] {
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
-      verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
+      verificationTimeout: Option[FiniteDuration] = Some(10.seconds)
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
     runWithStateChanger { stateChangeUrl =>
-      val verifier: ProviderVerifier =
-        setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
       for {
+        verifier <- F(
+          setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+        )
         // to support deprecated branch settings using PublishVerificationResults
-        providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
+        maybeProviderInfo <- F(provider.build(providerBranch, responseFactory, stateChangeUrl))
+        providerInfo      <- maybeProviderInfo match {
           case Left(value) =>
             failure(s"${value.getMessage} - cause: ${Option(value.getCause).map(_.getMessage).orNull}")
           case Right(value) => F(value)
         }
-        _ <- F(verifier.initialiseReporters(providerInfo))
-        consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
-        _ <-
+        _         <- F(verifier.initialiseReporters(providerInfo))
+        consumers <- F(providerInfo.getConsumers.asScala.filter(verifier.filterConsumers))
+        _         <-
           if (consumers.isEmpty) {
             F(verifier.getReporters.forEach(_.warnProviderHasNoConsumers(providerInfo)))
           } else F(())
         _ <- F.foreach(consumers.toList)(verifySingleConsumer(providerInfo, verifier, verificationTimeout))
-        failedMessages  = failures.toList
-        pendingMessages = pendingFailures.toList
-        _ <-
-          if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
-          else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
-          else F(())
       } yield ()
+    }.flatMap { _ =>
+      val failedMessages  = failures.toList
+      val pendingMessages = pendingFailures.toList
+      if (failedMessages.nonEmpty) failure(failedMessages.mkString("\n"))
+      else if (pendingMessages.nonEmpty) skip(pendingMessages.mkString("\n"))
+      else F(())
     }
+
 }

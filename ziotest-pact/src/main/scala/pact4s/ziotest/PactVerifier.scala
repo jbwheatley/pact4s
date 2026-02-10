@@ -38,6 +38,9 @@ trait PactVerifier extends PactVerifyResources[Task] {
     override def flatMap[A, B](a: => Task[A])(f: A => Task[B]): Task[B] = a.flatMap(f)
 
     override def foreach[A](as: List[A])(f: A => Task[Unit]): Task[Unit] = ZIO.foreachDiscard(as)(f)
+
+    override def onError[A](fa: Task[A])(f: Throwable => Task[Unit]): Task[A] =
+      fa.onError(c => f(c.squash).!)
   }
 
 }
