@@ -2,11 +2,11 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "5.21.0"
+  val mockito = "5.23.0"
 
   val pactJvm = "4.6.20"
 
-  val http4s = "0.23.30"
+  val http4s = "0.23.33"
 
   val log4s = "1.10.0"
 
@@ -20,7 +20,7 @@ object Dependencies {
 
   val _sprayJson = "1.3.6"
 
-  val _weaver = "0.10.1"
+  val _weaver = "0.12.0"
 
   val _scalatest = "3.2.19"
 
@@ -33,6 +33,8 @@ object Dependencies {
   val upickle = "4.4.3"
 
   val zioCats = "23.1.0.13"
+
+  val catsEffect = "3.7.0"
 
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
@@ -100,6 +102,12 @@ object Dependencies {
     "dev.zio"       %% "zio-managed"         % _zio            % Test,
     "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
+  )
+
+  val overrides: Seq[ModuleID] = Seq(
+    "org.typelevel" %% "cats-effect"        % catsEffect % Test,
+    "org.typelevel" %% "cats-effect-std"    % catsEffect % Test,
+    "org.typelevel" %% "cats-effect-kernel" % catsEffect % Test
   )
 
 }

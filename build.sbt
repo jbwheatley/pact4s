@@ -88,7 +88,8 @@ lazy val munit =
     .settings(commonSettings)
     .settings(
       name := "pact4s-munit-cats-effect",
-      libraryDependencies ++= Dependencies.munit
+      libraryDependencies ++= Dependencies.munit,
+      dependencyOverrides ++= Dependencies.overrides
     )
     .dependsOn(shared % "compile->compile;test->test")
     .dependsOn(circe % "test->test")
@@ -109,6 +110,7 @@ lazy val weaver =
     .settings(
       name := "pact4s-weaver",
       libraryDependencies ++= Dependencies.weaver,
+      dependencyOverrides ++= Dependencies.overrides,
       testFrameworks += new TestFramework("weaver.framework.CatsEffect")
     )
     .dependsOn(shared % "compile->compile;test->test")
@@ -145,6 +147,7 @@ lazy val exampleProvider =
       libraryDependencies ++= Dependencies.example,
       testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
       testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
+      dependencyOverrides ++= Dependencies.overrides,
       Test / parallelExecution := false,
       publish / skip           := true
     )
