@@ -20,7 +20,7 @@ object Dependencies {
 
   val _sprayJson = "1.3.6"
 
-  val _weaver = "0.12.0"
+  val _weaver = "0.10.1"
 
   val _scalatest = "3.2.19"
 
@@ -105,9 +105,9 @@ object Dependencies {
   )
 
   val overrides: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "cats-effect"        % catsEffect % Test,
-    "org.typelevel" %% "cats-effect-std"    % catsEffect % Test,
-    "org.typelevel" %% "cats-effect-kernel" % catsEffect % Test
+    "org.typelevel" %% "cats-effect"        % catsEffect,
+    "org.typelevel" %% "cats-effect-std"    % catsEffect,
+    "org.typelevel" %% "cats-effect-kernel" % catsEffect
   )
 
 }
