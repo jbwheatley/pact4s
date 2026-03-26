@@ -17,12 +17,12 @@
 package pact4s.munit
 
 import au.com.dius.pact.provider.VerificationResult
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.implicits._
 import munit.internal.console.Printers
 import munit.{CatsEffectSuite, Location}
 import pact4s.PactVerifyResources
-import pact4s.effect.MonadLike
+import pact4s.effect.{MonadLike, ResourceLike}
 import sourcecode.{File, FileName, Line}
 
 import scala.concurrent.TimeoutException
@@ -36,10 +36,16 @@ trait PactVerifier extends PactVerifyResources[IO] { self: CatsEffectSuite =>
   }
 
   override private[pact4s] implicit def F: MonadLike[IO] = new MonadLike[IO] {
-    override def apply[A](a: => A): IO[A]                            = IO(a)
-    override def map[A, B](a: => IO[A])(f: A => B): IO[B]            = a.map(f)
-    override def flatMap[A, B](a: => IO[A])(f: A => IO[B]): IO[B]    = a.flatMap(f)
-    override def foreach[A](as: List[A])(f: A => IO[Unit]): IO[Unit] = as.traverse_(f)
+    override def apply[A](a: => A): IO[A]                                                     = IO(a)
+    override def blocking[A](a: => A): IO[A]                                                  = IO.interruptible(a)
+    override def map[A, B](a: => IO[A])(f: A => B): IO[B]                                     = a.map(f)
+    override def flatMap[A, B](a: => IO[A])(f: A => IO[B]): IO[B]                             = a.flatMap(f)
+    override def foreach[A](as: List[A])(f: A => IO[Unit]): IO[Unit]                          = as.traverse_(f)
+    override def resource[A](create: => IO[A])(finalizer: A => IO[Unit]): ResourceLike[IO, A] =
+      new ResourceLike[IO, A] {
+        private val internal: Resource[IO, A]     = Resource.make[IO, A](create)(finalizer)
+        override def use[B](f: A => IO[B]): IO[B] = internal.use(f)
+      }
   }
 
   override private[pact4s] def failure(
