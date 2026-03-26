@@ -2,11 +2,11 @@ import sbt._
 
 object Dependencies {
 
-  val mockito = "5.21.0"
+  val mockito = "5.23.0"
 
   val pactJvm = "4.6.20"
 
-  val http4s = "0.23.30"
+  val http4s = "0.23.33"
 
   val log4s = "1.10.0"
 
@@ -101,5 +101,4 @@ object Dependencies {
     "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
-
 }

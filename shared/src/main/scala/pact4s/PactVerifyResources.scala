@@ -90,7 +90,7 @@ trait PactVerifyResources[F[+_]] {
       providerInfo: ProviderInfo,
       consumer: IConsumerInfo
   ): F[VerificationResult] =
-    F {
+    F.blocking {
       verifier.runVerificationForConsumer(new java.util.HashMap[String, Object](), providerInfo, consumer, null)
     }
 
@@ -129,14 +129,19 @@ trait PactVerifyResources[F[+_]] {
   private def runWithStateChanger(run: Option[String] => F[Unit]): F[Unit] =
     provider.getStateManagement match {
       case Some(s: StateManagementFunction) =>
-        val stateChanger =
-          new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
-
-        for {
-          _ <- F(stateChanger.start())
-          _ <- run(Some(s.url(stateChanger.boundPort)))
-          _ <- F(stateChanger.shutdown())
-        } yield ()
+        val stateChangerResource = F.resource {
+          F {
+            val stateChanger =
+              new StateChanger.SimpleServer(s.stateChangeFunc, s.stateChangeBeforeHook, s.host, s.port, s.endpoint)
+            stateChanger.start()
+            stateChanger
+          }
+        } { stateChanger =>
+          F(stateChanger.shutdown())
+        }
+        stateChangerResource.use { stateChanger =>
+          run(Some(s.url(stateChanger.boundPort)))
+        }
       case Some(p: ProviderUrl) => run(Some(p.url))
       case None                 => run(None)
     }
