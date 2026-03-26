@@ -34,8 +34,6 @@ object Dependencies {
 
   val zioCats = "23.1.0.13"
 
-  val catsEffect = "3.6.3"
-
   val models: Seq[ModuleID] = Seq(
     "au.com.dius.pact"        % "consumer"                % pactJvm,
     "au.com.dius.pact"        % "provider"                % pactJvm,
@@ -103,11 +101,4 @@ object Dependencies {
     "org.typelevel" %% "munit-cats-effect"   % munitCatsEffect % Test,
     "org.scalatest" %% "scalatest"           % _scalatest      % Test
   )
-
-  val overrides: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "cats-effect"        % catsEffect,
-    "org.typelevel" %% "cats-effect-std"    % catsEffect,
-    "org.typelevel" %% "cats-effect-kernel" % catsEffect
-  )
-
 }

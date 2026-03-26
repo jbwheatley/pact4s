@@ -18,9 +18,10 @@ package pact4s.weaver
 
 import au.com.dius.pact.provider.VerificationResult
 import cats.data.NonEmptyList
+import cats.effect.kernel.Resource
 import cats.implicits._
 import pact4s.PactVerifyResources
-import pact4s.effect.MonadLike
+import pact4s.effect.{MonadLike, ResourceLike}
 import sourcecode.{File, FileName, Line}
 import weaver.{AssertionException, CanceledException, MutableFSuite, SourceLocation}
 
@@ -42,10 +43,16 @@ trait PactVerifier[F[+_]] extends MutableFSuite[F] with PactVerifyResources[F] {
     )
 
   override private[pact4s] implicit def F: MonadLike[F] = new MonadLike[F] {
-    override def apply[A](a: => A): F[A]                           = effect.delay(a)
-    override def map[A, B](a: => F[A])(f: A => B): F[B]            = a.map(f)
-    override def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]     = a.flatMap(f)
-    override def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit] = as.traverse_(f)
+    override def apply[A](a: => A): F[A]                                                   = effect.delay(a)
+    override def blocking[A](a: => A): F[A]                                                = effect.interruptible(a)
+    override def map[A, B](a: => F[A])(f: A => B): F[B]                                    = a.map(f)
+    override def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]                             = a.flatMap(f)
+    override def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit]                         = as.traverse_(f)
+    override def resource[A](create: => F[A])(finalizer: A => F[Unit]): ResourceLike[F, A] =
+      new ResourceLike[F, A] {
+        private val internal: Resource[F, A] = Resource.make(create)(finalizer)
+        def use[B](f: A => F[B]): F[B]       = internal.use(f)
+      }
   }
 
   override private[pact4s] def runWithTimeout(
