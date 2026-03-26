@@ -52,7 +52,6 @@ private[pact4s] object StateChanger {
       isShutdown = false
       server.start()
       boundPort = server.getAddress.getPort
-      println(s"State change server bound to address $host:$boundPort:$slashedEndpoint")
       pact4sLogger.info(s"State change server bound to address $host:$boundPort:$slashedEndpoint")
     }
 

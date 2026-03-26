@@ -17,7 +17,7 @@
 package pact4s.ziotest
 
 import pact4s.PactVerifyResources
-import pact4s.effect.MonadLike
+import pact4s.effect.{MonadLike, ResourceLike}
 import sourcecode.{File, FileName, Line}
 import zio.{Task, ZIO}
 
@@ -38,6 +38,13 @@ trait PactVerifier extends PactVerifyResources[Task] {
     override def flatMap[A, B](a: => Task[A])(f: A => Task[B]): Task[B] = a.flatMap(f)
 
     override def foreach[A](as: List[A])(f: A => Task[Unit]): Task[Unit] = ZIO.foreachDiscard(as)(f)
+
+    override def blocking[A](a: => A): Task[A] = ZIO.attemptBlocking(a)
+
+    def resource[A](create: => Task[A])(finalizer: A => Task[Unit]): ResourceLike[Task, A] = new ResourceLike[Task, A] {
+      private val internal: ZIO.Release[Any, Nothing, A] = ZIO.acquireReleaseWith(create.!)(a => finalizer(a).!)
+      override def use[B](f: A => Task[B]): Task[B]      = internal(f)
+    }
   }
 
 }

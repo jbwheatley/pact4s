@@ -16,22 +16,41 @@
 
 package pact4s.effect
 
+import scala.util._
+
 // To avoid needing a cats dependency (or any other effect library)
 trait MonadLike[F[_]] {
   def apply[A](a: => A): F[A]
+  def blocking[A](a: => A): F[A]
   def map[A, B](a: => F[A])(f: A => B): F[B]
   def flatMap[A, B](a: => F[A])(f: A => F[B]): F[B]
   def foreach[A](as: List[A])(f: A => F[Unit]): F[Unit]
+  def resource[A](create: => F[A])(finalizer: A => F[Unit]): ResourceLike[F, A]
 }
 
 object MonadLike {
   def apply[F[_]](implicit ev: MonadLike[F]): MonadLike[F] = ev
 
   implicit val idMonadLike: MonadLike[Id] = new MonadLike[Id] {
-    override def apply[A](a: => A): Id[A]                            = a
-    override def map[A, B](a: => Id[A])(f: A => B): Id[B]            = f(a)
-    override def flatMap[A, B](a: => Id[A])(f: A => Id[B]): Id[B]    = map(a)(f)
-    override def foreach[A](as: List[A])(f: A => Id[Unit]): Id[Unit] = as.foreach(f)
+    override def apply[A](a: => A): Id[A]                                                     = a
+    override def blocking[A](a: => A): Id[A]                                                  = a
+    override def map[A, B](a: => Id[A])(f: A => B): Id[B]                                     = f(a)
+    override def flatMap[A, B](a: => Id[A])(f: A => Id[B]): Id[B]                             = map(a)(f)
+    override def foreach[A](as: List[A])(f: A => Id[Unit]): Id[Unit]                          = as.foreach(f)
+    override def resource[A](create: => Id[A])(finalizer: A => Id[Unit]): ResourceLike[Id, A] =
+      new ResourceLike[Id, A] {
+        override def use[B](f: A => Id[B]): Id[B] = {
+          val a = create
+          val b = Try(f(a)) match {
+            case Failure(exception) =>
+              finalizer(a)
+              throw exception
+            case Success(value) => value
+          }
+          finalizer(a)
+          b
+        }
+      }
   }
 
   private[pact4s] implicit class MonadSyntax[F[_]: MonadLike, A](a: => F[A]) {
