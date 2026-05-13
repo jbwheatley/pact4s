@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.provider._
+import au.com.dius.pact.provider.reporters.VerifierReporter
 import pact4s.effect.MonadLike
 import pact4s.effect.MonadLike._
 import pact4s.provider.StateManagement.{ProviderUrl, StateManagementFunction}
@@ -101,7 +102,8 @@ trait PactVerifyResources[F[+_]] {
       providerBranch: Option[Branch],
       publishVerificationResults: Option[PublishVerificationResults],
       providerMethodInstance: Option[AnyRef],
-      providerVerificationOptions: List[ProviderVerificationOption]
+      providerVerificationOptions: List[ProviderVerificationOption],
+      additionalReporters: List[VerifierReporter]
   ): ProviderVerifier = {
     val verifier   = new ProviderVerifier()
     val properties =
@@ -122,6 +124,9 @@ trait PactVerifyResources[F[+_]] {
     )
     responseFactory.foreach { responseFactory =>
       verifier.setResponseFactory(description => responseFactory(description).build)
+    }
+    if (additionalReporters.nonEmpty) {
+      verifier.setReporters((verifier.getReporters.asScala.toList ++ additionalReporters).asJava)
     }
     verifier
   }
@@ -156,17 +161,28 @@ trait PactVerifyResources[F[+_]] {
     *   [[pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings]].
     * @param providerVerificationOptions
     *   list of options to pass to the pact-jvm verifier
+    * @param additionalReporters
+    *   extra `VerifierReporter` instances to register alongside the default console reporter. Useful for inspecting
+    *   structured per-interaction events (e.g. `errorHasNoAnnotatedMethodsFoundForInteraction`) or per-consumer pending
+    *   state via `reportVerificationForConsumer` without parsing reporter output.
     */
   def verifyPacts(
       providerBranch: Option[Branch] = None,
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
-      verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
+      verificationTimeout: Option[FiniteDuration] = Some(30.seconds),
+      additionalReporters: List[VerifierReporter] = Nil
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
     runWithStateChanger { stateChangeUrl =>
       val verifier: ProviderVerifier =
-        setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+        setupVerifier(
+          providerBranch,
+          publishVerificationResults,
+          providerMethodInstance,
+          providerVerificationOptions,
+          additionalReporters
+        )
       for {
         // to support deprecated branch settings using PublishVerificationResults
         providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
