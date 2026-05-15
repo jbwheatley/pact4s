@@ -102,8 +102,7 @@ trait PactVerifyResources[F[+_]] {
       providerBranch: Option[Branch],
       publishVerificationResults: Option[PublishVerificationResults],
       providerMethodInstance: Option[AnyRef],
-      providerVerificationOptions: List[ProviderVerificationOption],
-      additionalReporters: List[VerifierReporter]
+      providerVerificationOptions: List[ProviderVerificationOption]
   ): ProviderVerifier = {
     val verifier   = new ProviderVerifier()
     val properties =
@@ -124,9 +123,6 @@ trait PactVerifyResources[F[+_]] {
     )
     responseFactory.foreach { responseFactory =>
       verifier.setResponseFactory(description => responseFactory(description).build)
-    }
-    if (additionalReporters.nonEmpty) {
-      verifier.setReporters((verifier.getReporters.asScala.toList ++ additionalReporters).asJava)
     }
     verifier
   }
@@ -180,8 +176,7 @@ trait PactVerifyResources[F[+_]] {
           providerBranch,
           publishVerificationResults,
           providerMethodInstance,
-          providerVerificationOptions,
-          additionalReporters
+          providerVerificationOptions
         )
       for {
         // to support deprecated branch settings using PublishVerificationResults
@@ -191,6 +186,15 @@ trait PactVerifyResources[F[+_]] {
           case Right(value) => F(value)
         }
         _ <- F(verifier.initialiseReporters(providerInfo))
+        // Append extras AFTER initialiseReporters so we observe the fully-initialised default list
+        // (and so any future reset of the reporter list inside initialiseReporters can't drop the
+        // extras). Initialise the extras ourselves with the same providerInfo the defaults got.
+        _ <-
+          if (additionalReporters.nonEmpty) F {
+            additionalReporters.foreach(_.initialise(providerInfo))
+            verifier.setReporters((verifier.getReporters.asScala.toList ++ additionalReporters).asJava)
+          }
+          else F(())
         consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
         _ <-
           if (consumers.isEmpty) {
