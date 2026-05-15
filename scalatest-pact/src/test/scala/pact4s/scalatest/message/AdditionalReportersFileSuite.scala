@@ -27,6 +27,7 @@ import pact4s.provider.ProviderInfoBuilder
 import pact4s.scalatest.MessagePactVerifier
 
 import java.io.File
+import java.net.ServerSocket
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.jdk.CollectionConverters._
 
@@ -37,7 +38,7 @@ import scala.jdk.CollectionConverters._
   * fixture consumer at least once.
   */
 class AdditionalReportersFileSuite extends AnyFlatSpec with Matchers with MessagePactVerifier {
-  lazy val mock = new MockProviderServer(49158)
+  lazy val mock = new MockProviderServer(AdditionalReportersFileSuite.freePort())
 
   def messages: ResponseFactory     = MessagesProvider.messages
   def provider: ProviderInfoBuilder = mock.fileSourceMessageProviderInfo
@@ -61,6 +62,17 @@ class AdditionalReportersFileSuite extends AnyFlatSpec with Matchers with Messag
     // Asserts wiring (probe was invoked), exactly-once-per-consumer routing,
     // and that the right IConsumerInfo flowed through (name pinned to fixture).
     consumers.asScala.toList shouldBe List("Pact4sMessageConsumer")
+  }
+}
+
+object AdditionalReportersFileSuite {
+  // Bind to port 0, read the OS-assigned port, release it. There's a small race between close()
+  // and MockProviderServer rebinding, but it's good enough for a single-test fixture and avoids
+  // collisions across parallel CI runs.
+  private def freePort(): Int = {
+    val socket = new ServerSocket(0)
+    try socket.getLocalPort
+    finally socket.close()
   }
 }
 
