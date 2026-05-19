@@ -17,6 +17,7 @@
 package pact4s
 
 import au.com.dius.pact.provider._
+import au.com.dius.pact.provider.reporters.VerifierReporter
 import pact4s.effect.MonadLike
 import pact4s.effect.MonadLike._
 import pact4s.provider.StateManagement.{ProviderUrl, StateManagementFunction}
@@ -156,17 +157,27 @@ trait PactVerifyResources[F[+_]] {
     *   [[pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings]].
     * @param providerVerificationOptions
     *   list of options to pass to the pact-jvm verifier
+    * @param additionalReporters
+    *   extra `VerifierReporter` instances to register alongside the default console reporter. Useful for inspecting
+    *   structured per-interaction events (e.g. `errorHasNoAnnotatedMethodsFoundForInteraction`) or per-consumer pending
+    *   state via `reportVerificationForConsumer` without parsing reporter output.
     */
   def verifyPacts(
       providerBranch: Option[Branch] = None,
       publishVerificationResults: Option[PublishVerificationResults] = None,
       providerMethodInstance: Option[AnyRef] = None,
       providerVerificationOptions: List[ProviderVerificationOption] = Nil,
-      verificationTimeout: Option[FiniteDuration] = Some(30.seconds)
+      verificationTimeout: Option[FiniteDuration] = Some(30.seconds),
+      additionalReporters: List[VerifierReporter] = Nil
   )(implicit fileName: FileName, file: File, line: Line): F[Unit] =
     runWithStateChanger { stateChangeUrl =>
       val verifier: ProviderVerifier =
-        setupVerifier(providerBranch, publishVerificationResults, providerMethodInstance, providerVerificationOptions)
+        setupVerifier(
+          providerBranch,
+          publishVerificationResults,
+          providerMethodInstance,
+          providerVerificationOptions
+        )
       for {
         // to support deprecated branch settings using PublishVerificationResults
         providerInfo <- provider.build(providerBranch, responseFactory, stateChangeUrl) match {
@@ -175,6 +186,15 @@ trait PactVerifyResources[F[+_]] {
           case Right(value) => F(value)
         }
         _ <- F(verifier.initialiseReporters(providerInfo))
+        // Append extras AFTER initialiseReporters so we observe the fully-initialised default list
+        // (and so any future reset of the reporter list inside initialiseReporters can't drop the
+        // extras). Initialise the extras ourselves with the same providerInfo the defaults got.
+        _ <-
+          if (additionalReporters.nonEmpty) F {
+            additionalReporters.foreach(_.initialise(providerInfo))
+            verifier.setReporters((verifier.getReporters.asScala.toList ++ additionalReporters).asJava)
+          }
+          else F(())
         consumers = providerInfo.getConsumers.asScala.filter(verifier.filterConsumers)
         _ <-
           if (consumers.isEmpty) {
