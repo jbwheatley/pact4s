@@ -24,7 +24,7 @@ object Dependencies {
 
   val _scalatest = "3.2.20"
 
-  val _munit = "1.3.1"
+  val _munit = "1.3.2"
 
   val _zio = "2.1.26"
 
