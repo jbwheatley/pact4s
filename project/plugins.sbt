@@ -8,4 +8,4 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.1")
 
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.4.1")
 
-addSbtPlugin("com.thoughtworks.sbt-api-mappings" % "sbt-api-mappings" % "3.0.2")
+addSbtPlugin("com.thoughtworks.sbt-api-mappings" % "sbt-api-mappings" % "3.0.3")
