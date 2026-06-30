@@ -4,7 +4,7 @@ object Dependencies {
 
   val mockito = "5.23.0"
 
-  val pactJvm = "4.7.2"
+  val pactJvm = "4.7.3"
 
   val http4s = "0.23.34"
 
@@ -14,7 +14,7 @@ object Dependencies {
 
   val sourcecode = "0.4.4"
 
-  val _circe = "0.14.15"
+  val _circe = "0.14.16"
 
   val _playJson = "3.0.6"
 
