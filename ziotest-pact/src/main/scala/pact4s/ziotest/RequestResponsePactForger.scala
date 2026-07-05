@@ -64,7 +64,7 @@ abstract class RequestResponsePactForgerBase[Resources: Tag]
         _ <-
           (beforeWritePacts() *> ZIO
             .attempt(verifyResultAndWritePactFiles(mockServer))
-            .flatMap(ZIO.fromEither(_))
+            .as(())
             .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded)
       } yield ()
     )
