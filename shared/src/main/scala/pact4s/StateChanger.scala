@@ -47,7 +47,7 @@ private[pact4s] object StateChanger {
       val server = HttpServer.create(new InetSocketAddress(host, port), 0)
       _server = server
       val slashedEndpoint = if (endpoint.startsWith("/")) endpoint else "/" + endpoint
-      server.createContext(slashedEndpoint, RootHandler)
+      val _ = server.createContext(slashedEndpoint, RootHandler)
       server.setExecutor(null)
       isShutdown = false
       server.start()
