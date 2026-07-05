@@ -31,10 +31,9 @@ import java.net.ServerSocket
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.jdk.CollectionConverters._
 
-/** Exercises the `additionalReporters` parameter of `verifyPacts`. The probe extends
-  * `BaseVerifierReporter` with no-op overrides for every callback except
-  * `reportVerificationForConsumer`, which records the consumer name. If `additionalReporters`
-  * is wired into `ProviderVerifier.setReporters` correctly, the recorded list must contain the
+/** Exercises the `additionalReporters` parameter of `verifyPacts`. The probe extends `BaseVerifierReporter` with no-op
+  * overrides for every callback except `reportVerificationForConsumer`, which records the consumer name. If
+  * `additionalReporters` is wired into `ProviderVerifier.setReporters` correctly, the recorded list must contain the
   * fixture consumer at least once.
   */
 class AdditionalReportersFileSuite extends AnyFlatSpec with Matchers with MessagePactVerifier {
@@ -48,9 +47,9 @@ class AdditionalReportersFileSuite extends AnyFlatSpec with Matchers with Messag
 
     val probe: VerifierReporter = new NoOpVerifierReporter {
       override def reportVerificationForConsumer(
-        consumer: IConsumerInfo,
-        provider: IProviderInfo,
-        tag: String
+          consumer: IConsumerInfo,
+          provider: IProviderInfo,
+          tag: String
       ): Unit = {
         consumers.add(consumer.getName)
         ()
@@ -76,17 +75,17 @@ object AdditionalReportersFileSuite {
   }
 }
 
-/** No-op base for `VerifierReporter`-based test probes. `BaseVerifierReporter` only implements
-  * `receive`; everything else on `VerifierReporter` is abstract and all concrete reporters in
-  * pact-jvm are `final`, so a no-op subclass is the simplest way to override a single callback
-  * (here, `reportVerificationForConsumer`) without inheriting unwanted side effects.
+/** No-op base for `VerifierReporter`-based test probes. `BaseVerifierReporter` only implements `receive`; everything
+  * else on `VerifierReporter` is abstract and all concrete reporters in pact-jvm are `final`, so a no-op subclass is
+  * the simplest way to override a single callback (here, `reportVerificationForConsumer`) without inheriting unwanted
+  * side effects.
   */
 private abstract class NoOpVerifierReporter extends BaseVerifierReporter {
   // Kotlin's `val ext: String?` and `var reportDir/reportFile/verifier` on the JVM are accessor
   // pairs (getExt, getReportDir/setReportDir, …). Override those rather than Scala `val`/`var`.
-  private var _reportDir: File             = null
-  private var _reportFile: File            = new File("")
-  private var _verifier: IProviderVerifier = _
+  private var _reportDir: File                             = null
+  private var _reportFile: File                            = new File("")
+  private var _verifier: IProviderVerifier                 = _
   override def getExt: String                              = null
   override def getReportDir: File                          = _reportDir
   override def setReportDir(value: File): Unit             = _reportDir = value
@@ -95,35 +94,61 @@ private abstract class NoOpVerifierReporter extends BaseVerifierReporter {
   override def getVerifier: IProviderVerifier              = _verifier
   override def setVerifier(value: IProviderVerifier): Unit = _verifier = value
 
-  override def initialise(provider: IProviderInfo): Unit                                                    = ()
-  override def finaliseReport(): Unit                                                                       = ()
+  override def initialise(provider: IProviderInfo): Unit                                                          = ()
+  override def finaliseReport(): Unit                                                                             = ()
   override def reportVerificationForConsumer(consumer: IConsumerInfo, provider: IProviderInfo, tag: String): Unit = ()
-  override def verifyConsumerFromUrl(pactUrl: UrlPactSource, consumer: IConsumerInfo): Unit                 = ()
-  override def verifyConsumerFromFile(pactFile: PactSource, consumer: IConsumerInfo): Unit                  = ()
-  override def pactLoadFailureForConsumer(consumer: IConsumerInfo, message: String): Unit                   = ()
-  override def warnProviderHasNoConsumers(provider: IProviderInfo): Unit                                    = ()
-  override def warnPactFileHasNoInteractions(pact: Pact): Unit                                              = ()
-  override def interactionDescription(interaction: Interaction): Unit                                       = ()
-  override def stateForInteraction(state: String, provider: IProviderInfo, consumer: IConsumerInfo, isSetup: Boolean): Unit = ()
+  override def verifyConsumerFromUrl(pactUrl: UrlPactSource, consumer: IConsumerInfo): Unit                       = ()
+  override def verifyConsumerFromFile(pactFile: PactSource, consumer: IConsumerInfo): Unit                        = ()
+  override def pactLoadFailureForConsumer(consumer: IConsumerInfo, message: String): Unit                         = ()
+  override def warnProviderHasNoConsumers(provider: IProviderInfo): Unit                                          = ()
+  override def warnPactFileHasNoInteractions(pact: Pact): Unit                                                    = ()
+  override def interactionDescription(interaction: Interaction): Unit                                             = ()
+  override def stateForInteraction(
+      state: String,
+      provider: IProviderInfo,
+      consumer: IConsumerInfo,
+      isSetup: Boolean
+  ): Unit                                                                                                    = ()
   override def warnStateChangeIgnored(state: String, provider: IProviderInfo, consumer: IConsumerInfo): Unit = ()
-  override def stateChangeRequestFailedWithException(state: String, isSetup: Boolean, e: Exception, printStackTrace: Boolean): Unit = ()
-  override def stateChangeRequestFailed(state: String, provider: IProviderInfo, isSetup: Boolean, httpStatus: String): Unit = ()
-  override def warnStateChangeIgnoredDueToInvalidUrl(state: String, provider: IProviderInfo, isSetup: Boolean, stateChangeHandler: Any): Unit = ()
-  override def requestFailed(provider: IProviderInfo, interaction: Interaction, interactionMessage: String, e: Exception, printStackTrace: Boolean): Unit = ()
-  override def returnsAResponseWhich(): Unit                                                                = ()
-  override def statusComparisonOk(status: Int): Unit                                                        = ()
-  override def statusComparisonFailed(status: Int, comparison: Any): Unit                                   = ()
-  override def includesHeaders(): Unit                                                                      = ()
-  override def headerComparisonOk(key: String, value: java.util.List[String]): Unit                         = ()
-  override def headerComparisonFailed(key: String, value: java.util.List[String], comparison: Any): Unit    = ()
-  override def bodyComparisonOk(): Unit                                                                     = ()
-  override def bodyComparisonFailed(comparison: Any): Unit                                                  = ()
-  override def errorHasNoAnnotatedMethodsFoundForInteraction(interaction: Interaction): Unit                = ()
-  override def verificationFailed(interaction: Interaction, e: Exception, printStackTrace: Boolean): Unit   = ()
-  override def generatesAMessageWhich(): Unit                                                               = ()
-  override def displayFailures(failures: java.util.List[VerificationResult.Failed]): Unit                   = ()
-  override def includesMetadata(): Unit                                                                     = ()
-  override def metadataComparisonOk(): Unit                                                                 = ()
-  override def metadataComparisonOk(key: String, value: Any): Unit                                          = ()
-  override def metadataComparisonFailed(key: String, value: Any, comparison: Any): Unit                     = ()
+  override def stateChangeRequestFailedWithException(
+      state: String,
+      isSetup: Boolean,
+      e: Exception,
+      printStackTrace: Boolean
+  ): Unit = ()
+  override def stateChangeRequestFailed(
+      state: String,
+      provider: IProviderInfo,
+      isSetup: Boolean,
+      httpStatus: String
+  ): Unit = ()
+  override def warnStateChangeIgnoredDueToInvalidUrl(
+      state: String,
+      provider: IProviderInfo,
+      isSetup: Boolean,
+      stateChangeHandler: Any
+  ): Unit = ()
+  override def requestFailed(
+      provider: IProviderInfo,
+      interaction: Interaction,
+      interactionMessage: String,
+      e: Exception,
+      printStackTrace: Boolean
+  ): Unit                                                                                                 = ()
+  override def returnsAResponseWhich(): Unit                                                              = ()
+  override def statusComparisonOk(status: Int): Unit                                                      = ()
+  override def statusComparisonFailed(status: Int, comparison: Any): Unit                                 = ()
+  override def includesHeaders(): Unit                                                                    = ()
+  override def headerComparisonOk(key: String, value: java.util.List[String]): Unit                       = ()
+  override def headerComparisonFailed(key: String, value: java.util.List[String], comparison: Any): Unit  = ()
+  override def bodyComparisonOk(): Unit                                                                   = ()
+  override def bodyComparisonFailed(comparison: Any): Unit                                                = ()
+  override def errorHasNoAnnotatedMethodsFoundForInteraction(interaction: Interaction): Unit              = ()
+  override def verificationFailed(interaction: Interaction, e: Exception, printStackTrace: Boolean): Unit = ()
+  override def generatesAMessageWhich(): Unit                                                             = ()
+  override def displayFailures(failures: java.util.List[VerificationResult.Failed]): Unit                 = ()
+  override def includesMetadata(): Unit                                                                   = ()
+  override def metadataComparisonOk(): Unit                                                               = ()
+  override def metadataComparisonOk(key: String, value: Any): Unit                                        = ()
+  override def metadataComparisonFailed(key: String, value: Any, comparison: Any): Unit                   = ()
 }
