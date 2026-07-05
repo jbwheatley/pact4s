@@ -35,7 +35,9 @@ class PactForgerSuite extends AnyFlatSpec with Matchers with MessagePactForger {
 
   def verify(message: Message): Assertion = message.getDescription match {
     case "A message to say hello" =>
-      message.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"
+      {
+        val _ = message.as[Json].flatMap(_.hcursor.get[String]("hello")).getOrElse(fail()) shouldBe "harry"
+      }
       message.metadata.getOrElse("hi", fail()) shouldBe "there"
     case "A message to say goodbye" =>
       message.as[Json].flatMap(_.hcursor.get[String]("goodbye")).getOrElse(fail()) shouldBe "harry"
