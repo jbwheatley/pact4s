@@ -23,8 +23,6 @@ import pact4s.RequestResponsePactForgerResources
 import zio.test.{Spec, TestAspect, TestEnvironment, ZIOSpecDefault, assertTrue}
 import zio.{Scope, UIO, ZIO, ZLayer}
 
-import scala.annotation.nowarn
-
 /** For when additional layers are required, e.g. a http client
   */
 abstract class RequestResponsePactForgerWith[Resources: Tag]
@@ -66,7 +64,8 @@ abstract class RequestResponsePactForgerBase[Resources: Tag]
         _ <-
           (beforeWritePacts() *> ZIO
             .attempt(verifyResultAndWritePactFiles(mockServer))
-            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded): @nowarn
+            .as(())
+            .catchAll(e => ZIO.logError(s"failed to write pacts: $e"))).when(allTestsSucceeded)
       } yield ()
     )
   }

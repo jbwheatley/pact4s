@@ -60,9 +60,8 @@ class ScalaTestVerifyPacts extends AnyFlatSpec with BeforeAndAfterAll with PactV
     val (_, shutdown) = server.allocated.unsafeRunSync()
     cleanUp = shutdown
     // Insert deliberately data that the provider state before hook should clean so that tests succeed
-    store.create(ProviderResource("missingID", 99)).unsafeRunSync()
-    store.create(ProviderResource("newID", 66)).unsafeRunSync()
-    ()
+    store.create(ProviderResource("missingID", 99)).void.unsafeRunSync()
+    store.create(ProviderResource("newID", 66)).void.unsafeRunSync()
   }
 
   override def afterAll(): Unit =
