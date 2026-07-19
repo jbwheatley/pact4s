@@ -53,14 +53,16 @@ class ScalaDslTest extends FunSuite {
     object NewDsl extends ScalaDsl {
 
       val dsl: DslPart = newJsonArray { rootArray =>
-        rootArray.newArray { a =>
-          a.stringValue("a1")
-          a.stringValue("a2")
-        }
-        rootArray.newArray { a =>
-          a.numberValue(1)
-          a.numberValue(2)
-        }
+        val _ = (
+          rootArray.newArray { a =>
+            a.stringValue("a1")
+            a.stringValue("a2")
+          },
+          rootArray.newArray { a =>
+            a.numberValue(1)
+            a.numberValue(2)
+          }
+        )
         rootArray.newArray { a =>
           a.newObject { o =>
             o.stringValue("foo", "Foo")
@@ -103,7 +105,7 @@ class ScalaDslTest extends FunSuite {
     object NewDsl extends ScalaDsl {
 
       val dsl: DslPart = newJsonObject { rootObj =>
-        rootObj.newObject("keyA") { o =>
+        val _ = rootObj.newObject("keyA") { o =>
           o.stringType("a1")
           o.stringType("a2")
         }

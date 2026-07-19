@@ -226,12 +226,11 @@ final class ProviderInfoBuilder private (
             )
             val applySelectors: Try[Unit] =
               Try {
-                providerInfo.hasPactsFromPactBrokerWithSelectorsV2(
+                val _ = providerInfo.hasPactsFromPactBrokerWithSelectorsV2(
                   p.brokerUrl,
                   p.consumerVersionSelectors.asJava,
                   brokerOptions
                 )
-                ()
               }
             applySelectors.toEither.map(_ => providerInfo)
         }

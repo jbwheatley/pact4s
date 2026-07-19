@@ -65,15 +65,16 @@ trait PactVerifyResources[F[+_]] {
   )(consumer: IConsumerInfo): F[Unit] =
     runWithTimeout(runVerification(verifier, providerInfo, consumer), timeout).flatMap {
       case Right(failed: VerificationResult.Failed) =>
-        F(verifier.displayFailures(List(failed).asJava))
-        // Don't fail the build if the pact is pending.
-        val pending = failed.getPending
-        val message =
-          s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
-              " [PENDING]"
-            else ""}: '${failed.getDescription}'"
-        if (pending) F(pendingFailures += message)
-        else F(failures += message)
+        F(verifier.displayFailures(List(failed).asJava)).flatMap { _ =>
+          // Don't fail the build if the pact is pending.
+          val pending = failed.getPending
+          val message =
+            s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} failed${if (pending)
+                " [PENDING]"
+              else ""}: '${failed.getDescription}'"
+          if (pending) F(pendingFailures += message)
+          else F(failures += message)
+        }
       case Right(_: VerificationResult.Ok) => F(())
       case Right(_)                        => failure("unexpected result type")
       case Left(_: TimeoutException)       =>
