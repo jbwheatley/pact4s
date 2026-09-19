@@ -228,7 +228,7 @@ addCommandAlias(
   List(
     "clean",
     "deletePactFiles",
-    "project scalaTest",
+    "project zioTest",
     "+test"
   )
     .mkString(";", ";", "")
