@@ -25,8 +25,6 @@ inThisBuild(
   )
 )
 
-publish / skip := true // don't publish the root project
-
 val commonSettings = Seq(
   resolvers ++= Seq(
     Resolver.mavenLocal
@@ -152,6 +150,7 @@ lazy val exampleProvider =
 
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)
+  .settings(publish / skip := true) // don't publish the root project
   .enablePlugins(AutomateHeaderPlugin)
   .aggregate(
     models,
