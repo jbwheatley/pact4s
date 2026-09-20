@@ -6,6 +6,6 @@ addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.4")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.2")
 
-addSbtPlugin("org.typelevel" % "sbt-tpolecat" % "0.5.6")
+addSbtPlugin("org.typelevel" % "sbt-tpolecat" % "0.5.7")
 
 addSbtPlugin("com.thoughtworks.sbt-api-mappings" % "sbt-api-mappings" % "3.0.3")
