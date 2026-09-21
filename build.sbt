@@ -9,29 +9,27 @@ val allScalaVersions = Seq(scala212, scala213, scala3)
 inThisBuild(
   List(
     organization := "io.github.jbwheatley",
-    homepage     := Some(url("https://github.com/jbwheatley/pact4s")),
+    homepage     := Some(uri("https://github.com/jbwheatley/pact4s")),
     developers   := List(
       Developer(
         "jbwheatley",
         "jbwheatley",
         "jbwheatley@proton.me",
-        url("https://github.com/jbwheatley")
+        uri("https://github.com/jbwheatley")
       )
     ),
     startYear          := Some(2021),
-    licenses           := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    licenses           := List("Apache-2.0" -> uri("http://www.apache.org/licenses/LICENSE-2.0")),
     scalaVersion       := scala213,
     crossScalaVersions := allScalaVersions
   )
 )
 
-publish / skip := true // don't publish the root project
-
 val commonSettings = Seq(
   resolvers ++= Seq(
-    Resolver.mavenLocal,
-    Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+    Resolver.mavenLocal
   ),
+  exportJars                := false,
   Test / parallelExecution := false
 )
 
@@ -152,6 +150,7 @@ lazy val exampleProvider =
 
 lazy val pact4s = (project in file("."))
   .settings(commonSettings)
+  .settings(publish / skip := true) // don't publish the root project
   .enablePlugins(AutomateHeaderPlugin)
   .aggregate(
     models,
@@ -171,10 +170,13 @@ lazy val deletePactFiles = taskKey[Unit]("deletes pact files created during test
 
 deletePactFiles := {
   import java.io.File
-  import scala.reflect.io.Directory
-  List(scalaTest.base.base, munit.base.base, weaver.base.base, zioTest.base.base).foreach { project =>
-    new Directory(new File(s"./$project/target/pacts")).deleteRecursively()
+  def deleteRecursively(file: File): Unit = {
+    if (file.isDirectory) Option(file.listFiles()).foreach(_.foreach(deleteRecursively))
+    file.delete()
     ()
+  }
+  List(scalaTest.base.base, munit.base.base, weaver.base.base, zioTest.base.base).foreach { project =>
+    deleteRecursively(new File(s"./$project/target/pacts"))
   }
 }
 
@@ -184,8 +186,8 @@ addCommandAlias(
     "clean",
     "scalafmtCheck",
     "headerCheck",
-    "+compile:doc",
-    "+test:compile",
+    "+Compile/doc",
+    "+Test/compile",
     "deletePactFiles",
     "project models",
     "+test",
@@ -260,7 +262,7 @@ addCommandAlias(
 
 addCommandAlias(
   "commitCheck",
-  (List("clean", "deletePactFiles", "scalafmtCheck", "headerCheck", "+compile:doc", "+test:compile") ++
+  (List("clean", "deletePactFiles", "scalafmtCheck", "headerCheck", "+Compile/doc", "+Test/compile") ++
     List(
       "models",
       "munit",

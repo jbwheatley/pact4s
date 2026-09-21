@@ -155,7 +155,7 @@ trait PactVerifyResources[F[+_]] {
     *   if set, results of verification will be published to the pact broker, along with version and tags
     * @param providerMethodInstance
     *   The method instance to use when invoking methods with
-    *   [[pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings]].
+    *   `pact4s.provider.VerificationSettings.AnnotatedMethodVerificationSettings`.
     * @param providerVerificationOptions
     *   list of options to pass to the pact-jvm verifier
     * @param additionalReporters
