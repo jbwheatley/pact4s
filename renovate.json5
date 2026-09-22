@@ -10,6 +10,12 @@
         {
           "paths": [".github/workflows/*"],
           "enabled": true
+        },
+        {
+          "matchManagers": ["github-actions"],
+          "matchPackageNames": ["renovatebot/github-action"],
+          "matchUpdateTypes": ["patch"],
+          "automerge": true
         }
       ]
 }
