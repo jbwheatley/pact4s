@@ -75,8 +75,8 @@ trait PactVerifyResources[F[+_]] {
           if (pending) F(pendingFailures += message)
           else F(failures += message)
         }
-      case Right(_)                  => F(())
-      case Left(_: TimeoutException) =>
+      case Right(_: VerificationResult.Ok) => F(())
+      case Left(_: TimeoutException)       =>
         F {
           failures += s"Verification of pact between ${providerInfo.getName} and ${consumer.getName} exceeded the time out of ${timeout.orNull}"
         }
